@@ -47,6 +47,18 @@ export function anclaLocal(ref: Ref): V3 {
     case 'manos':
       p = lerpV(r.esq.palmaD.centro, r.esq.palmaI.centro, 0.5);
       break;
+    case 'munecaD':
+      p = r.esq.munecaD;
+      break;
+    case 'munecaI':
+      p = r.esq.munecaI;
+      break;
+    case 'codoD':
+      p = r.esq.codoD;
+      break;
+    case 'codoI':
+      p = r.esq.codoI;
+      break;
     default:
       p = transformarPunto(PUNTOS[ref.ancla], r.pose.agachar, r.pose.inclinar);
   }

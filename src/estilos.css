@@ -367,6 +367,17 @@ button {
   pointer-events: auto;
 }
 
+@media (max-width: 959px) {
+  .visor-cabecera {
+    right: 0;
+    max-width: none;
+    padding-right: 120px;
+  }
+  .visor-titulo h1 {
+    font-size: 19px;
+  }
+}
+
 .visor-titulo {
   display: grid;
   gap: 2px;
@@ -1045,8 +1056,12 @@ button {
   }
 }
 
-/* Rótulos 3D */
+/* Rótulos 3D (posicionados por el HUD) */
 .marca3d {
+  position: absolute;
+  top: 0;
+  left: 0;
+  will-change: transform, opacity;
   padding: 3px 9px;
   border-radius: 999px;
   background: rgb(10 11 18 / 0.78);

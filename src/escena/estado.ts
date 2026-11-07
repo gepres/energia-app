@@ -10,7 +10,7 @@ import { NEUTRA } from './poses';
 
 export type ColorEnergia = 'oro' | 'cielo' | 'tierra' | 'rosa' | 'violeta' | 'jade' | 'blanco' | 'sombra';
 
-export type Ancla = 'manoD' | 'manoI' | 'manos' | PuntoCuerpo;
+export type Ancla = 'manoD' | 'manoI' | 'manos' | 'munecaD' | 'munecaI' | 'codoD' | 'codoI' | PuntoCuerpo;
 
 /** Referencia a un punto que se mueve con un cuerpo (se resuelve al dibujar). */
 export interface Ref {

@@ -1,4 +1,3 @@
-import { Html } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import {
@@ -28,6 +27,7 @@ import {
 } from 'three';
 import { posicionPegada, registro } from './anclas';
 import { MAX_ROSAS } from './estado';
+import { esquinasCubo } from './geoCubo';
 import { type V3, clamp, saleAtras } from './mate';
 import { colorEnergia, HEX_ENERGIA } from './paleta';
 import { crearMaterialCuerpo } from './materiales';
@@ -77,10 +77,13 @@ function geometriaPetalo() {
 }
 
 const PETALOS = [
-  { n: 5, r: 0.012, largo: 0.07, ancho: 0.06, cerrada: 0.12, abierta: 0.55 },
-  { n: 7, r: 0.022, largo: 0.09, ancho: 0.075, cerrada: 0.25, abierta: 0.95 },
-  { n: 9, r: 0.03, largo: 0.105, ancho: 0.09, cerrada: 0.4, abierta: 1.3 },
+  { n: 3, r: 0.004, largo: 0.05, ancho: 0.045, cerrada: 0.04, abierta: 0.16 },
+  { n: 5, r: 0.01, largo: 0.062, ancho: 0.055, cerrada: 0.1, abierta: 0.32 },
+  { n: 7, r: 0.017, largo: 0.076, ancho: 0.066, cerrada: 0.2, abierta: 0.55 },
+  { n: 9, r: 0.024, largo: 0.088, ancho: 0.078, cerrada: 0.32, abierta: 0.85 },
+  { n: 11, r: 0.031, largo: 0.094, ancho: 0.084, cerrada: 0.45, abierta: 1.15 },
 ];
+const TALLO = 0.17;
 const N_PETALOS = PETALOS.reduce((s, c) => s + c.n, 0);
 
 function materialPetalo() {
@@ -118,12 +121,21 @@ function materialPetalo() {
   });
 }
 
+const MAT_TALLO = new MeshBasicMaterial({
+  color: new Color(HEX_ENERGIA.jade).multiplyScalar(0.9),
+  transparent: true,
+  blending: AdditiveBlending,
+  depthWrite: false,
+  side: DoubleSide,
+});
+
 function UnaRosa({ i }: { i: number }) {
   const grupo = useRef<Group>(null);
   const petalos = useRef<InstancedMesh>(null);
   const brillo = useRef<Sprite>(null);
   const sello = useRef<Mesh>(null);
   const disco = useRef<Mesh>(null);
+  const tallo = useRef<Group>(null);
   const geo = useMemo(geometriaPetalo, []);
   const mat = useMemo(materialPetalo, []);
   const matSello = useMemo(() => {
@@ -149,7 +161,7 @@ function UnaRosa({ i }: { i: number }) {
         _o.rotation.set(0, 0, 0);
         _o.rotateY(yaw);
         _o.rotateX(tilt);
-        const s = 0.25 + 0.75 * clamp(r.apertura * 1.6 - c * 0.25 + 0.4);
+        const s = 0.3 + 0.7 * clamp(r.apertura * 1.6 - c * 0.18 + 0.4);
         _o.scale.set(capa.ancho * 2 * s, capa.largo * s, capa.ancho * 2 * s);
         _o.updateMatrix();
         petalos.current!.setMatrixAt(k++, _o.matrix);
@@ -177,7 +189,10 @@ function UnaRosa({ i }: { i: number }) {
     matSello.uniforms.uTiempo.value = reloj.valor;
     const d = disco.current!;
     d.position.set(0, -p[1] + 0.004, 0);
-    (d.material as MeshBasicMaterial).opacity = r.opacidad * 0.5 * clamp(1 - p[1] * 2);
+    (d.material as MeshBasicMaterial).opacity = r.opacidad * 0.5 * clamp(1 - (p[1] - TALLO) * 3);
+    const ta = tallo.current!;
+    ta.visible = r.apertura > 0.02;
+    ta.scale.set(1, clamp(r.apertura * 1.5), 1);
   }, -5);
   return (
     <group ref={grupo} visible={false}>
@@ -188,6 +203,13 @@ function UnaRosa({ i }: { i: number }) {
       <mesh ref={sello} material={matSello} renderOrder={7}>
         <sphereGeometry args={[1, 40, 28]} />
       </mesh>
+      <group ref={tallo}>
+        <mesh position={[0, -TALLO / 2, 0]} material={MAT_TALLO} renderOrder={5}>
+          <cylinderGeometry args={[0.004, 0.006, TALLO, 8, 1, true]} />
+        </mesh>
+        <mesh position={[0.025, -0.1, 0]} rotation={[0, 0, -0.9]} scale={[0.035, 0.05, 0.035]} geometry={geo} material={MAT_TALLO} renderOrder={5} />
+        <mesh position={[-0.022, -0.06, 0.004]} rotation={[0.2, Math.PI, -0.8]} scale={[0.03, 0.045, 0.03]} geometry={geo} material={MAT_TALLO} renderOrder={5} />
+      </group>
       <mesh ref={disco} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
         <circleGeometry args={[0.28, 40]} />
         <meshBasicMaterial map={texturaHalo()} color={HEX_ENERGIA.rosa} blending={AdditiveBlending} transparent depthWrite={false} />
@@ -504,20 +526,6 @@ function Llama() {
 
 // ── Cubo de luz (resumen de «mejorar-apuntes») ──────────────────────────
 
-/** Orden de las esquinas: B1 NO, B2 NE, B3 SE, B4 SO; norte = +Z, oeste = +X. */
-export function esquinasCubo(centro: V3, lado: number) {
-  const a = lado / 2;
-  const base: [number, number][] = [
-    [a, a], // NO
-    [-a, a], // NE
-    [-a, -a], // SE
-    [a, -a], // SO
-  ];
-  const inf = base.map(([x, z]) => [centro[0] + x, centro[1], centro[2] + z] as V3);
-  const sup = base.map(([x, z]) => [centro[0] + x, centro[1] + lado, centro[2] + z] as V3);
-  return { inf, sup };
-}
-
 function Cubo() {
   const grupo = useRef<Group>(null);
   const esferas = useRef<InstancedMesh>(null);
@@ -682,39 +690,6 @@ function Haces() {
 
 // ── Rótulos y cotas ─────────────────────────────────────────────────────
 
-function Marcas() {
-  const grupos = useRef<(Group | null)[]>([]);
-  const textos = useRef<(HTMLDivElement | null)[]>([]);
-  useFrame(() => {
-    const ms = escena.estado.marcas;
-    for (let i = 0; i < 5; i++) {
-      const g = grupos.current[i];
-      const t = textos.current[i];
-      if (!g || !t) continue;
-      const m = ms[i];
-      if (!m || m.opacidad < 0.01) {
-        t.style.opacity = '0';
-        continue;
-      }
-      g.position.set(m.pos[0], m.pos[1], m.pos[2]);
-      if (t.textContent !== m.texto) t.textContent = m.texto;
-      t.dataset.tipo = m.tipo;
-      t.style.opacity = String(m.opacidad);
-    }
-  });
-  return (
-    <>
-      {Array.from({ length: 5 }, (_, i) => (
-        <group key={i} ref={(g) => void (grupos.current[i] = g)}>
-          <Html center zIndexRange={[5, 0]} style={{ pointerEvents: 'none' }}>
-            <div ref={(d) => void (textos.current[i] = d)} className="marca3d" style={{ opacity: 0 }} />
-          </Html>
-        </group>
-      ))}
-    </>
-  );
-}
-
 const GEO_EXTREMO = new BoxGeometry(0.012, 0.002, 0.14);
 const GEO_ESFERITA = new SphereGeometry(1, 14, 10);
 const _col = new Color();
@@ -780,7 +755,6 @@ export function Objetos() {
       <Llama />
       <Cubo />
       <Haces />
-      <Marcas />
       <Cotas />
     </>
   );

@@ -1,7 +1,7 @@
-import { type Pose, PUNTOS, type PuntoCuerpo } from '../escena/cuerpo';
+import { type Pose, PUNTOS, type PuntoCuerpo, resolverEsqueleto } from '../escena/cuerpo';
 import { type ColorEnergia, type Estado, type Punto, ref } from '../escena/estado';
-import { type V3, arco, campana, clamp, lerp, rotarY, sumaV, tramo } from '../escena/mate';
-import { BRAZOS_CIELO, CARGA_OMBLIGO, MANO_CORAZON, SERENA, palmasAbajo } from '../escena/poses';
+import { type V3, arco, campana, clamp, lerp, lerpV, rotarY, saleAtras, sumaV, tramo } from '../escena/mate';
+import { BRAZOS_CIELO, CARGA_OMBLIGO, DEJAR_EN_PISO, DISPARAR, MANO_CORAZON, MANOS_PECHO, SERENA, palmasAbajo } from '../escena/poses';
 import { encuadre, posar, puntoMundo } from './motor';
 
 // ── Tomas de cámara ─────────────────────────────────────────────────────
@@ -210,3 +210,134 @@ export function vuelo(a: V3, b: V3, k: number, altura = 0.5): V3 {
 }
 
 export { campana, CARGA_OMBLIGO };
+
+/** Centro de la palma según la pose objetivo (coincide con la dibujada en reposo). */
+export function palmaMundo(e: Estado, fig: 0 | 1, lado: 'D' | 'I'): V3 {
+  const f = e.figuras[fig];
+  const esq = resolverEsqueleto(f.pose);
+  const p = lado === 'D' ? esq.palmaD.centro : esq.palmaI.centro;
+  return sumaV(rotarY(p, f.rotY), f.pos);
+}
+
+export function entrePalmas(e: Estado, fig: 0 | 1): V3 {
+  return lerpV(palmaMundo(e, fig, 'D'), palmaMundo(e, fig, 'I'), 0.5);
+}
+
+// ── Rosas ───────────────────────────────────────────────────────────────
+
+/** Saca una rosa del pecho y la deja en el piso en `destino`. */
+export function sacarRosa(e: Estado, i: number, t: number, destino: V3) {
+  posar(e, 0, MANOS_PECHO, t, 0, 0.18);
+  const r = e.rosas[i];
+  const pecho = delante(e, 0, 'corazon', 0.09);
+  r.activa = t > 0.12;
+  r.ref = null;
+  r.pegado = 0;
+  const sale = tramo(t, 0.12, 0.35);
+  r.escala = lerp(0.25, 1, tramo(t, 0.12, 0.75));
+  r.apertura = lerp(0.05, 1, tramo(t, 0.3, 0.85));
+  r.opacidad = tramo(t, 0.12, 0.22);
+  posar(e, 0, DEJAR_EN_PISO, t, 0.38, 0.58);
+  const vuela = tramo(t, 0.4, 0.78);
+  const inicio: V3 = [pecho[0], pecho[1], pecho[2] + 0.12 * sale];
+  r.pos = vuela > 0 ? arco(inicio, [destino[0], 0.18, destino[2]], vuela, 0.18) : inicio;
+  posar(e, 0, SERENA, t, 0.8, 1);
+  if (t >= 0.78) pulso(e, [destino[0], 0.12, destino[2]], (t - 0.78) / 0.22, 0.35, 'rosa');
+}
+
+/** Energía que viaja desde `origen` hasta la rosa i y la rosa la recoge. */
+export function recogerEnRosa(e: Estado, i: number, t: number, origen: Punto[], color: ColorEnergia, flujoI = 0) {
+  const r = e.rosas[i];
+  const destino: V3 = [r.pos[0], r.pos[1] + 0.06, r.pos[2]];
+  flujo(e, flujoI, [...origen, destino], {
+    cabeza: tramo(t, 0.08, 0.5),
+    cola: 0.85,
+    color,
+    intensidad: 1.3 * (1 - tramo(t, 0.86, 1)),
+    remolino: 0.06,
+    ancho: 1.7,
+  });
+  r.recoge = campana(t, 0.2, 1);
+}
+
+/** Forma una esfera en la mano derecha y la dispara sobre la rosa i para sellarla. */
+export function sellarRosaDisparando(e: Estado, rosaI: number, t: number, esferaI = 4) {
+  posar(e, 0, MANOS_PECHO, t, 0, 0.15);
+  posar(e, 0, DISPARAR, t, 0.22, 0.4);
+  const r = e.rosas[rosaI];
+  const blanco: V3 = [r.pos[0], r.pos[1] + 0.07, r.pos[2]];
+  const s = e.esferas[esferaI];
+  const forma = tramo(t, 0.05, 0.3);
+  const vuelo = tramo(t, 0.42, 0.62, (x) => x * x);
+  s.activa = t > 0.05 && t < 0.64;
+  s.color = 'violeta';
+  s.brillo = 1.3;
+  s.radio = 0.045 * saleAtras(forma);
+  s.opacidad = 1;
+  if (vuelo <= 0) {
+    s.ref = t < 0.3 ? ref('manos', 0, [0, 0.02, 0.05]) : ref('manoD', 0, [0, 0, 0.06]);
+    s.pegado = 1;
+  } else {
+    const desde = palmaMundo(e, 0, 'D');
+    s.ref = null;
+    s.pegado = 0;
+    s.pos = arco([desde[0], desde[1], desde[2] + 0.06], blanco, vuelo, 0.22);
+  }
+  pulso(e, blanco, clamp((t - 0.62) / 0.25), 0.5, 'violeta');
+  r.sello = tramo(t, 0.62, 0.9);
+  r.recoge *= 1 - tramo(t, 0.6, 0.8);
+  posar(e, 0, SERENA, t, 0.72, 0.95);
+}
+
+/** La rosa i vuela hasta el pecho de una figura y se absorbe. */
+export function devolverRosa(e: Estado, i: number, t: number, fig: 0 | 1, a = 0, b = 1) {
+  const k = (x: number) => a + (b - a) * x;
+  const r = e.rosas[i];
+  if (!r.activa) return;
+  const pecho = delante(e, fig, 'corazon', 0.04);
+  const vuelo = tramo(t, k(0.1), k(0.7));
+  if (vuelo > 0) r.pos = arco(r.pos, pecho, vuelo, 0.35);
+  r.escala *= lerp(1, 0.35, tramo(t, k(0.45), k(0.85)));
+  r.opacidad *= 1 - tramo(t, k(0.72), k(0.9));
+  pulso(e, pecho, clamp((t - k(0.7)) / (k(1) - k(0.7))), 0.45, 'rosa');
+  if (t >= k(0.9)) r.activa = false;
+  if (fig === 0) e.centros.corazon = Math.max(e.centros.corazon ?? 0, campana(t, k(0.65), k(1)));
+}
+
+// ── Cubo (versión resumida de «mejorar-apuntes») ───────────────────────
+
+export function construirCubo(e: Estado, t: number, centro: V3 = [0, 0, 0], lado = 2.4) {
+  const c = e.cubo;
+  Object.assign(c, { activo: true, centro, lado, opacidad: 1 });
+  c.grupos = 8 * tramo(t, 0.04, 0.5, (x) => x);
+  c.inferior = tramo(t, 0.5, 0.64, (x) => x);
+  c.superior = tramo(t, 0.64, 0.78, (x) => x);
+  c.verticales = tramo(t, 0.78, 0.88);
+  c.columna = tramo(t, 0.86, 1);
+}
+
+export function cuboCompleto(e: Estado, centro: V3 = [0, 0, 0], lado = 2.4, opacidad = 1) {
+  Object.assign(e.cubo, {
+    activo: true,
+    centro,
+    lado,
+    grupos: 8,
+    inferior: 1,
+    superior: 1,
+    verticales: 1,
+    columna: 1,
+    opacidad,
+  });
+}
+
+/** Cota sobre el piso con su rótulo. */
+export function cota(e: Estado, desde: V3, hasta: V3, texto: string, k: number) {
+  if (k <= 0) return;
+  e.cotas.push({ desde, hasta, texto, k });
+  e.marcas.push({
+    pos: [(desde[0] + hasta[0]) / 2 + 0.14, 0.1, (desde[2] + hasta[2]) / 2],
+    texto,
+    opacidad: tramo(k, 0.6, 1),
+    tipo: 'distancia',
+  });
+}

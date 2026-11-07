@@ -302,3 +302,35 @@ export const VISUALIZAR = pose({ ...SERENA, cabezaPitch: -0.08 });
 export function puntoCuerpo(nombre: PuntoCuerpo): V3 {
   return PUNTOS[nombre];
 }
+
+/** Esfera entre las palmas centrada en un punto del cuerpo (x, y, z). */
+export function esferaEnManosEn(c: V3, sep = 0.24): Pose {
+  return pose({
+    manoD: [c[0] - sep / 2, c[1] - 0.045, c[2] - 0.035],
+    manoI: [c[0] + sep / 2, c[1] - 0.045, c[2] - 0.035],
+    codoD: [-1, -0.6, -0.2],
+    codoI: [1, -0.6, -0.2],
+    palmaD: [1, 0, 0],
+    palmaI: [-1, 0, 0],
+    dedosD: normV([0.1, 0.55, 0.85]),
+    dedosI: normV([-0.1, 0.55, 0.85]),
+    cabezaPitch: c[1] > 1.5 ? -0.25 : c[1] < 0.95 ? 0.45 : 0.22,
+    inclinar: c[1] < 0.9 ? 0.25 : 0,
+    agachar: c[1] < 0.9 ? 0.08 : 0,
+  });
+}
+
+/** Dos palmas abiertas hacia arriba, separadas (una esfera en cada mano). */
+export function palmasArriba(sep = 0.42, y = 1.08, z = 0.34): Pose {
+  return pose({
+    manoD: [-sep / 2, y, z],
+    manoI: [sep / 2, y, z],
+    codoD: [-0.8, -0.8, -0.1],
+    codoI: [0.8, -0.8, -0.1],
+    palmaD: ARRIBA,
+    palmaI: ARRIBA,
+    dedosD: normV([0.15, 0, 1]),
+    dedosI: normV([-0.15, 0, 1]),
+    cabezaPitch: 0.3,
+  });
+}

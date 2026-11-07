@@ -40,6 +40,8 @@ export function evaluar(sec: Secuencia, paso: number, t: number, o: Opciones): E
 /** Lo que sólo vive dentro de un paso (contadores, pulsos, rótulos de cota). */
 function limpiarTransitorios(e: Estado) {
   e.pulsos = [];
+  e.cotas = [];
+  e.marcas = e.marcas.filter((m) => m.tipo === 'brujula');
   e.hud = { contador: null, respiracion: null, aviso: null };
 }
 

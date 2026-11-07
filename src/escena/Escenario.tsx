@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Bloom, EffectComposer, SMAA, ToneMapping, Vignette } from '@react-three/postprocessing';
 import { ToneMappingMode } from 'postprocessing';
 import { type ReactNode, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { type Mesh, type PerspectiveCamera, PlaneGeometry, ShaderMaterial, Color, type HemisphereLight, type DirectionalLight } from 'three';
+import { type Mesh, type PerspectiveCamera, PlaneGeometry, ShaderMaterial, Color, type HemisphereLight, type DirectionalLight, Vector2, Vector3 } from 'three';
 import { useReproductor } from '../reproductor';
 import { evaluar } from '../secuencias/motor';
 import { evaluarPortada } from '../secuencias/portada';
@@ -109,6 +109,27 @@ function Camara() {
   );
 }
 
+// ── Rótulos: proyección a pantalla ─────────────────────────────────────
+
+const _proy = new Vector3();
+function ProyectarMarcas() {
+  useFrame((state) => {
+    const { width, height } = state.size;
+    escena.marcasPantalla = escena.estado.marcas.map((m) => {
+      _proy.set(m.pos[0], m.pos[1], m.pos[2]).project(state.camera);
+      const delante = _proy.z < 1;
+      return {
+        x: ((_proy.x + 1) / 2) * width,
+        y: ((1 - _proy.y) / 2) * height,
+        texto: m.texto,
+        opacidad: delante ? m.opacidad : 0,
+        tipo: m.tipo,
+      };
+    });
+  }, -1);
+  return null;
+}
+
 // ── Piso ────────────────────────────────────────────────────────────────
 
 function Piso() {
@@ -121,6 +142,7 @@ function Piso() {
           uFondo: { value: new Color(ESCENARIO.fondo) },
           uLuz: { value: 1 },
           uTierra: { value: 0 },
+          uTierraCentro: { value: new Vector2() },
           uTierraColor: { value: new Color('#ff8648') },
         },
         vertexShader: /* glsl */ `
@@ -136,6 +158,7 @@ function Piso() {
           uniform vec3 uFondo;
           uniform float uLuz;
           uniform float uTierra;
+          uniform vec2 uTierraCentro;
           uniform vec3 uTierraColor;
           varying vec2 vP;
           float anillo(float r, float radio, float ancho) {
@@ -153,7 +176,8 @@ function Piso() {
             float cardinal = smoothstep(0.014, 0.0, abs(sin(ang * 2.0)) * r);
             l += cardinal * smoothstep(0.6, 0.7, r) * smoothstep(2.7, 2.6, r) * 0.25;
             c += uLinea * l * 0.55;
-            c += uTierraColor * uTierra * exp(-r * r * 3.0) * 0.9;
+            float rt = length(vP - uTierraCentro);
+            c += uTierraColor * uTierra * exp(-rt * rt * 3.0) * 0.9;
             c *= uLuz;
             float niebla = smoothstep(2.5, 7.5, r);
             gl_FragColor = vec4(mix(c, uFondo, niebla), 1.0);
@@ -167,6 +191,8 @@ function Piso() {
     const e = escena.estado;
     mat.uniforms.uLuz.value = 1 - 0.45 * e.penumbra;
     mat.uniforms.uTierra.value = e.tierra;
+    // El plano está girado −90° en X: su eje y local apunta a −Z del mundo.
+    mat.uniforms.uTierraCentro.value.set(registro[0].pos[0], -registro[0].pos[2]);
   });
   return <mesh geometry={geo} material={mat} rotation={[-Math.PI / 2, 0, 0]} renderOrder={-1} />;
 }
@@ -291,6 +317,7 @@ export function Escenario({ children }: { children?: ReactNode }) {
       />
       <Director />
       <Camara />
+      <ProyectarMarcas />
       <Luces />
       <Suspense fallback={null}>
         <Environment resolution={64} frames={1}>

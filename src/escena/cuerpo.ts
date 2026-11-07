@@ -142,8 +142,10 @@ function mezclarDir(a: V3 | null, b: V3 | null, k: number): V3 | null {
 
 /** Mezcla dos poses. `arcoManos` separa las manos del cuerpo a mitad de camino. */
 export function mezclarPose(a: Pose, b: Pose, k: number, arcoManos = 0.06): Pose {
-  if (k <= 0) return a;
-  if (k >= 1) return b;
+  // Siempre devuelve una pose nueva: las poses de la biblioteca son constantes
+  // compartidas y la coreografía puede retocar el resultado.
+  if (k <= 0) return copiarPose(a);
+  if (k >= 1) return copiarPose(b);
   const empuje = Math.sin(Math.PI * k) * arcoManos;
   const manoD = lerpV(a.manoD, b.manoD, k);
   const manoI = lerpV(a.manoI, b.manoI, k);

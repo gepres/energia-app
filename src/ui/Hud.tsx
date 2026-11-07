@@ -15,6 +15,7 @@ export function Hud() {
   const fase = useRef<HTMLSpanElement>(null);
   const ciclo = useRef<HTMLSpanElement>(null);
   const aviso = useRef<HTMLDivElement>(null);
+  const marcas = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     let raf = 0;
@@ -50,6 +51,18 @@ export function Hud() {
         aviso.current.dataset.visible = String(!!h.aviso);
         if (h.aviso && aviso.current.textContent !== h.aviso) aviso.current.textContent = h.aviso;
       }
+      marcas.current.forEach((d, i) => {
+        if (!d) return;
+        const m = escena.marcasPantalla[i];
+        if (!m || m.opacidad < 0.01) {
+          d.style.opacity = '0';
+          return;
+        }
+        if (d.textContent !== m.texto) d.textContent = m.texto;
+        d.dataset.tipo = m.tipo;
+        d.style.opacity = String(m.opacidad);
+        d.style.transform = `translate(${m.x}px, ${m.y}px) translate(-50%, -50%)`;
+      });
       raf = requestAnimationFrame(bucle);
     };
     raf = requestAnimationFrame(bucle);
@@ -75,6 +88,9 @@ export function Hud() {
         <span ref={ciclo} className="hud-resp-ciclo" />
       </div>
       <div ref={aviso} className="hud-aviso" data-visible="false" />
+      {Array.from({ length: 6 }, (_, i) => (
+        <div key={i} ref={(d) => void (marcas.current[i] = d)} className="marca3d" style={{ opacity: 0 }} />
+      ))}
     </div>
   );
 }

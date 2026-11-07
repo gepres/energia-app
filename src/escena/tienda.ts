@@ -21,5 +21,7 @@ export const escena = {
    * x > 0 mueve el contenido a la izquierda, y > 0 lo sube.
    */
   lente: { x: 0, y: 0 },
+  /** Rótulos ya proyectados a píxeles del lienzo (los dibuja el HUD). */
+  marcasPantalla: [] as { x: number; y: number; texto: string; opacidad: number; tipo: string }[],
   calidad: 'alta' as Calidad,
 };
