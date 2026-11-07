@@ -44,7 +44,7 @@ function cincoRasgos(e: Estado, t: number) {
 // ── 5 · Separar tu energía de la de otra persona ───────────────────────
 
 const FOTO: V3 = [0, 0, 2.0];
-const ROSA_1: V3 = [0, 0.07, 0.6];
+const ROSA_1: V3 = [0, 0.07, 1.5];
 const ROSA_2: V3 = [0, 0.07, 1.0];
 
 export const separarOtraPersona: Secuencia = {
@@ -78,8 +78,9 @@ export const separarOtraPersona: Secuencia = {
     {
       dur: 8,
       aplicar: (e, t) => {
-        toma(e, encuadre([0, 0.85, 0.75], 2.3, 0.95, 0.26), t, 0, 0.35);
+        toma(e, tomaLateral(1.9), t, 0, 0.35);
         sacarRosa(e, 0, t, ROSA_1);
+        cota(e, [0.42, 0, 0.1], [0.42, 0, ROSA_1[2]], '1,5 m', tramo(t, 0.78, 1));
       },
     },
     // 4 · TODA MI ENERGÍA… QUE CAIGA DENTRO DE ESTA ROSA
@@ -87,7 +88,7 @@ export const separarOtraPersona: Secuencia = {
       dur: 8,
       aplicar: (e, t) => {
         toma(e, encuadre([0, 0.85, 1.25], 2.6, 0.7, 0.3), t, 0, 0.35);
-        recogerEnRosa(e, 0, t, [ref('corazon', 1, [0, 0, 0.1]), [0, 0.9, 1.3], [0, 0.45, 0.85]], 'oro');
+        recogerEnRosa(e, 0, t, [ref('corazon', 1, [0, 0, 0.1]), [0, 0.85, 1.85], [0, 0.45, 1.6]], 'oro');
         e.figuras[1].opacidad = 1;
       },
     },

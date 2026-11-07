@@ -4,12 +4,12 @@ import { type V3, arco, campana, clamp, lerp, lerpV, rotarY, saleAtras, sumaV, s
 import {
   CARGA_OMBLIGO,
   CARGA_PECHO,
+  CUBRIR_OMBLIGO,
   SENSIBILIZAR,
   SERENA,
   empujarHacia,
   esferaEnManosEn,
   palmasArriba,
-  sellarCarga,
 } from '../escena/poses';
 import { TOMAS, apagarFlujos, cargar, esfera, flujo, palmaMundo, pulso, sellarDesdeCielo } from './comunes';
 import { type Secuencia, encuadre, fijarPose, posar, puntoMundo, toma } from './motor';
@@ -334,30 +334,58 @@ export const recorridoChakras: Secuencia = {
 
 // ── 12 · Sellado final ──────────────────────────────────────────────────
 
+const OMBLIGO_FRENTE: V3 = [0, 1.04, 0.13];
+
 export const selladoFinal: Secuencia = {
   inicial: inicialSerena,
   pasos: [
+    // 1 · Mano derecha debajo (tapando el ombligo), izquierda encima
     {
-      dur: 7,
+      dur: 8,
       aplicar: (e, t) => {
-        toma(e, encuadre([0, 1.08, 0.2], 1.0, 0.55, 0.22), t, 0, 0.35);
-        posar(e, 0, sellarCarga(0.13), t, 0.05, 0.4);
-        e.marcas.push({ pos: puntoMundo(e, 0, [-0.2, 0.98, 0.3]), texto: 'derecha · debajo', opacidad: campana(t, 0.4, 1), tipo: 'nombre' });
-        e.marcas.push({ pos: puntoMundo(e, 0, [0.22, 1.18, 0.3]), texto: 'izquierda · encima', opacidad: campana(t, 0.45, 1), tipo: 'nombre' });
-        esfera(e, 0, { ref: null, pegado: 0, pos: puntoMundo(e, 0, [0, 1.06, 0.29]), radio: 0.04 * tramo(t, 0.45, 0.7), color: 'oro', brillo: 1.2 });
+        toma(e, encuadre([0, 1.1, 0.15], 1.05, 0.6, 0.12), t, 0, 0.35);
+        posar(e, 0, CUBRIR_OMBLIGO, t, 0.05, 0.42);
+        e.centros.ombligo = 0.3 + 0.5 * tramo(t, 0.4, 0.7);
+        e.marcas.push({ pos: puntoMundo(e, 0, [-0.22, 0.98, 0.18]), texto: 'derecha · tapa el ombligo', opacidad: campana(t, 0.4, 1), tipo: 'nombre' });
+        e.marcas.push({ pos: puntoMundo(e, 0, [0.24, 1.12, 0.2]), texto: 'izquierda · encima', opacidad: campana(t, 0.48, 1), tipo: 'nombre' });
       },
     },
+    // 2 · Lengua pegada al paladar de arriba y aguantar la respiración 30 s
+    {
+      dur: 10,
+      aplicar: (e, t) => {
+        toma(e, encuadre([0, 1.3, 0.12], 1.25, 0.45, 0.08), t, 0, 0.35);
+        const k = clamp((t - 0.1) / 0.82);
+        const seg = Math.min(30, Math.floor(k * 30) + (k > 0 ? 1 : 0));
+        e.hud.contador = k > 0 ? { valor: seg, total: 30, etiqueta: 'segundos sin respirar' } : null;
+        e.hud.aviso = k > 0 && k < 1 ? 'Lengua pegada al paladar de arriba' : null;
+        e.penumbra = 0.25 * campana(t, 0.05, 1);
+        e.centros.ombligo = 0.8;
+        e.centros.garganta = 0.25 * campana(t, 0.1, 0.95);
+        // La carga queda contenida bajo las manos: un latido lento por segundo.
+        pulso(e, puntoMundo(e, 0, OMBLIGO_FRENTE), (k * 30) % 1, 0.12, 'violeta');
+        e.marcas.push({ pos: puntoMundo(e, 0, [0.16, 1.56, 0.1]), texto: 'lengua al paladar', opacidad: campana(t, 0.1, 0.95), tipo: 'nombre' });
+      },
+    },
+    // 3 · Expandir y contraer la esfera de carga (a la altura del ombligo)
     {
       dur: 11,
       aplicar: (e, t) => {
-        toma(e, encuadre([0, 1.1, 0.25], 1.05, 0.5, 0.15), t, 0, 0.3);
+        toma(e, encuadre([0, 1.1, 0.2], 1.15, 0.55, 0.15), t, 0, 0.3);
+        e.centros.ombligo = 0.6;
         const k = clamp((t - 0.08) / 0.84);
-        // Dos ciclos de expandir y contraer.
         const ciclo = 0.5 - 0.5 * Math.cos(k * Math.PI * 4);
-        const sep = lerp(0.12, 0.3, ciclo);
-        if (t > 0.05) e.figuras[0].pose = sellarCarga(sep);
-        const centro = puntoMundo(e, 0, [0, 1.0 + sep / 2 + 0.01, 0.29]);
-        esfera(e, 0, { ref: null, pegado: 0, pos: centro, radio: lerp(0.04, 0.11, ciclo), color: 'oro', brillo: 1.1 + 0.3 * ciclo });
+        esfera(e, 0, {
+          ref: null,
+          pegado: 0,
+          pos: puntoMundo(e, 0, [0, 1.04, 0.1]),
+          radio: lerp(0.06, 0.24, ciclo) * tramo(t, 0, 0.08),
+          color: 'oro',
+          color2: 'violeta',
+          mezcla: 0.4,
+          brillo: 0.9 + 0.3 * ciclo,
+          opacidad: 0.85,
+        });
         e.hud.aviso = k > 0 && k < 1 ? (Math.sin(k * Math.PI * 4) > 0 ? 'Expandir' : 'Contraer') : null;
         if (t > 0.94) {
           posar(e, 0, SERENA, t, 0.94, 1);

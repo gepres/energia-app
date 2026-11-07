@@ -2,9 +2,11 @@ import { ref } from '../escena/estado';
 import { type V3, campana, clamp, lerp, saleAtras, tramo } from '../escena/mate';
 import { SERENA, TOCAR_PISO, esferaEnManosEn } from '../escena/poses';
 import { TOMAS, apagarFlujos, entrePalmas, esfera, flujo, pulso } from './comunes';
-import { type Secuencia, encuadre, fijarPose, posar, toma } from './motor';
+import { type Secuencia, encuadre, fijarPose, posar, puntoMundo, toma } from './motor';
 
 const EN_MANOS: V3 = [0, 1.12, 0.34];
+/** Frente a la ingle, donde va el agujero de la esfera. */
+const INGLE: V3 = [0, 0.9, 0.2];
 
 export const enraizar: Secuencia = {
   inicial: (e) => {
@@ -50,19 +52,35 @@ export const enraizar: Secuencia = {
         e.hud.aviso = t > 0.22 && t < 0.54 ? 'Carga − (tierra)' : t >= 0.56 && t < 0.9 ? 'Carga + (cielo)' : null;
       },
     },
-    // 2 · Hacer un agujero en la esfera
+    // 2 · Hacer un agujero en la esfera (confirmado: en la ingle, conectado con la tierra)
     {
-      dur: 7,
+      dur: 9,
       aplicar: (e, t) => {
         apagarFlujos(e);
         e.tierra = 0;
         e.cielo = 0;
-        toma(e, encuadre([0, 1.12, 0.3], 0.95, 0.75, -0.22), t, 0, 0.35);
+        toma(e, encuadre([0, 0.85, 0.25], 1.2, 0.8, 0.05), t, 0, 0.35);
+        const inicio = entrePalmas(e, 0);
+        // Las manos llevan la esfera hasta la ingle.
+        posar(e, 0, esferaEnManosEn(INGLE, 0.25), t, 0, 0.35);
         const s = e.esferas[0];
-        s.agujero = tramo(t, 0.25, 0.7);
+        s.ref = ref('genital', 0, [0, 0.0, 0.085]);
+        s.pos = inicio;
+        s.pegado = tramo(t, 0.02, 0.35);
         s.radio = 0.075;
         s.brillo = 1.4;
-        pulso(e, entrePalmas(e, 0), clamp((t - 0.62) / 0.3), 0.25, 'oro');
+        // Se abre hacia abajo, mirando al piso de los pies.
+        s.agujero = tramo(t, 0.42, 0.75);
+        flujo(e, 0, [ref('genital', 0, [0, -0.06, 0.085]), [0, 0.3, 0.1], [0, 0.0, 0.06]], {
+          cabeza: tramo(t, 0.7, 0.95),
+          cola: 1,
+          color: 'tierra',
+          intensidad: 0.7,
+          remolino: 0.02,
+          ancho: 0.9,
+        });
+        pulso(e, puntoMundo(e, 0, INGLE), clamp((t - 0.72) / 0.25), 0.25, 'oro');
+        e.marcas.push({ pos: puntoMundo(e, 0, [0.2, INGLE[1] + 0.02, INGLE[2]]), texto: 'ingle', opacidad: campana(t, 0.35, 1), tipo: 'nombre' });
       },
     },
     // 3 · Conectar desde la pelvis al piso (tocar el piso)
@@ -70,14 +88,12 @@ export const enraizar: Secuencia = {
       dur: 11,
       aplicar: (e, t) => {
         toma(e, encuadre([0, 0.62, 0.2], 1.9, 1.1, 0.16), t, 0, 0.4);
-        const inicio = entrePalmas(e, 0);
         posar(e, 0, TOCAR_PISO, t, 0.05, 0.42);
         const s = e.esferas[0];
-        s.ref = ref('genital', 0, [0, -0.02, 0.07]);
-        s.pos = inicio;
-        s.pegado = tramo(t, 0.0, 0.38);
+        s.ref = ref('genital', 0, [0, 0.0, 0.085]);
+        s.pegado = 1;
         s.radio = lerp(0.075, 0.06, tramo(t, 0, 0.4));
-        flujo(e, 0, [ref('genital', 0, [0, -0.07, 0.07]), [0, 0.12, 0.12], [0, 0.0, 0.1]], {
+        flujo(e, 0, [ref('genital', 0, [0, -0.06, 0.085]), [0, 0.12, 0.12], [0, 0.0, 0.1]], {
           cabeza: tramo(t, 0.42, 0.62),
           cola: 1,
           color: 'tierra',

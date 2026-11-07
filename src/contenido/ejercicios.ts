@@ -33,63 +33,11 @@ export function fraseOrgano(organo: Organo): string {
 
 export const DUDAS: Duda[] = [
   {
-    id: 'ritmo-4344',
-    titulo: 'Ritmo de respiración (4, 3, 4, 4)',
-    detalle: 'El apunte indica «15 respiraciones conscientes (4,3,4,4)» sin decir qué es cada número.',
-    lectura: 'Se lee como tiempos: inhalar 4 · retener 3 · exhalar 4 · pausa 4.',
-    fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
-  },
-  {
-    id: 'dirigir-organo',
-    titulo: '«Dirigir hacia el lugar que corresponde»',
-    detalle:
-      'La frase dice «QUE BAJE/SUBA LA ENERGÍA +/-». No se explica hacia dónde se dirige la esfera antes de llevarla al órgano.',
-    lectura:
-      'Se empareja en el orden del apunte: órganos de cielo (+) → «que BAJE la energía +», esfera dirigida hacia arriba; órganos de tierra (−) → «que SUBA la energía −», esfera dirigida hacia el piso.',
-    fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
-  },
-  {
-    id: 'cerrar-campo',
-    titulo: 'Cómo se cierra el propio campo energético',
-    detalle: '«Cierras tu campo energético» no describe el gesto.',
-    lectura: 'Se dibuja como un manto que se cierra alrededor de quien sana, sin gesto de manos concreto.',
-    fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
-  },
-  {
-    id: 'agujero-esfera',
-    titulo: 'Dónde va el agujero de la esfera',
-    detalle: '«Hacer un agujero en la esfera» no indica la posición ni el tamaño.',
-    lectura: 'Abertura en la parte de abajo de la esfera, por donde baja la conexión de la pelvis al piso.',
-    fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
-  },
-  {
-    id: 'rosa-1-distancia',
-    titulo: 'Distancia de la primera rosa',
-    detalle:
-      'La foto va a 2 m y la segunda rosa a 1 m de la otra persona; de la primera solo se dice «entre tú y la otra persona».',
-    lectura: 'La primera rosa se coloca más cerca de ti (≈ 0,6 m) y la segunda a 1 m de la otra persona.',
-    fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
-  },
-  {
     id: 'cubo-ex-pareja',
     titulo: '¿Se construye el cubo para el ejercicio de la ex pareja?',
     detalle: 'Se coloca el recipiente «en la columna del cubo», pero el ejercicio no dice «hacer cubo».',
     lectura: 'Se muestra el cubo ya construido (como en «Sanar a otra persona»).',
     fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
-  },
-  {
-    id: 'esfera-de-carga',
-    titulo: 'Dónde está la «esfera de carga» del sellado final',
-    detalle: '«Expandir y contraer la esfera de carga» no indica su posición.',
-    lectura: 'Entre las manos, a la altura del ombligo.',
-    fuente: 'notas-1.txt',
-  },
-  {
-    id: 'frase-centros',
-    titulo: '¿«Con esta esfera de luz…» en las tres frases?',
-    detalle: 'Las notas solo anteponen «con esta esfera de luz» en la frase del corazón.',
-    lectura: 'Se muestran las tres frases tal como están en las notas.',
-    fuente: 'notas-1.txt',
   },
 ];
 
@@ -121,7 +69,7 @@ export const EJERCICIOS: Ejercicio[] = [
         titulo: 'Mano en el corazón',
         texto: 'Colocar la mano sobre el corazón y hacer 15 respiraciones conscientes (4,3,4,4).',
         cantidad: { valor: 15, unidad: 'respiraciones', pregunta: '¿Cuántas respiraciones conscientes con la mano en el corazón?' },
-        dudas: ['ritmo-4344'],
+        aclaracion: 'Confirmado en el taller: inhalar 4 · retener 3 · exhalar 4 · pausa 4.',
       },
       {
         id: 'sostener-bolsa',
@@ -184,7 +132,8 @@ export const EJERCICIOS: Ejercicio[] = [
         titulo: 'Dirigir y pedir',
         texto: 'Dirigir hacia el lugar que corresponde y decir la frase.',
         frase: 'QUE BAJE/SUBA LA ENERGÍA +/- SUFICIENTE PARA SANAR MI ________ Y SUS FUNCIONES',
-        dudas: ['dirigir-organo'],
+        aclaracion:
+          'Confirmado en el taller: para los órganos de cielo (+) la esfera se dirige hacia arriba y se pide que BAJE la energía +; para los de tierra (−), hacia el piso y que SUBA la energía −.',
       },
       {
         id: 'llevar-organo',
@@ -233,7 +182,8 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'cerrar-campo',
         titulo: 'Cerrar tu campo',
         texto: 'Cierras tu campo energético.',
-        dudas: ['cerrar-campo'],
+        aclaracion:
+          'Confirmado en el taller: se atrae la energía esparcida. Es como si tu campo energético te estuviera cubriendo y tú, con la mano, como agarrándolo, lo atraes más cerca de ti.',
       },
       {
         id: 'tomar-columna',
@@ -267,7 +217,7 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'agujero',
         titulo: 'Agujero en la esfera',
         texto: 'Hacer un agujero en la esfera.',
-        dudas: ['agujero-esfera'],
+        aclaracion: 'Confirmado en el taller: el agujero va en la ingle y queda conectado con la tierra, el piso de tus pies.',
       },
       {
         id: 'pelvis-piso',
@@ -305,7 +255,9 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'rosa-1',
         titulo: 'Primera rosa',
         texto: 'Sacar del pecho una rosa y colocarla en el piso, entre tú y la otra persona.',
-        dudas: ['rosa-1-distancia'],
+        cantidad: { valor: 1.5, unidad: 'm', pregunta: '¿A qué distancia se coloca la primera rosa?' },
+        aclaracion: 'Confirmado en el taller: la primera rosa va a 1,5 m.',
+        lectura: 'Se mide desde ti, igual que la foto (a 2 m).',
       },
       {
         id: 'frase-rosa-1',
@@ -525,19 +477,19 @@ export const EJERCICIOS: Ejercicio[] = [
         texto: 'Empujar la bolita a 5–10 cm del corazón.',
         frase: 'CON ESTA ESFERA DE LUZ ACTIVO EL PODER DEL AMOR QUE RADICA EN MÍ',
         cantidad: { valor: 10, unidad: 'cm como máximo (5–10 cm)', pregunta: '¿A cuántos centímetros del centro se empuja la bolita? (máximo)' },
-        dudas: ['frase-centros'],
+        aclaracion: 'Confirmado en el taller: «con esta esfera de luz» va en las tres frases.',
       },
       {
         id: 'garganta',
         titulo: 'Garganta',
         texto: 'Empujar la bolita a 5–10 cm de la garganta.',
-        frase: 'ACTIVO EL PODER DE LA PALABRA QUE RADICA EN MI VOZ',
+        frase: 'CON ESTA ESFERA DE LUZ ACTIVO EL PODER DE LA PALABRA QUE RADICA EN MI VOZ',
       },
       {
         id: 'tercer-ojo',
         titulo: 'Tercer ojo',
         texto: 'Empujar la bolita a 5–10 cm del tercer ojo.',
-        frase: 'ACTIVO EL PODER DE LA CLARIVIDENCIA EN MÍ',
+        frase: 'CON ESTA ESFERA DE LUZ ACTIVO EL PODER DE LA CLARIVIDENCIA EN MÍ',
       },
     ],
   },
@@ -573,19 +525,29 @@ export const EJERCICIOS: Ejercicio[] = [
     numero: 12,
     titulo: 'Sellado final',
     origen: 'notas',
-    resumen: 'Mano derecha debajo, mano izquierda encima; luego expandir y contraer la esfera de carga.',
+    resumen:
+      'A la altura del ombligo: mano derecha debajo, tapándolo, y la izquierda encima; lengua al paladar aguantando la respiración 30 s; luego expandir y contraer la esfera de carga.',
     acento: 'violeta',
     pasos: [
       {
         id: 'manos',
         titulo: 'Derecha debajo, izquierda encima',
         texto: 'Mano derecha debajo, mano izquierda encima.',
-        dudas: ['esfera-de-carga'],
+        aclaracion:
+          'Confirmado en el taller: se sella a la altura del ombligo, tapándolo con la mano derecha y la izquierda encima.',
+      },
+      {
+        id: 'lengua-aguantar',
+        titulo: 'Lengua al paladar · 30 s',
+        texto: 'Con la lengua pegada al paladar de arriba, aguantar la respiración 30 segundos.',
+        cantidad: { valor: 30, unidad: 'segundos', pregunta: '¿Cuántos segundos se aguanta la respiración en el sellado final?' },
+        aclaracion: 'Indicado en el taller (no figuraba en las notas).',
       },
       {
         id: 'expandir-contraer',
         titulo: 'Expandir y contraer',
         texto: 'Expandir y contraer la esfera de carga.',
+        aclaracion: 'Confirmado en el taller: la esfera de carga está a la altura del ombligo.',
       },
     ],
   },

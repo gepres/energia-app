@@ -1,6 +1,6 @@
 import { ref } from '../escena/estado';
 import { type V3, campana, clamp, lerp, suave, tramo } from '../escena/mate';
-import { MANOS_PECHO, SERENA, TOMAR_BARRA_IZQUIERDA, brazoExtendidoD, sanar } from '../escena/poses';
+import { SERENA, TOMAR_BARRA_IZQUIERDA, atraerCampo, brazoExtendidoD, sanar } from '../escena/poses';
 import { apagarFlujos, construirCubo, esfera, flujo } from './comunes';
 import { type Secuencia, encuadre, fijarPose, posar, toma } from './motor';
 
@@ -65,26 +65,52 @@ export const sanarOtraPersona: Secuencia = {
         e.marcas.push({ pos: [0, 1.95, 0], texto: 'La persona mira al norte', opacidad: campana(t, 0.4, 1), tipo: 'nombre' });
       },
     },
-    // 3 · Cierras tu campo energético
+    // 3 · Cierras tu campo energético (confirmado: atraer la energía esparcida con la mano)
     {
-      dur: 7,
+      dur: 10,
       aplicar: (e, t) => {
-        toma(e, encuadre([0, 1.0, -0.75], 2.3, 0.95, 0.12), t, 0, 0.35);
+        toma(e, encuadre([0, 1.05, -0.8], 2.8, -1.35, 0.18), t, 0, 0.35);
         e.figuras[0].opacidad = 1;
         e.figuras[0].agilidad = 9;
-        posar(e, 0, MANOS_PECHO, t, 0, 0.2);
-        posar(e, 0, SERENA, t, 0.75, 1);
+        // Tres veces: la mano sale, «agarra» el campo y lo trae hacia ti.
+        const DIRS: V3[] = [
+          [-0.9, 0.15, 0.45],
+          [-0.35, 0.35, 0.95],
+          [-0.95, -0.25, -0.1],
+        ];
+        const k = clamp((t - 0.08) / 0.8);
+        const n = Math.min(2, Math.floor(k * 3));
+        const f = k * 3 - n;
+        const ida = f < 0.4 ? suave(f / 0.4) : 1;
+        const vuelta = f < 0.4 ? 0 : suave((f - 0.4) / 0.6);
+        if (t < 0.12) posar(e, 0, atraerCampo(DIRS[0], 0.6), t, 0, 0.12);
+        else if (k < 1) e.figuras[0].pose = atraerCampo(DIRS[n], ida < 1 ? 1 - ida : vuelta);
+        posar(e, 0, SERENA, t, 0.9, 1);
+        // El campo, esparcido al principio, se acerca y se condensa con cada tirón.
+        const atraido = (n + (f < 0.4 ? 0 : vuelta)) / 3;
+        const total = k >= 1 ? 1 : atraido;
         Object.assign(e.mantos[1], {
           activo: true,
           centro: [SANADOR[0], 0, SANADOR[2]] as V3,
-          radio: 0.52,
-          alto: 1.95,
-          desdeArriba: false,
-          cobertura: tramo(t, 0.15, 0.75),
-          banda: t > 0.15 && t < 0.8 ? lerp(0.05, 0.95, tramo(t, 0.15, 0.75)) : -1,
+          radio: lerp(1.15, 0.52, total),
+          alto: lerp(2.5, 1.95, total),
+          desdeArriba: true,
+          cobertura: 1,
+          banda: -1,
           color: 'violeta',
-          opacidad: lerp(1, 0.3, tramo(t, 0.8, 1)),
+          opacidad: lerp(0.35, 0.9, total) * (1 - 0.6 * tramo(t, 0.92, 1)),
+          lineas: lerp(0.15, 0.6, total),
         });
+        // Energía que vuelve a la mano en cada tirón.
+        flujo(e, 2, [ref('manoD', 0, [-0.35, 0.05, 0.2]), ref('manoD', 0, [-0.15, 0.02, 0.08]), ref('manoD', 0)], {
+          cabeza: 1,
+          cola: 1,
+          color: 'violeta',
+          intensidad: t > 0.08 && k < 1 && f >= 0.4 ? 0.9 : 0,
+          remolino: 0.06,
+          ancho: 1.2,
+        });
+        e.hud.aviso = k > 0 && k < 1 ? 'Atraer la energía esparcida, como agarrando tu campo' : null;
       },
     },
     // 4 · Tomar energía de la columna izquierda y pasar a la mano derecha

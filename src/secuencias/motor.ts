@@ -91,9 +91,32 @@ export function toma(e: Estado, c: Partial<Camara>, t: number, a = 0, b = 0.4) {
   const k = tramo(t, a, b, entraSaleCubica);
   if (k <= 0) return;
   const cam = e.camara;
-  if (c.pos) cam.pos = lerpV(cam.pos, c.pos, k);
-  if (c.mira) cam.mira = lerpV(cam.mira, c.mira, k);
+  const miraFinal = c.mira ?? cam.mira;
+  if (c.pos) cam.pos = orbitar(cam.pos, cam.mira, c.pos, miraFinal, k);
+  cam.mira = lerpV(cam.mira, miraFinal, k);
   if (c.fov) cam.fov = lerp(cam.fov, c.fov, k);
+}
+
+/**
+ * Interpola la cámara orbitando alrededor del punto que mira (radio, azimut y
+ * elevación) en vez de en línea recta: así no «corta por dentro» y se acerca
+ * de más cuando cambia mucho el ángulo entre dos tomas.
+ */
+function orbitar(posA: V3, miraA: V3, posB: V3, miraB: V3, k: number): V3 {
+  const esf = (p: V3, m: V3) => {
+    const d: V3 = [p[0] - m[0], p[1] - m[1], p[2] - m[2]];
+    const r = Math.hypot(d[0], d[1], d[2]) || 1e-6;
+    return { r, az: Math.atan2(d[0], d[2]), el: Math.asin(Math.max(-1, Math.min(1, d[1] / r))) };
+  };
+  const A = esf(posA, miraA);
+  const B = esf(posB, miraB);
+  let dAz = B.az - A.az;
+  dAz -= Math.round(dAz / (2 * Math.PI)) * 2 * Math.PI;
+  const r = lerp(A.r, B.r, k);
+  const az = A.az + dAz * k;
+  const el = lerp(A.el, B.el, k);
+  const m = lerpV(miraA, miraB, k);
+  return [m[0] + r * Math.cos(el) * Math.sin(az), m[1] + r * Math.sin(el), m[2] + r * Math.cos(el) * Math.cos(az)];
 }
 
 /** Punto del cuerpo de una figura en coordenadas del mundo, según su pose objetivo. */

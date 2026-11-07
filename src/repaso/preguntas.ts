@@ -107,7 +107,8 @@ function preguntasCantidad(ej: Ejercicio, azar: Azar): PreguntaOpcion[] {
     if (!p.cantidad) return [];
     const c = p.cantidad;
     const cerca = [c.valor * 2, Math.max(1, Math.round(c.valor / 2)), c.valor + 1, c.valor + 5, ...todas];
-    const o = opciones(String(c.valor), cerca.map(String), azar);
+    const fmt = (v: number) => String(v).replace('.', ',');
+    const o = opciones(fmt(c.valor), cerca.map(fmt), azar);
     return [
       {
         tipo: 'cantidad' as const,
@@ -214,7 +215,7 @@ const DATOS: { ejercicioId: string; paso: number; enunciado: string; correcta: s
     paso: 7,
     enunciado: '¿Qué rosa se sella primero?',
     correcta: 'La segunda (a 1 m de la otra persona)',
-    otras: ['La primera (la más cercana a ti)', 'Las dos a la vez'],
+    otras: ['La primera (a 1,5 m)', 'Las dos a la vez'],
     explicacion: 'Primero se dispara sobre la segunda rosa; luego sobre la primera.',
   },
   {
@@ -237,9 +238,9 @@ const DATOS: { ejercicioId: string; paso: number; enunciado: string; correcta: s
     ejercicioId: 'activar-centros',
     paso: 2,
     enunciado: '¿Qué frase corresponde a la garganta?',
-    correcta: 'ACTIVO EL PODER DE LA PALABRA QUE RADICA EN MI VOZ',
-    otras: ['ACTIVO EL PODER DE LA CLARIVIDENCIA EN MÍ', 'CON ESTA ESFERA DE LUZ ACTIVO EL PODER DEL AMOR QUE RADICA EN MÍ'],
-    explicacion: 'Garganta: «Activo el poder de la palabra que radica en mi voz».',
+    correcta: 'CON ESTA ESFERA DE LUZ ACTIVO EL PODER DE LA PALABRA QUE RADICA EN MI VOZ',
+    otras: ['CON ESTA ESFERA DE LUZ ACTIVO EL PODER DE LA CLARIVIDENCIA EN MÍ', 'CON ESTA ESFERA DE LUZ ACTIVO EL PODER DEL AMOR QUE RADICA EN MÍ'],
+    explicacion: 'Garganta: «Con esta esfera de luz activo el poder de la palabra que radica en mi voz».',
   },
   {
     ejercicioId: 'recorrido-chakras',
@@ -260,10 +261,34 @@ const DATOS: { ejercicioId: string; paso: number; enunciado: string; correcta: s
   {
     ejercicioId: 'sellado-final',
     paso: 1,
+    enunciado: 'En el sellado final, ¿dónde va la lengua?',
+    correcta: 'Pegada al paladar de arriba',
+    otras: ['Entre los dientes', 'Fuera de la boca', 'Relajada abajo'],
+    explicacion: 'Con la lengua pegada al paladar de arriba, aguantar la respiración 30 segundos.',
+  },
+  {
+    ejercicioId: 'sellado-final',
+    paso: 2,
     enunciado: '¿Qué se hace con la esfera de carga al sellar?',
     correcta: 'Expandirla y contraerla',
     otras: ['Dispararla', 'Llevarla a la coronilla', 'Hacerle un agujero'],
     explicacion: 'Expandir y contraer la esfera de carga.',
+  },
+  {
+    ejercicioId: 'enraizar',
+    paso: 1,
+    enunciado: 'Al enraizar, ¿dónde va el agujero de la esfera?',
+    correcta: 'En la ingle',
+    otras: ['En la coronilla', 'En el pecho', 'En la palma de la mano'],
+    explicacion: 'El agujero va en la ingle y queda conectado con la tierra, el piso de tus pies.',
+  },
+  {
+    ejercicioId: 'sanar-otra-persona',
+    paso: 2,
+    enunciado: '¿Cómo se cierra tu campo energético?',
+    correcta: 'Atrayendo la energía esparcida: con la mano, como agarrándolo, lo acercas a ti',
+    otras: ['Soplando hacia fuera', 'Disparando una esfera al cielo', 'Tocando el piso con las dos manos'],
+    explicacion: 'Es como si tu campo te estuviera cubriendo y con la mano lo atraes más cerca de ti.',
   },
   {
     ejercicioId: 'enraizar',

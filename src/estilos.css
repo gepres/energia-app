@@ -1173,6 +1173,28 @@ button {
   color: var(--texto-2);
 }
 
+.dudas-subtitulo {
+  margin: 36px 0 12px;
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 440;
+}
+
+.duda-tarjeta.aclarada {
+  border-color: rgb(95 242 194 / 0.25);
+}
+
+.duda-tarjeta.aclarada h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.duda-tarjeta.aclarada a {
+  color: var(--jade);
+  text-decoration: none;
+}
+
 .duda-fuente {
   font-size: 12.5px;
   color: var(--texto-3) !important;

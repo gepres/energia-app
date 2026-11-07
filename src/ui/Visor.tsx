@@ -170,7 +170,7 @@ function PasoActual({ ej, paso, indice }: { ej: Ejercicio; paso: Paso; indice: n
       {frase && <Frase texto={frase} paso={indice} />}
       {paso.cantidad && (
         <p className="paso-cantidad">
-          <strong>{paso.cantidad.valor}</strong> {paso.cantidad.unidad}
+          <strong>{String(paso.cantidad.valor).replace('.', ',')}</strong> {paso.cantidad.unidad}
         </p>
       )}
       {paso.aclaracion && (

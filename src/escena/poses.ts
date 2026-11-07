@@ -369,3 +369,38 @@ export const TOMAR_BARRA_IZQUIERDA = pose({
   palmaD: ARRIBA,
   dedosD: normV([0.35, 0, 1]),
 });
+
+/** Sellado final: la derecha tapa el ombligo y la izquierda va encima de ella. */
+export const CUBRIR_OMBLIGO = pose({
+  // Palma derecha sobre el ombligo, dedos hacia la izquierda del cuerpo.
+  manoD: [-0.072, 1.035, 0.14],
+  codoD: [-1, -0.7, -0.2],
+  palmaD: ATRAS,
+  dedosD: [1, 0, 0],
+  // Palma izquierda encima de la derecha, dedos hacia la derecha del cuerpo.
+  manoI: [0.072, 1.05, 0.165],
+  codoI: [1, -0.6, -0.2],
+  palmaI: ATRAS,
+  dedosI: [-1, 0, 0],
+  cabezaPitch: 0.18,
+});
+
+/**
+ * Cerrar el campo: la mano derecha sale a buscar la energía esparcida (k = 0)
+ * y la trae hacia el cuerpo (k = 1). `dir` es hacia dónde se estira.
+ */
+export function atraerCampo(dir: V3, k: number): Pose {
+  const d = normV(dir);
+  const lejos: V3 = [-0.182 + d[0] * 0.52, 1.36 + d[1] * 0.52, d[2] * 0.52];
+  const cerca: V3 = [-0.1, 1.22, 0.2];
+  const m: V3 = [lejos[0] + (cerca[0] - lejos[0]) * k, lejos[1] + (cerca[1] - lejos[1]) * k, lejos[2] + (cerca[2] - lejos[2]) * k];
+  return pose({
+    manoD: m,
+    codoD: [-0.8, -0.8, -0.2],
+    // Palma hacia el cuerpo: «como agarrándolo» para acercarlo.
+    palmaD: normV([-d[0] * 0.6, 0.1, -Math.abs(d[2]) - 0.3]),
+    dedosD: normV([d[0] * 0.5, 0.6, d[2] * 0.5 + 0.3]),
+    manoI: [0.2, 0.885, 0.05],
+    cabezaYaw: -0.25 * (1 - k),
+  });
+}

@@ -48,6 +48,28 @@ export function Dudas() {
           );
         })}
       </ol>
+
+      <h2 className="dudas-subtitulo">Aclarado en el taller</h2>
+      <ol className="dudas-lista">
+        {EJERCICIOS.flatMap((ej) =>
+          ej.pasos
+            .filter((p) => p.aclaracion)
+            .map((p) => (
+              <li key={`${ej.id}-${p.id}`} className="duda-tarjeta aclarada">
+                <h3>
+                  <a href={`#/ejercicio/${ej.id}/${ej.pasos.indexOf(p) + 1}`}>
+                    {ej.titulo} → {p.titulo}
+                  </a>
+                </h3>
+                <p>
+                  {p.aclaracion!.startsWith('Indicado')
+                    ? `${p.texto} (indicado en el taller)`
+                    : p.aclaracion!.replace(/^Confirmado en el taller:\s*/, '')}
+                </p>
+              </li>
+            )),
+        )}
+      </ol>
     </main>
   );
 }

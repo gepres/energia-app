@@ -54,7 +54,7 @@ export function Inicio() {
             <Wind size={17} /> Respiración 4·3·4·4
           </a>
           <a className="acceso" href="#/dudas">
-            <CircleHelp size={17} /> {DUDAS.length} dudas del apunte
+            <CircleHelp size={17} /> {DUDAS.length === 1 ? '1 duda pendiente' : `${DUDAS.length} dudas del apunte`}
           </a>
         </nav>
       </header>
