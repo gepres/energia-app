@@ -60,7 +60,7 @@ export function crearMaterialEsfera() {
         vec3 c = col * (0.35 + 0.9 * nucleo) + col * fres * 1.6 + vec3(1.0, 0.97, 0.9) * pow(nucleo, 5.0) * 1.2;
         c *= uBrillo * (0.82 + 0.28 * remolino);
         // Labio luminoso alrededor del agujero.
-        if (uAgujero > 0.001) c += col * smoothstep(borde + 0.12, borde, vP.y) * 2.5 * uBrillo;
+        if (uAgujero > 0.001) c += col * (1.0 - smoothstep(borde, borde + 0.12, vP.y)) * 2.5 * uBrillo;
         float a = uOpacidad * clamp(0.35 + 0.65 * nucleo + fres, 0.0, 1.0);
         gl_FragColor = vec4(c * a, a);
       }
@@ -117,16 +117,18 @@ export function crearMaterialParticulas(aditivo: boolean) {
       uColor: { value: new Color('#ffc96b') },
       uIntensidad: { value: 1 },
       uEscala: { value: 1 },
+      uDpr: { value: 1 },
     },
     vertexShader: /* glsl */ `
       attribute float aAlfa;
       attribute float aTam;
       uniform float uEscala;
+      uniform float uDpr;
       varying float vAlfa;
       void main() {
         vAlfa = aAlfa;
         vec4 mv = modelViewMatrix * vec4(position, 1.0);
-        gl_PointSize = aTam * uEscala * (300.0 / -mv.z);
+        gl_PointSize = min(aTam * uEscala * uDpr * (300.0 / -mv.z), 64.0);
         gl_Position = projectionMatrix * mv;
       }
     `,
@@ -138,8 +140,8 @@ export function crearMaterialParticulas(aditivo: boolean) {
         vec2 d = gl_PointCoord - 0.5;
         float r = length(d);
         if (r > 0.5) discard;
-        float s = smoothstep(0.5, 0.0, r);
-        float nucleo = smoothstep(0.22, 0.0, r);
+        float s = 1.0 - smoothstep(0.0, 0.5, r);
+        float nucleo = 1.0 - smoothstep(0.0, 0.22, r);
         vec3 c = uColor * (s * 0.8 + nucleo * 1.4) * uIntensidad;
         float a = vAlfa * s;
         ${aditivo ? 'gl_FragColor = vec4(c * a, a);' : 'gl_FragColor = vec4(uColor, a * 0.85);'}
@@ -198,7 +200,8 @@ export function crearMaterialCascara() {
       void main() {
         float h = clamp((vW.y - uBase) / uAlto, 0.0, 1.0);
         float frente = uDesdeArriba > 0.5 ? 1.0 - uCobertura : uCobertura;
-        float m = uDesdeArriba > 0.5 ? smoothstep(frente - 0.04, frente + 0.04, h) : smoothstep(frente + 0.04, frente - 0.04, h);
+        float m = smoothstep(frente - 0.04, frente + 0.04, h);
+        if (uDesdeArriba < 0.5) m = 1.0 - m;
         if (m < 0.002) discard;
         float ndv = abs(dot(normalize(vN), normalize(vV)));
         float fres = pow(1.0 - ndv, 2.2);

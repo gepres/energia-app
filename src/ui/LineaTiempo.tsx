@@ -19,9 +19,17 @@ export function LineaTiempo({ pasos }: { pasos: Paso[] }) {
   useEffect(() => {
     if (!sec) return;
     const ini = inicios(sec);
+    const duracion = sec.pasos.reduce((a, p) => a + p.dur, 0);
     let raf = 0;
+    let ultimoSegundo = -1;
     const bucle = () => {
-      const { tiempo } = useReproductor.getState();
+      const { tiempo, paso } = useReproductor.getState();
+      const seg = Math.round(tiempo);
+      if (seg !== ultimoSegundo && pista.current) {
+        ultimoSegundo = seg;
+        pista.current.setAttribute('aria-valuenow', String(seg));
+        pista.current.setAttribute('aria-valuetext', `Paso ${paso + 1} de ${sec.pasos.length}, segundo ${seg} de ${Math.round(duracion)}`);
+      }
       sec.pasos.forEach((p, i) => {
         const r = rellenos.current[i];
         if (!r) return;
@@ -51,7 +59,6 @@ export function LineaTiempo({ pasos }: { pasos: Paso[] }) {
       aria-label="Progreso del ejercicio"
       aria-valuemin={0}
       aria-valuemax={Math.round(total)}
-      aria-valuenow={Math.round(useReproductor.getState().tiempo)}
       onPointerDown={(ev) => {
         arrastrando.current = true;
         (ev.target as HTMLElement).setPointerCapture?.(ev.pointerId);

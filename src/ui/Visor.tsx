@@ -55,7 +55,10 @@ function useAtajos() {
   useEffect(() => {
     const alTeclear = (ev: KeyboardEvent) => {
       const el = ev.target as HTMLElement;
-      if (el.closest('input, select, textarea, [role="slider"]')) return;
+      if (ev.repeat || ev.altKey || ev.ctrlKey || ev.metaKey) return;
+      if (el.closest('input, select, textarea, [contenteditable="true"], [role="slider"]')) return;
+      // Sobre un botón o enlace enfocado, espacio y flechas conservan su comportamiento nativo.
+      if ((ev.key === ' ' || ev.key === 'Enter') && el.closest('button, a, summary')) return;
       const s = useReproductor.getState();
       if (ev.key === ' ' || ev.key === 'k') {
         ev.preventDefault();

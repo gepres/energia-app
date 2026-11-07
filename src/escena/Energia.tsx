@@ -127,7 +127,8 @@ function UnFlujo({ i }: { i: number }) {
     return { geo, matA: crearMaterialParticulas(true), curva };
   }, []);
 
-  useFrame(() => {
+  const firma = useRef('');
+  useFrame((state) => {
     const f = escena.estado.flujos[i];
     const pts = puntos.current!;
     const visible = f.activo && f.puntos.length >= 2 && f.intensidad > 0.01;
@@ -138,13 +139,18 @@ function UnFlujo({ i }: { i: number }) {
     mat.uniforms.uColor.value.copy(colorEnergia(f.color));
     mat.uniforms.uIntensidad.value = (f.color === 'sombra' ? 0.7 : 1.6) * f.intensidad;
     mat.uniforms.uEscala.value = f.ancho;
+    mat.uniforms.uDpr.value = state.gl.getPixelRatio();
 
     // Actualiza la curva con los puntos resueltos (pueden moverse con las manos).
     const resueltos = f.puntos.map(resolver);
-    while (curva.points.length < resueltos.length) curva.points.push(new Vector3());
-    curva.points.length = resueltos.length;
-    resueltos.forEach((p, k) => curva.points[k].set(p[0], p[1], p[2]));
-    curva.updateArcLengths();
+    const nueva = resueltos.map((p) => `${p[0].toFixed(4)},${p[1].toFixed(4)},${p[2].toFixed(4)}`).join(';');
+    if (nueva !== firma.current) {
+      firma.current = nueva;
+      while (curva.points.length < resueltos.length) curva.points.push(new Vector3());
+      curva.points.length = resueltos.length;
+      resueltos.forEach((p, k) => curva.points[k].set(p[0], p[1], p[2]));
+      curva.updateArcLengths();
+    }
 
     const pos = geo.getAttribute('position') as BufferAttribute;
     const alfa = geo.getAttribute('aAlfa') as BufferAttribute;
@@ -270,9 +276,10 @@ export function OrganosYCentros() {
     return { geo, mat };
   }, [lista]);
 
-  useFrame(() => {
+  useFrame((state) => {
     const e = escena.estado;
     const r = registro[0];
+    mat.uniforms.uDpr.value = state.gl.getPixelRatio();
     const pos = geo.getAttribute('position') as BufferAttribute;
     const alfa = geo.getAttribute('aAlfa') as BufferAttribute;
     const tam = geo.getAttribute('aTam') as BufferAttribute;

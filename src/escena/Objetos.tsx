@@ -40,6 +40,7 @@ const _q = new Quaternion();
 const _v = new Vector3();
 const _w = new Vector3();
 const _arriba = new Vector3(0, 1, 0);
+const _escala = new Vector3();
 
 // ── Rosa de luz ─────────────────────────────────────────────────────────
 
@@ -406,8 +407,11 @@ function texturaCuadro(tipo: 'persona' | 'sangre'): CanvasTexture {
 function Cuadro({ nombre, tipo }: { nombre: 'foto' | 'dibujoSangre'; tipo: 'persona' | 'sangre' }) {
   const grupo = useRef<Group>(null);
   const tex = useMemo(() => texturaCuadro(tipo), [tipo]);
-  const matMarco = useMemo(() => new MeshStandardMaterial({ color: '#3a2f28', roughness: 0.5, metalness: 0.2 }), []);
-  const matImagen = useMemo(() => new MeshStandardMaterial({ map: tex, roughness: 0.8, emissive: '#ffffff', emissiveMap: tex, emissiveIntensity: 0.18 }), [tex]);
+  const matMarco = useMemo(() => new MeshStandardMaterial({ color: '#3a2f28', roughness: 0.5, metalness: 0.2, transparent: true }), []);
+  const matImagen = useMemo(
+    () => new MeshStandardMaterial({ map: tex, roughness: 0.8, emissive: '#ffffff', emissiveMap: tex, emissiveIntensity: 0.18, transparent: true }),
+    [tex],
+  );
   useFrame(() => {
     const o = escena.estado.objetos[nombre];
     const g = grupo.current!;
@@ -416,10 +420,7 @@ function Cuadro({ nombre, tipo }: { nombre: 'foto' | 'dibujoSangre'; tipo: 'pers
     g.position.set(o.pos[0], o.pos[1], o.pos[2]);
     g.rotation.y = o.rotY;
     g.scale.setScalar(o.escala * (0.6 + 0.4 * saleAtras(clamp(o.opacidad))));
-    for (const m of [matMarco, matImagen]) {
-      m.opacity = o.opacidad;
-      m.transparent = o.opacidad < 0.99;
-    }
+    matMarco.opacity = matImagen.opacity = o.opacidad;
   });
   return (
     <group ref={grupo} visible={false}>
@@ -536,7 +537,7 @@ function Cubo() {
     g.translate(0, 0.5, 0);
     return g;
   }, []);
-  const matEsfera = useMemo(() => new MeshBasicMaterial({ color: new Color(HEX_ENERGIA.oro).multiplyScalar(2.2), toneMapped: true }), []);
+  const matEsfera = useMemo(() => new MeshBasicMaterial({ color: new Color(HEX_ENERGIA.oro).multiplyScalar(2.2), transparent: true }), []);
   const matArista = useMemo(
     () => new MeshBasicMaterial({ color: new Color(HEX_ENERGIA.jade).multiplyScalar(1.6), transparent: true, blending: AdditiveBlending, depthWrite: false }),
     [],
@@ -588,13 +589,14 @@ function Cubo() {
       const largo = _v.length() * t.k;
       _q.setFromUnitVectors(_arriba, _v.normalize());
       const grosor = t.vertical >= 0 && t.vertical === c.resaltada ? 1 + 1.8 * c.resalte : 1;
-      _m.compose(_w.set(t.a[0], t.a[1], t.a[2]), _q, new Vector3(grosor, Math.max(1e-4, largo), grosor));
+      _m.compose(_w.set(t.a[0], t.a[1], t.a[2]), _q, _escala.set(grosor, Math.max(1e-4, largo), grosor));
       aristas.current!.setMatrixAt(j, _m);
       aristas.current!.setColorAt(j, t.vertical >= 0 && t.vertical === c.resaltada ? _col.copy(colorBase).lerp(colorResalte, c.resalte) : colorBase);
     });
     aristas.current!.instanceMatrix.needsUpdate = true;
     if (aristas.current!.instanceColor) aristas.current!.instanceColor.needsUpdate = true;
     matArista.opacity = c.opacidad;
+    matEsfera.opacity = Math.min(1, 0.35 + c.opacidad);
 
     // Columna central (tubo) que baja de la coronilla a los pies.
     const col = columna.current!;
@@ -648,7 +650,7 @@ function materialHaz(color: string, haciaArriba: boolean) {
       void main() {
         float y = vUv.y;
         float lado = pow(abs(dot(normalize(vN), normalize(vV))), 1.5);
-        float extremo = ${haciaArriba ? 'smoothstep(1.0, 0.55, y) * smoothstep(0.0, 0.08, y)' : 'smoothstep(0.0, 0.5, y) * smoothstep(1.0, 0.9, y)'};
+        float extremo = ${haciaArriba ? '(1.0 - smoothstep(0.55, 1.0, y)) * smoothstep(0.0, 0.08, y)' : 'smoothstep(0.0, 0.5, y) * (1.0 - smoothstep(0.9, 1.0, y))'};
         float flujo = 0.75 + 0.25 * sin(y * 30.0 ${haciaArriba ? '-' : '+'} uTiempo * 4.0);
         float a = lado * extremo * flujo * uIntensidad * 0.55;
         gl_FragColor = vec4(uColor * a * 1.5, a);

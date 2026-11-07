@@ -92,9 +92,19 @@ function Camara() {
     l.y += (escena.lente.y - l.y) * k;
     const w = state.size.width;
     const h = state.size.height;
-    camara.setViewOffset(w, h, w * l.x, h * l.y, w, h);
-    camara.fov = fov.current;
-    camara.updateProjectionMatrix();
+    const vo = camara.view;
+    const cambia =
+      Math.abs(camara.fov - fov.current) > 1e-4 ||
+      !vo ||
+      vo.fullWidth !== w ||
+      vo.fullHeight !== h ||
+      Math.abs(vo.offsetX - w * l.x) > 0.05 ||
+      Math.abs(vo.offsetY - h * l.y) > 0.05;
+    if (cambia) {
+      camara.fov = fov.current;
+      // setViewOffset ya recalcula la proyección.
+      camara.setViewOffset(w, h, w * l.x, h * l.y, w, h);
+    }
   }, -6);
 
   return (
@@ -115,6 +125,7 @@ const _proy = new Vector3();
 function ProyectarMarcas() {
   useFrame((state) => {
     const { width, height } = state.size;
+    state.camera.updateMatrixWorld();
     escena.marcasPantalla = escena.estado.marcas.map((m) => {
       _proy.set(m.pos[0], m.pos[1], m.pos[2]).project(state.camera);
       const delante = _proy.z < 1;
@@ -126,7 +137,7 @@ function ProyectarMarcas() {
         tipo: m.tipo,
       };
     });
-  }, -1);
+  }, 0);
   return null;
 }
 
@@ -162,7 +173,7 @@ function Piso() {
           uniform vec3 uTierraColor;
           varying vec2 vP;
           float anillo(float r, float radio, float ancho) {
-            return smoothstep(ancho, 0.0, abs(r - radio));
+            return 1.0 - smoothstep(0.0, ancho, abs(r - radio));
           }
           void main() {
             float r = length(vP);
@@ -171,10 +182,10 @@ function Piso() {
             float l = 0.0;
             for (int i = 1; i <= 6; i++) l += anillo(r, float(i) * 0.5, 0.006) * (i == 2 || i == 4 ? 0.9 : 0.4);
             // Marcas de rumbo cada 15°, más largas en los cardinales.
-            float marca = smoothstep(0.012, 0.0, abs(sin(ang * 12.0)) * r);
-            l += marca * smoothstep(2.35, 2.42, r) * smoothstep(2.62, 2.55, r);
-            float cardinal = smoothstep(0.014, 0.0, abs(sin(ang * 2.0)) * r);
-            l += cardinal * smoothstep(0.6, 0.7, r) * smoothstep(2.7, 2.6, r) * 0.25;
+            float marca = 1.0 - smoothstep(0.0, 0.012, abs(sin(ang * 12.0)) * r);
+            l += marca * smoothstep(2.35, 2.42, r) * (1.0 - smoothstep(2.55, 2.62, r));
+            float cardinal = 1.0 - smoothstep(0.0, 0.014, abs(sin(ang * 2.0)) * r);
+            l += cardinal * smoothstep(0.6, 0.7, r) * (1.0 - smoothstep(2.6, 2.7, r)) * 0.25;
             c += uLinea * l * 0.55;
             float rt = length(vP - uTierraCentro);
             c += uTierraColor * uTierra * exp(-rt * rt * 3.0) * 0.9;
@@ -274,15 +285,15 @@ function Post({ calidad }: { calidad: Calidad }) {
     <EffectComposer multisampling={calidad === 'alta' ? 4 : 0} enableNormalPass={false}>
       <Bloom
         mipmapBlur
-        intensity={calidad === 'baja' ? 0.6 : 0.95}
+        intensity={calidad === 'baja' ? 0.7 : 0.95}
         luminanceThreshold={1}
         luminanceSmoothing={0.3}
         radius={0.72}
-        levels={calidad === 'alta' ? 7 : 5}
+        levels={calidad === 'alta' ? 7 : calidad === 'media' ? 5 : 3}
       />
       <ToneMapping mode={ToneMappingMode.AGX} />
       <Vignette offset={0.28} darkness={0.62} />
-      {calidad !== 'alta' ? <SMAA /> : <></>}
+      {calidad === 'media' ? <SMAA /> : <></>}
     </EffectComposer>
   );
 }
@@ -297,6 +308,22 @@ export function Escenario({ children }: { children?: ReactNode }) {
   useEffect(() => {
     escena.calidad = calidad;
   }, [calidad]);
+  // Histéresis propia: tras varios cambios de dirección reales, la calidad se fija
+  // (el contador de drei suma también las subidas consecutivas).
+  const historial = useRef({ ultimo: 0, giros: 0, fija: false });
+  const cambiarCalidad = (dir: 1 | -1) => {
+    const h = historial.current;
+    if (h.fija) return;
+    if (h.ultimo !== 0 && h.ultimo !== dir) h.giros++;
+    h.ultimo = dir;
+    if (h.giros >= 4) {
+      h.fija = true;
+      setCalidad((c) => (c === 'alta' ? 'media' : c));
+      return;
+    }
+    const orden: Calidad[] = ['baja', 'media', 'alta'];
+    setCalidad((c) => orden[Math.max(0, Math.min(2, orden.indexOf(c) + dir))]);
+  };
 
   return (
     <Canvas
@@ -310,10 +337,8 @@ export function Escenario({ children }: { children?: ReactNode }) {
       }}
     >
       <PerformanceMonitor
-        onDecline={() => setCalidad((c) => (c === 'alta' ? 'media' : 'baja'))}
-        onIncline={() => setCalidad((c) => (c === 'baja' ? 'media' : c))}
-        flipflops={3}
-        onFallback={() => setCalidad('baja')}
+        onDecline={() => cambiarCalidad(-1)}
+        onIncline={() => cambiarCalidad(1)}
       />
       <Director />
       <Camara />

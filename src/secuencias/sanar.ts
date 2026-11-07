@@ -89,7 +89,7 @@ export const sanarOtraPersona: Secuencia = {
     {
       dur: 9,
       aplicar: (e, t) => {
-        toma(e, encuadre([0.5, 1.05, -0.8], 2.7, 0.62, 0.5), t, 0, 0.3);
+        toma(e, encuadre([0.35, 1.1, -0.85], 2.4, Math.PI + 0.3, 0.42), t, 0, 0.3);
         posar(e, 0, TOMAR_IZQUIERDA, t, 0, 0.25);
         const { inf, sup } = esquinasCubo([0, 0, 0], LADO);
         // Arista vertical a la izquierda de quien sana (suroeste).

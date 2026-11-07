@@ -81,7 +81,9 @@ export const useReproductor = create<EstadoReproductor>((set, get) => ({
     const n = s.secuencia.pasos.length;
     const paso = Math.max(0, Math.min(n - 1, i));
     const tiempo = inicios(s.secuencia)[paso];
-    set({ tiempo, paso, t: 0, reproduciendo: reproducir ?? s.reproduciendo, camaraLibre: false });
+    // Con movimiento reducido solo arranca el botón «Reproducir».
+    const arrancar = escena.reducido ? s.reproduciendo : (reproducir ?? s.reproduciendo);
+    set({ tiempo, paso, t: 0, reproduciendo: arrancar, camaraLibre: false });
   },
   buscar: (tiempo) => {
     const s = get();

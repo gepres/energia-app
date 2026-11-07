@@ -16,11 +16,25 @@ export function Hud() {
   const ciclo = useRef<HTMLSpanElement>(null);
   const aviso = useRef<HTMLDivElement>(null);
   const marcas = useRef<(HTMLDivElement | null)[]>([]);
+  const anuncio = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let raf = 0;
+    let ultimoAnuncio = '';
     const bucle = () => {
       const h = escena.estado.hud;
+      // Solo cambios discretos, para no saturar al lector de pantalla.
+      const texto = [
+        h.respiracion ? h.respiracion.fase : '',
+        h.contador ? `${h.contador.valor} de ${h.contador.total} ${h.contador.etiqueta}` : '',
+        h.aviso ?? '',
+      ]
+        .filter(Boolean)
+        .join('. ');
+      if (texto !== ultimoAnuncio && anuncio.current) {
+        ultimoAnuncio = texto;
+        anuncio.current.textContent = texto;
+      }
       if (contador.current) {
         const on = !!h.contador;
         contador.current.dataset.visible = String(on);
@@ -70,6 +84,8 @@ export function Hud() {
   }, []);
 
   return (
+    <>
+    <div ref={anuncio} className="solo-lector" role="status" aria-live="polite" />
     <div className="hud" aria-hidden="true">
       <div ref={contador} className="hud-contador" data-visible="false">
         <div className="hud-contador-cifras">
@@ -92,5 +108,6 @@ export function Hud() {
         <div key={i} ref={(d) => void (marcas.current[i] = d)} className="marca3d" style={{ opacity: 0 }} />
       ))}
     </div>
+    </>
   );
 }
