@@ -96,7 +96,7 @@ button {
 }
 
 .escenario[data-modo='fondo'] {
-  opacity: 0.35;
+  opacity: 0.18;
   pointer-events: none;
 }
 
@@ -1161,6 +1161,328 @@ button {
   place-items: center;
   gap: 12px;
   min-height: 100dvh;
+}
+
+
+/* ── Repaso de memoria ───────────────────────────────────────────────── */
+
+.repaso-selector {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 0 14px;
+  margin: 18px 0 8px;
+  scrollbar-width: none;
+}
+
+.repaso-selector .chip {
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.repaso-progreso {
+  display: flex;
+  gap: 5px;
+  margin: 22px 0 18px;
+}
+
+.repaso-progreso span {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.12);
+  transition: background 0.3s;
+}
+
+.repaso-progreso span[data-estado='hecha'] {
+  background: color-mix(in oklab, var(--acento) 70%, transparent);
+}
+
+.repaso-progreso span[data-estado='actual'] {
+  background: var(--texto);
+}
+
+.pregunta {
+  padding: 22px 20px;
+  border-radius: 22px;
+  background: var(--vidrio-fuerte);
+  border: 1px solid var(--borde);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  animation: entrar 0.45s var(--curva) both;
+}
+
+.pregunta-tipo {
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--acento);
+}
+
+.pregunta-enunciado {
+  margin: 10px 0 16px;
+  font-family: var(--serif);
+  font-size: clamp(21px, 3.4vw, 27px);
+  font-weight: 440;
+  line-height: 1.2;
+}
+
+.pregunta-contexto {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border-radius: var(--radio);
+  border: 1px solid color-mix(in oklab, var(--acento) 30%, transparent);
+  background: color-mix(in oklab, var(--acento) 8%, transparent);
+  font-family: var(--serif);
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.opciones {
+  display: grid;
+  gap: 8px;
+}
+
+.opciones-compactas {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  margin-top: 14px;
+}
+
+.opcion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--borde-fuerte);
+  background: rgb(255 255 255 / 0.025);
+  text-align: left;
+  font-size: 15px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s var(--curva);
+}
+
+.opcion:hover:not(:disabled) {
+  border-color: color-mix(in oklab, var(--acento) 60%, transparent);
+  background: color-mix(in oklab, var(--acento) 8%, transparent);
+}
+
+.opcion:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.opcion:disabled {
+  cursor: default;
+}
+
+.opcion[data-estado='correcta'],
+.ordenar-lista li[data-estado='correcta'] {
+  border-color: var(--jade);
+  background: rgb(95 242 194 / 0.1);
+}
+
+.opcion[data-estado='incorrecta'],
+.ordenar-lista li[data-estado='incorrecta'] {
+  border-color: #ff7a85;
+  background: rgb(255 122 133 / 0.1);
+}
+
+.opcion[data-estado='neutra'] {
+  opacity: 0.5;
+}
+
+.opcion-tecla {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid var(--borde-fuerte);
+  font-size: 12px;
+  color: var(--texto-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.ordenar-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.ordenar-lista li {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  align-items: center;
+  gap: 12px;
+  min-height: 46px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--borde);
+  font-size: 15px;
+}
+
+.ordenar-lista li[data-vacio='true'] {
+  border-style: dashed;
+  color: var(--texto-3);
+}
+
+.ordenar-correcto {
+  grid-column: 2;
+  font-style: normal;
+  font-size: 13px;
+  color: var(--jade);
+}
+
+.pregunta-feedback {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--borde);
+  animation: entrar 0.35s var(--curva) both;
+}
+
+.pregunta-veredicto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  font-weight: 600;
+  color: #ff9aa2;
+}
+
+.pregunta-feedback[data-ok='true'] .pregunta-veredicto {
+  color: var(--jade);
+}
+
+.pregunta-explicacion {
+  margin: 0 0 12px;
+  color: var(--texto-2);
+}
+
+.repaso-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.boton-primario {
+  background: var(--texto);
+  color: #0b0b12;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.boton-primario:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.boton-texto:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+a.boton,
+a.boton-texto {
+  text-decoration: none;
+}
+
+.repaso-final {
+  padding: 28px 0;
+}
+
+.repaso-puntaje {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 28px;
+  color: var(--texto-2);
+}
+
+.repaso-puntaje strong {
+  font-size: 88px;
+  font-weight: 360;
+  color: var(--acento);
+  line-height: 1;
+}
+
+/* ── Respiración guiada ──────────────────────────────────────────────── */
+
+.resp-metas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 22px 0 10px;
+}
+
+.resp-escena {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: min(58vw, 340px);
+  margin: 18px 0 8px;
+}
+
+.resp-circulo {
+  position: absolute;
+  width: min(58vw, 340px);
+  height: min(58vw, 340px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, rgb(255 255 255 / 0.35), color-mix(in oklab, var(--cielo) 55%, transparent) 38%, transparent 70%);
+  box-shadow: 0 0 80px color-mix(in oklab, var(--cielo) 40%, transparent), inset 0 0 0 1px color-mix(in oklab, var(--cielo) 60%, transparent);
+  transition: transform 0.12s linear;
+}
+
+.resp-circulo[data-fase='Retén'] {
+  box-shadow: 0 0 110px color-mix(in oklab, var(--oro) 45%, transparent), inset 0 0 0 1px var(--oro);
+}
+
+.resp-texto {
+  position: relative;
+  display: grid;
+  justify-items: center;
+}
+
+.resp-fase {
+  font-family: var(--serif);
+  font-size: 30px;
+}
+
+.resp-restante {
+  font-size: 15px;
+  color: var(--texto-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.resp-cuenta {
+  text-align: center;
+  color: var(--texto-2);
+}
+
+.resp-cuenta strong {
+  font-family: var(--serif);
+  font-size: 24px;
+  color: var(--texto);
+}
+
+.resp-controles {
+  width: fit-content;
+  margin: 8px auto 24px;
+}
+
+.resp-duda {
+  margin-top: 12px;
+}
+
+[data-reducido='true'] .resp-circulo {
+  transform: none !important;
+  opacity: 0.8;
 }
 
 @media (prefers-reduced-motion: reduce) {

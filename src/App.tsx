@@ -55,7 +55,7 @@ export function App() {
         {modo === 'visor' && <Hud />}
       </div>
       {ruta.nombre === 'inicio' && <Inicio />}
-      {ruta.nombre === 'ejercicio' && <Visor id={ruta.id} />}
+      {ruta.nombre === 'ejercicio' && <Visor id={ruta.id} paso={ruta.paso} />}
       {ruta.nombre === 'dudas' && <Dudas />}
       <Suspense fallback={null}>
         {ruta.nombre === 'repaso' && <Repaso id={ruta.id} />}

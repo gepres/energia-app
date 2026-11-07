@@ -20,7 +20,7 @@ import { irA } from './ruta';
 
 const VELOCIDADES = [0.5, 0.75, 1, 1.5];
 
-export function Visor({ id }: { id: string }) {
+export function Visor({ id, paso }: { id: string; paso?: number }) {
   const ej = buscarEjercicio(id);
   const abrir = useReproductor((s) => s.abrir);
   const cerrar = useReproductor((s) => s.cerrar);
@@ -30,6 +30,11 @@ export function Visor({ id }: { id: string }) {
     abrir(ej.id);
     return () => cerrar();
   }, [ej, abrir, cerrar]);
+
+  // Enlace directo a un paso (desde el repaso): #/ejercicio/<id>/<n>.
+  useEffect(() => {
+    if (ej && paso) useReproductor.getState().irAPaso(paso - 1, true);
+  }, [ej, paso]);
 
   useAtajos();
 
