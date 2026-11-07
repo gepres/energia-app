@@ -28,7 +28,10 @@ npm run preview
 ```
 
 En el móvil: abrir la URL publicada y «Añadir a pantalla de inicio». Funciona sin conexión
-después de la primera visita.
+después de la primera visita (requiere https; por la IP local de la red se ve, pero no se instala).
+
+Publicar: `dist/` es estático y usa `base: './'`, así que sirve en cualquier hosting o
+subcarpeta. `netlify.toml` ya trae el build y las cabeceras de caché del service worker.
 
 Atajos en el visor: espacio (reproducir/pausar), ← → (paso anterior/siguiente), Esc (volver).
 En el repaso: 1–4 para elegir opción.
