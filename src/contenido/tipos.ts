@@ -25,6 +25,8 @@ export interface Paso {
   dudas?: string[];
   /** Aclaración de cómo lo dibuja la animación cuando el apunte no lo detalla. */
   lectura?: string;
+  /** Aclaración confirmada por el taller (resuelve una duda del apunte). */
+  aclaracion?: string;
 }
 
 export interface Bloque {

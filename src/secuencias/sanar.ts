@@ -1,12 +1,14 @@
 import { ref } from '../escena/estado';
-import { esquinasCubo } from '../escena/geoCubo';
 import { type V3, campana, clamp, lerp, suave, tramo } from '../escena/mate';
-import { MANOS_PECHO, SERENA, TOMAR_IZQUIERDA, brazoExtendidoD, sanar } from '../escena/poses';
+import { MANOS_PECHO, SERENA, TOMAR_BARRA_IZQUIERDA, brazoExtendidoD, sanar } from '../escena/poses';
 import { apagarFlujos, construirCubo, esfera, flujo } from './comunes';
 import { type Secuencia, encuadre, fijarPose, posar, toma } from './motor';
 
 const LADO = 2.4;
 const SANADOR: V3 = [0, 0, -0.85];
+/** Barras frente a quien sana (mira al norte, +Z; su izquierda es +X). */
+const BARRA_IZQ: V3 = [SANADOR[0] + 0.2, 0, SANADOR[2] + 0.5];
+const BARRA_DER: V3 = [SANADOR[0] - 0.2, 0, SANADOR[2] + 0.5];
 const GRADOS = Math.PI / 180;
 
 /** Ángulo para mirar la esquina del grupo g (giro horario visto desde arriba). */
@@ -89,15 +91,22 @@ export const sanarOtraPersona: Secuencia = {
     {
       dur: 9,
       aplicar: (e, t) => {
-        toma(e, encuadre([0.35, 1.1, -0.85], 2.4, Math.PI + 0.3, 0.42), t, 0, 0.3);
-        posar(e, 0, TOMAR_IZQUIERDA, t, 0, 0.25);
-        const { inf, sup } = esquinasCubo([0, 0, 0], LADO);
-        // Arista vertical a la izquierda de quien sana (suroeste).
-        const base = inf[3];
-        e.cubo.resaltada = 3;
-        e.cubo.resalte = tramo(t, 0.12, 0.3);
-        const enArista: V3 = [base[0], lerp(base[1], sup[3][1], 0.55), base[2]];
-        flujo(e, 0, [enArista, [0.85, 1.38, -1.05], ref('manoI', 0)], {
+        toma(e, encuadre([0.1, 1.15, -0.5], 2.3, 1.2, 0.2), t, 0, 0.3);
+        posar(e, 0, TOMAR_BARRA_IZQUIERDA, t, 0.15, 0.4);
+        // Dos barras verticales, del tamaño del cuerpo, donde quedan las manos estiradas al frente.
+        Object.assign(e.barras, {
+          activa: true,
+          izq: [...BARRA_IZQ],
+          der: [...BARRA_DER],
+          alto: 1.75,
+          opacidad: tramo(t, 0, 0.2),
+          resalte: tramo(t, 0.25, 0.45),
+        });
+        e.marcas.push(
+          { pos: [BARRA_IZQ[0] + 0.05, 1.9, BARRA_IZQ[2]], texto: 'columna izquierda', opacidad: campana(t, 0.1, 1), tipo: 'nombre' },
+          { pos: [BARRA_DER[0] - 0.05, 1.9, BARRA_DER[2]], texto: 'columna derecha', opacidad: 0.6 * campana(t, 0.1, 0.6), tipo: 'nombre' },
+        );
+        flujo(e, 0, [[BARRA_IZQ[0], 1.62, BARRA_IZQ[2]], [BARRA_IZQ[0], 1.42, BARRA_IZQ[2]], ref('manoI', 0)], {
           cabeza: tramo(t, 0.25, 0.5),
           cola: 0.9,
           color: 'jade',
@@ -121,7 +130,8 @@ export const sanarOtraPersona: Secuencia = {
       dur: 14,
       aplicar: (e, t) => {
         apagarFlujos(e);
-        e.cubo.resalte = 1 - tramo(t, 0, 0.2);
+        e.barras.resalte = 1 - tramo(t, 0, 0.2);
+        e.barras.opacidad = lerp(1, 0.55, tramo(t, 0, 0.3));
         toma(e, encuadre([0, 1.1, -0.42], 2.4, -1.25, 0.2), t, 0, 0.3);
         posar(e, 0, sanar(1.3, 0.48), t, 0, 0.15);
         // La mano izquierda queda conectada a la tierra.

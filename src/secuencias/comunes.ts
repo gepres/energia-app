@@ -1,7 +1,7 @@
 import { type Pose, PUNTOS, type PuntoCuerpo, resolverEsqueleto } from '../escena/cuerpo';
 import { type ColorEnergia, type Estado, type Punto, ref } from '../escena/estado';
 import { type V3, arco, campana, clamp, lerp, lerpV, rotarY, saleAtras, sumaV, tramo } from '../escena/mate';
-import { BRAZOS_CIELO, CARGA_OMBLIGO, DEJAR_EN_PISO, DISPARAR, MANO_CORAZON, MANOS_PECHO, SERENA, palmasAbajo } from '../escena/poses';
+import { CARGA_OMBLIGO, DEJAR_EN_PISO, DISPARAR, MANO_CORAZON, MANOS_PECHO, SERENA, TOMAR_ARRIBA, veloMano } from '../escena/poses';
 import { encuadre, posar, puntoMundo } from './motor';
 
 // ── Tomas de cámara ─────────────────────────────────────────────────────
@@ -83,27 +83,35 @@ export function pulsoRef(e: Estado, r: ReturnType<typeof ref>, k: number, radio 
 
 /**
  * Carga en un centro (ombligo o pecho): manos que giran frente al centro,
- * esfera que crece y contador. `n` es la cantidad que pide el apunte.
+ * esfera que crece y contador. `n` es la cantidad total; con `porLado` la carga
+ * se hace en dos tandas iguales, primero de un lado y luego del otro.
  */
 export function cargar(
   e: Estado,
   t: number,
-  opts: { pose: Pose; centro: PuntoCuerpo; n: number; etiqueta: string; esferaI?: number; flujoI?: number },
+  opts: { pose: Pose; centro: PuntoCuerpo; n: number; etiqueta: string; porLado?: boolean; esferaI?: number; flujoI?: number },
 ) {
-  const { pose: base, centro, n, etiqueta } = opts;
+  const { pose: base, centro, n, etiqueta, porLado } = opts;
   const ei = opts.esferaI ?? 0;
   const fi = opts.flujoI ?? 0;
   posar(e, 0, base, t, 0, 0.14);
   const k = tramo(t, 0.12, 0.92, (x) => x);
-  // Manos que giran a un ritmo visible; la cuenta sigue al apunte.
+  // Con «por lado», la primera mitad trabaja el lado derecho y la segunda el izquierdo.
+  const segundo = porLado && k >= 0.5;
+  const lado = !porLado ? 0 : segundo ? 1 : -1;
   if (t > 0.1) {
     const giro = clamp((t - 0.1) / 0.85) * Math.PI * 2 * 7;
     const amp = 0.035 * tramo(t, 0.1, 0.2) * (1 - tramo(t, 0.9, 1));
     const p = e.figuras[0].pose;
     const dx = Math.cos(giro) * amp;
     const dy = Math.sin(giro) * amp;
-    p.manoD = [p.manoD[0] + dx * 0.6, p.manoD[1] + dy, p.manoD[2] + Math.sin(giro + 1) * amp * 0.5];
-    p.manoI = [p.manoI[0] - dx * 0.6, p.manoI[1] + dy, p.manoI[2] + Math.sin(giro + 1) * amp * 0.5];
+    const dz = Math.sin(giro + 1) * amp * 0.5;
+    // La mano del lado activo gira con amplitud plena; la otra acompaña quieta.
+    const fD = lado === 1 ? 0.15 : 1;
+    const fI = lado === -1 ? 0.15 : 1;
+    const desvio = 0.045 * lado;
+    p.manoD = [p.manoD[0] + dx * 0.6 * fD + desvio, p.manoD[1] + dy * fD, p.manoD[2] + dz * fD];
+    p.manoI = [p.manoI[0] - dx * 0.6 * fI + desvio, p.manoI[1] + dy * fI, p.manoI[2] + dz * fI];
   }
   const cuenta = Math.min(n, Math.floor(k * n + 1e-6) + (k > 0 ? 1 : 0));
   const p = puntoMundo(e, 0, [PUNTOS[centro][0], PUNTOS[centro][1], PUNTOS[centro][2] + 0.05]);
@@ -124,45 +132,69 @@ export function cargar(
     remolino: 0.03,
     ancho: 0.8,
   });
-  // Pulso por cada carga (los últimos se agrupan).
+  // Pulso por cada carga, del lado que se está cargando.
   const fase = (k * n) % 1;
-  if (k > 0 && k < 1) pulso(e, p, fase, 0.16, 'oro');
-  e.hud.contador = k > 0 ? { valor: cuenta, total: n, etiqueta } : null;
+  const lugar: V3 = lado === 0 ? p : puntoMundo(e, 0, [PUNTOS[centro][0] + 0.05 * lado, PUNTOS[centro][1], PUNTOS[centro][2] + 0.05]);
+  if (k > 0 && k < 1) pulso(e, lugar, fase, 0.16, 'oro');
+  if (k <= 0) e.hud.contador = null;
+  else if (porLado) {
+    const mitad = n / 2;
+    e.hud.contador = {
+      valor: segundo ? cuenta - mitad : Math.min(mitad, cuenta),
+      total: mitad,
+      etiqueta: `${segundo ? 'segundo' : 'primer'} lado · ${etiqueta}`,
+    };
+  } else e.hud.contador = { valor: cuenta, total: n, etiqueta };
   e.centros[centro] = 0.4 + 0.6 * k;
 }
 
 /**
- * Sellar desde el cielo (lectura ilustrativa): brazos arriba, haz del cielo y
- * descenso de las palmas cerrando un manto de arriba hacia abajo.
+ * Sellar desde el cielo (confirmado en el taller): la mano toma la energía de
+ * arriba de la cabeza y baja por delante, como cubriendo el cuerpo con un velo.
  */
 export function sellarDesdeCielo(e: Estado, t: number) {
-  posar(e, 0, BRAZOS_CIELO, t, 0.02, 0.28);
-  e.cielo = tramo(t, 0.12, 0.35) * (1 - tramo(t, 0.82, 1));
+  posar(e, 0, TOMAR_ARRIBA, t, 0.02, 0.26);
+  // Energía tomada por encima de la cabeza.
+  e.cielo = 0.55 * tramo(t, 0.12, 0.3) * (1 - tramo(t, 0.5, 0.7));
+  const s = e.esferas[2];
+  const junta = tramo(t, 0.18, 0.34);
+  Object.assign(s, {
+    activa: junta > 0 && t < 0.86,
+    ref: ref('manoD', 0, [0, 0, 0.02]),
+    pegado: 1,
+    radio: 0.04 * junta * (1 - tramo(t, 0.5, 0.86)),
+    color: 'violeta',
+    color2: 'blanco',
+    mezcla: 0.5,
+    brillo: 1.3,
+    opacidad: 1,
+  });
   const baja = tramo(t, 0.36, 0.86, (x) => x);
   if (t > 0.34) {
-    const y = lerp(1.78, 0.62, baja);
-    const zp = 0.44 - 0.05 * Math.sin(Math.PI * baja);
-    posar(e, 0, palmasAbajo(y, zp, 0.17), t, 0.34, 0.42);
-    if (t >= 0.42) e.figuras[0].pose = { ...palmasAbajo(y, zp, 0.17) };
+    const y = lerp(1.88, 0.82, baja);
+    posar(e, 0, veloMano(y), t, 0.34, 0.4);
+    if (t >= 0.4) e.figuras[0].pose = veloMano(y);
   }
   posar(e, 0, SERENA, t, 0.88, 1);
   const m = e.mantos[0];
   Object.assign(m, {
     activo: true,
     centro: [e.figuras[0].pos[0], 0, e.figuras[0].pos[2]] as V3,
-    radio: 0.58,
-    alto: 2.02,
+    radio: 0.5,
+    alto: 2.0,
     desdeArriba: true,
-    cobertura: baja,
-    banda: t > 0.36 && t < 0.9 ? lerp(0.9, 0.3, baja) : -1,
+    // El velo sigue a la mano y termina de caer hasta el piso.
+    cobertura: tramo(t, 0.36, 0.95, (x) => x),
+    banda: t > 0.36 && t < 0.92 ? lerp(0.92, 0.0, tramo(t, 0.36, 0.95, (x) => x)) : -1,
     color: 'violeta' as ColorEnergia,
-    opacidad: lerp(1, 0.13, tramo(t, 0.86, 1)),
+    opacidad: lerp(1, 0.13, tramo(t, 0.9, 1)),
+    lineas: 0.3,
   });
   // La carga del ombligo queda dentro.
-  const s = e.esferas[0];
-  if (s.activa) {
-    s.radio *= 1 - tramo(t, 0.0, 0.2);
-    if (t > 0.2) s.activa = false;
+  const c = e.esferas[0];
+  if (c.activa) {
+    c.radio *= 1 - tramo(t, 0.0, 0.2);
+    if (t > 0.2) c.activa = false;
   }
   apagarFlujos(e);
 }

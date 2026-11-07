@@ -11,8 +11,11 @@ Fuentes (en esta carpeta, sin modificar):
 - `notas-1.txt` → ejercicios 8–12 (carga, sensibilización de manos, activación de centros,
   recorrido por chakras, sellado final).
 
-Lo que los apuntes no precisan **no se inventa**: se marca como duda (hay 11) y la animación lo
-dibuja como «lectura ilustrativa». Están en la app (`#/dudas`) y en cada paso afectado.
+Lo que los apuntes no precisan **no se inventa**: se marca como duda y la animación lo dibuja como
+«lectura ilustrativa» (en la app: `#/dudas` y en cada paso afectado). Cuando el taller aclara una,
+pasa a `aclaracion` del paso y se muestra como «Confirmado en el taller». Ya confirmadas: 15 cargas
+por lado en el ombligo, el gesto de sellar desde el cielo (la mano baja como un velo) y la columna
+izquierda (2 barras de energía frente a las manos estiradas).
 
 ## Usar
 

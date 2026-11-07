@@ -33,22 +33,6 @@ export function fraseOrgano(organo: Organo): string {
 
 export const DUDAS: Duda[] = [
   {
-    id: 'ombligo-30',
-    titulo: '¿30 cargas en total o 15 por lado?',
-    detalle:
-      'El documento dice «Cargar en el ombligo 30 veces». En el repaso se debatió: 15 por lado (apuntes de Nardi del segundo taller) frente a 30 totales. En talleres anteriores ya traían carga previa y por eso solo hacían 30 ombligo + 30 pecho y sellaban.',
-    lectura: 'La animación cuenta 30 cargas en total y muestra la alternativa de 15 por lado.',
-    fuente: 'ambos',
-  },
-  {
-    id: 'sellar-cielo',
-    titulo: 'Gesto de «sellar desde el cielo»',
-    detalle: 'El apunte no describe el gesto.',
-    lectura:
-      'Brazos que suben por encima de la cabeza y bajan con las palmas hacia abajo por delante del cuerpo, cerrando un manto de luz de arriba hacia abajo.',
-    fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
-  },
-  {
     id: 'ritmo-4344',
     titulo: 'Ritmo de respiración (4, 3, 4, 4)',
     detalle: 'El apunte indica «15 respiraciones conscientes (4,3,4,4)» sin decir qué es cada número.',
@@ -69,14 +53,6 @@ export const DUDAS: Duda[] = [
     titulo: 'Cómo se cierra el propio campo energético',
     detalle: '«Cierras tu campo energético» no describe el gesto.',
     lectura: 'Se dibuja como un manto que se cierra alrededor de quien sana, sin gesto de manos concreto.',
-    fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
-  },
-  {
-    id: 'columna-izquierda',
-    titulo: '¿Qué es la «columna izquierda»?',
-    detalle:
-      '«Tomar energía de la columna izquierda y pasar a la mano derecha». No queda claro si es la arista vertical izquierda del cubo o el lado izquierdo de la columna central.',
-    lectura: 'Se dibuja la arista vertical del cubo que queda a la izquierda de quien sana.',
     fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
   },
   {
@@ -131,14 +107,14 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'cargar-ombligo',
         titulo: 'Cargar el ombligo',
         texto: 'Cargar en el ombligo 30 veces.',
-        cantidad: { valor: 30, unidad: 'veces', pregunta: '¿Cuántas veces se carga el ombligo?' },
-        dudas: ['ombligo-30'],
+        cantidad: { valor: 15, unidad: 'por lado (30 en total)', pregunta: '¿Cuántas cargas por lado se hacen en el ombligo?' },
+        aclaracion: 'Confirmado en el taller: son 15 por lado (30 en total).',
       },
       {
         id: 'sellar-cielo',
         titulo: 'Sellar desde el cielo',
         texto: 'Sellar desde el cielo.',
-        dudas: ['sellar-cielo'],
+        aclaracion: 'Confirmado en el taller: se toma la energía de arriba de la cabeza y se baja la mano, como cubriendo el cuerpo con un velo.',
       },
       {
         id: 'respirar-corazon',
@@ -263,7 +239,7 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'tomar-columna',
         titulo: 'Tomar de la columna izquierda',
         texto: 'Tomar energía de la columna izquierda y pasar a la mano derecha.',
-        dudas: ['columna-izquierda'],
+        aclaracion: 'Confirmado en el taller: hay 2 barras de energía verticales, del tamaño del cuerpo, a la altura de las manos estiradas al frente. La «columna izquierda» es la barra de la izquierda.',
       },
       {
         id: 'pasar-peinar',
@@ -471,7 +447,7 @@ export const EJERCICIOS: Ejercicio[] = [
     numero: 8,
     titulo: 'Carga del ombligo y del pecho',
     origen: 'notas',
-    resumen: 'La carga breve de quienes ya traen carga previa: 30 en el ombligo, 30 en el pecho y sellar.',
+    resumen: 'La carga breve de quienes ya traen carga previa: 30 en el ombligo (15 por lado), 30 en el pecho y sellar.',
     acento: 'oro',
     bloques: [
       {
@@ -491,10 +467,10 @@ export const EJERCICIOS: Ejercicio[] = [
     pasos: [
       {
         id: 'ombligo-30',
-        titulo: '30 en el ombligo',
+        titulo: '15 por lado en el ombligo',
         texto: 'Cargar el ombligo 30 veces.',
-        cantidad: { valor: 30, unidad: 'veces', pregunta: '¿Cuántas cargas en el ombligo hacían quienes ya traían carga previa?' },
-        dudas: ['ombligo-30'],
+        cantidad: { valor: 15, unidad: 'por lado (30 en total)', pregunta: '¿Cuántas cargas por lado en el ombligo hacían quienes ya traían carga previa?' },
+        aclaracion: 'Confirmado en el taller: son 15 por lado (30 en total).',
       },
       {
         id: 'pecho-30',
@@ -506,7 +482,7 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'sellar',
         titulo: 'Sellar',
         texto: 'Sellar.',
-        dudas: ['sellar-cielo'],
+        aclaracion: 'Confirmado en el taller: se toma la energía de arriba de la cabeza y se baja la mano, como cubriendo el cuerpo con un velo.',
       },
     ],
   },

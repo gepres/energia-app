@@ -1,5 +1,6 @@
 import {
   ArrowLeft,
+  BadgeCheck,
   ChevronLeft,
   ChevronRight,
   CircleHelp,
@@ -170,6 +171,11 @@ function PasoActual({ ej, paso, indice }: { ej: Ejercicio; paso: Paso; indice: n
       {paso.cantidad && (
         <p className="paso-cantidad">
           <strong>{paso.cantidad.valor}</strong> {paso.cantidad.unidad}
+        </p>
+      )}
+      {paso.aclaracion && (
+        <p className="paso-aclaracion">
+          <BadgeCheck size={15} aria-hidden="true" /> {paso.aclaracion}
         </p>
       )}
       {paso.lectura && <p className="paso-lectura">{paso.lectura}</p>}

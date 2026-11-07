@@ -159,6 +159,26 @@ function preguntaOrden(ej: Ejercicio, azar: Azar): PreguntaOrden | null {
 const DATOS: { ejercicioId: string; paso: number; enunciado: string; correcta: string; otras: string[]; explicacion: string }[] = [
   {
     ejercicioId: 'liberar-creencias',
+    paso: 1,
+    enunciado: '¿Cómo se sella desde el cielo?',
+    correcta: 'Tomando la energía de arriba de la cabeza y bajando la mano, como cubriendo el cuerpo con un velo',
+    otras: [
+      'Subiendo la energía desde los pies hasta la coronilla',
+      'Disparando una esfera hacia arriba',
+      'Juntando las manos frente al pecho',
+    ],
+    explicacion: 'Aclaración del taller: se toma la energía de arriba de la cabeza y se baja la mano, como un velo que cubre el cuerpo.',
+  },
+  {
+    ejercicioId: 'sanar-otra-persona',
+    paso: 3,
+    enunciado: '¿Qué es la «columna izquierda» de la que se toma energía?',
+    correcta: 'La barra de energía izquierda de las dos que hay a la altura de las manos estiradas al frente',
+    otras: ['La arista izquierda del cubo', 'El brazo izquierdo de la persona', 'La columna vertebral de quien sana'],
+    explicacion: 'Aclaración del taller: hay 2 barras verticales, del tamaño del cuerpo, a la altura de las manos estiradas al frente.',
+  },
+  {
+    ejercicioId: 'liberar-creencias',
     paso: 3,
     enunciado: '¿Con qué mano se sostiene la bolsa negra?',
     correcta: 'Con la mano izquierda',

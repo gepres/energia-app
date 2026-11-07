@@ -334,3 +334,38 @@ export function palmasArriba(sep = 0.42, y = 1.08, z = 0.34): Pose {
     cabezaPitch: 0.3,
   });
 }
+
+/** Sellar desde el cielo: la mano derecha toma la energía por encima de la cabeza. */
+export const TOMAR_ARRIBA = pose({
+  manoD: [-0.05, 1.92, 0.13],
+  codoD: [-1, 0.2, -0.1],
+  palmaD: normV([0.1, -0.35, -0.93]),
+  dedosD: normV([0.25, 1, 0.1]),
+  manoI: [0.2, 0.885, 0.05],
+  cabezaPitch: -0.12,
+});
+
+/** La mano derecha baja por delante, palma hacia el cuerpo, como un velo. */
+export function veloMano(y: number): Pose {
+  const z = 0.3 + 0.04 * Math.sin(Math.PI * Math.min(1, Math.max(0, (1.9 - y) / 1.1)));
+  return pose({
+    manoD: [-0.04, y, z],
+    codoD: [-1, -0.25, 0],
+    palmaD: ATRAS,
+    dedosD: normV([0.75, y > 1.3 ? 0.55 : -0.2, 0]),
+    manoI: [0.2, 0.885, 0.05],
+    cabezaPitch: y > 1.5 ? -0.05 : 0.15,
+  });
+}
+
+/** Las dos manos estiradas al frente: la izquierda toma de su barra, la derecha recibe. */
+export const TOMAR_BARRA_IZQUIERDA = pose({
+  manoI: [0.15, 1.27, 0.45],
+  codoI: [0.6, -1, -0.2],
+  palmaI: [1, 0, 0],
+  dedosI: normV([0, 0.25, 1]),
+  manoD: [-0.13, 1.17, 0.36],
+  codoD: [-1, -0.6, -0.1],
+  palmaD: ARRIBA,
+  dedosD: normV([0.35, 0, 1]),
+});

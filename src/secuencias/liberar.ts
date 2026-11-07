@@ -27,7 +27,7 @@ export const liberarCreencias: Secuencia = {
       dur: 9,
       aplicar: (e, t) => {
         toma(e, TOMAS.ombligo, t, 0, 0.22);
-        cargar(e, t, { pose: CARGA_OMBLIGO, centro: 'ombligo', n: 30, etiqueta: 'cargas en el ombligo' });
+        cargar(e, t, { pose: CARGA_OMBLIGO, centro: 'ombligo', n: 30, porLado: true, etiqueta: 'ombligo' });
       },
     },
     // 2 · Sellar desde el cielo

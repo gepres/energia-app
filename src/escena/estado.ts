@@ -112,6 +112,19 @@ export interface Manto {
   banda: number;
   color: ColorEnergia;
   opacidad: number;
+  /** Densidad de las líneas verticales: 1 cúpula marcada, ~0,3 velo suave. */
+  lineas: number;
+}
+
+/** Dos barras verticales de energía frente a una figura (columna izquierda y derecha). */
+export interface Barras {
+  activa: boolean;
+  izq: V3;
+  der: V3;
+  alto: number;
+  opacidad: number;
+  /** Brillo extra de la barra izquierda (de la que se toma energía). */
+  resalte: number;
 }
 
 export interface Cubo {
@@ -173,6 +186,7 @@ export interface Estado {
   objetos: Record<NombreObjeto, Objeto>;
   mantos: Manto[];
   cubo: Cubo;
+  barras: Barras;
   pulsos: Pulso[];
   marcas: Marca[];
   cotas: Cota[];
@@ -262,6 +276,7 @@ const manto = (): Manto => ({
   banda: -1,
   color: 'violeta',
   opacidad: 1,
+  lineas: 1,
 });
 
 export function crearEstado(): Estado {
@@ -293,6 +308,7 @@ export function crearEstado(): Estado {
       resalte: 0,
       opacidad: 1,
     },
+    barras: { activa: false, izq: [0, 0, 0], der: [0, 0, 0], alto: 1.75, opacidad: 0, resalte: 0 },
     pulsos: [],
     marcas: [],
     cotas: [],

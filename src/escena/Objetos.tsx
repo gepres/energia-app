@@ -690,6 +690,75 @@ function Haces() {
   );
 }
 
+// ── Barras de energía (columna izquierda y derecha) ────────────────────
+
+function materialBarra() {
+  return new ShaderMaterial({
+    uniforms: { uColor: { value: new Color(HEX_ENERGIA.jade) }, uIntensidad: { value: 0 }, uTiempo: { value: 0 } },
+    vertexShader: /* glsl */ `
+      varying vec2 vUv;
+      varying vec3 vN;
+      varying vec3 vV;
+      void main() {
+        vUv = uv;
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vN = normalize(normalMatrix * normal);
+        vV = normalize(-mv.xyz);
+        gl_Position = projectionMatrix * mv;
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform vec3 uColor;
+      uniform float uIntensidad;
+      uniform float uTiempo;
+      varying vec2 vUv;
+      varying vec3 vN;
+      varying vec3 vV;
+      void main() {
+        float y = vUv.y;
+        float lado = pow(abs(dot(normalize(vN), normalize(vV))), 1.2);
+        float extremos = smoothstep(0.0, 0.08, y) * (1.0 - smoothstep(0.92, 1.0, y));
+        float flujo = 0.8 + 0.2 * sin(y * 40.0 - uTiempo * 3.0);
+        float a = lado * extremos * flujo * uIntensidad;
+        gl_FragColor = vec4(uColor * a * 1.8, a);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+  });
+}
+
+function BarrasEnergia() {
+  const izq = useRef<Mesh>(null);
+  const der = useRef<Mesh>(null);
+  const matI = useMemo(materialBarra, []);
+  const matD = useMemo(materialBarra, []);
+  useFrame(() => {
+    const b = escena.estado.barras;
+    const visible = b.activa && b.opacidad > 0.005;
+    izq.current!.visible = der.current!.visible = visible;
+    if (!visible) return;
+    izq.current!.position.set(b.izq[0], b.izq[1] + b.alto / 2, b.izq[2]);
+    der.current!.position.set(b.der[0], b.der[1] + b.alto / 2, b.der[2]);
+    izq.current!.scale.set(1 + 0.6 * b.resalte, b.alto, 1 + 0.6 * b.resalte);
+    der.current!.scale.set(1, b.alto, 1);
+    matI.uniforms.uIntensidad.value = b.opacidad * (0.8 + 0.9 * b.resalte);
+    matD.uniforms.uIntensidad.value = b.opacidad * 0.8;
+    matI.uniforms.uTiempo.value = matD.uniforms.uTiempo.value = reloj.valor;
+  });
+  return (
+    <>
+      <mesh ref={izq} material={matI} visible={false} renderOrder={4}>
+        <cylinderGeometry args={[0.035, 0.035, 1, 20, 1, true]} />
+      </mesh>
+      <mesh ref={der} material={matD} visible={false} renderOrder={4}>
+        <cylinderGeometry args={[0.035, 0.035, 1, 20, 1, true]} />
+      </mesh>
+    </>
+  );
+}
+
 // ── Rótulos y cotas ─────────────────────────────────────────────────────
 
 const GEO_EXTREMO = new BoxGeometry(0.012, 0.002, 0.14);
@@ -757,6 +826,7 @@ export function Objetos() {
       <Llama />
       <Cubo />
       <Haces />
+      <BarrasEnergia />
       <Cotas />
     </>
   );

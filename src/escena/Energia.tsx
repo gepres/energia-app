@@ -328,6 +328,7 @@ function UnManto({ i }: { i: number }) {
     u.uCobertura.value = m.cobertura;
     u.uDesdeArriba.value = m.desdeArriba ? 1 : 0;
     u.uBanda.value = m.banda;
+    u.uMeridianos.value = m.lineas;
     u.uAlto.value = m.alto;
     u.uBase.value = m.centro[1];
   }, -5);
