@@ -1,0 +1,624 @@
+import type { Duda, Ejercicio, Organo } from './tipos';
+
+/**
+ * Contenido de los apuntes de la carpeta:
+ *  - «MANEJO DE ENERGÍA SET 2026.docx» → ejercicios 1–7 (origen `set2026`).
+ *  - «notas-1.txt» (repaso de ejercicios energéticos) → ejercicios 8–12 (origen `notas`).
+ *
+ * Regla: los textos y las frases se conservan literales. Lo que el apunte no
+ * precisa no se inventa: se marca con una duda y la animación lo dibuja como
+ * «lectura ilustrativa».
+ */
+
+export const ORGANOS: Organo[] = [
+  { id: 'vejiga', nombre: 'Vejiga', polaridad: 'tierra' },
+  { id: 'rinones', nombre: 'Riñones', polaridad: 'tierra' },
+  { id: 'reproductor', nombre: 'Aparato reproductor', polaridad: 'tierra' },
+  { id: 'bazo', nombre: 'Bazo', polaridad: 'tierra' },
+  { id: 'corazon', nombre: 'Corazón', polaridad: 'cielo' },
+  { id: 'higado', nombre: 'Hígado', polaridad: 'cielo' },
+  { id: 'pancreas', nombre: 'Páncreas', polaridad: 'cielo' },
+  { id: 'pulmones', nombre: 'Pulmones', polaridad: 'cielo' },
+  { id: 'estomago', nombre: 'Estómago', polaridad: 'cielo' },
+  { id: 'cerebro', nombre: 'Cerebro y columna vertebral', polaridad: 'cielo' },
+  { id: 'tiroides', nombre: 'Tiroides', polaridad: 'cielo' },
+];
+
+/** Frase del ejercicio de órganos con el órgano y la polaridad ya resueltos. */
+export function fraseOrgano(organo: Organo): string {
+  const verbo = organo.polaridad === 'cielo' ? 'BAJE' : 'SUBA';
+  const signo = organo.polaridad === 'cielo' ? '+' : '−';
+  return `QUE ${verbo} LA ENERGÍA ${signo} SUFICIENTE PARA SANAR MI ${organo.nombre.toUpperCase()} Y SUS FUNCIONES`;
+}
+
+export const DUDAS: Duda[] = [
+  {
+    id: 'ombligo-30',
+    titulo: '¿30 cargas en total o 15 por lado?',
+    detalle:
+      'El documento dice «Cargar en el ombligo 30 veces». En el repaso se debatió: 15 por lado (apuntes de Nardi del segundo taller) frente a 30 totales. En talleres anteriores ya traían carga previa y por eso solo hacían 30 ombligo + 30 pecho y sellaban.',
+    lectura: 'La animación cuenta 30 cargas en total y muestra la alternativa de 15 por lado.',
+    fuente: 'ambos',
+  },
+  {
+    id: 'sellar-cielo',
+    titulo: 'Gesto de «sellar desde el cielo»',
+    detalle: 'El apunte no describe el gesto.',
+    lectura:
+      'Brazos que suben por encima de la cabeza y bajan con las palmas hacia abajo por delante del cuerpo, cerrando un manto de luz de arriba hacia abajo.',
+    fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
+  },
+  {
+    id: 'ritmo-4344',
+    titulo: 'Ritmo de respiración (4, 3, 4, 4)',
+    detalle: 'El apunte indica «15 respiraciones conscientes (4,3,4,4)» sin decir qué es cada número.',
+    lectura: 'Se lee como tiempos: inhalar 4 · retener 3 · exhalar 4 · pausa 4.',
+    fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
+  },
+  {
+    id: 'dirigir-organo',
+    titulo: '«Dirigir hacia el lugar que corresponde»',
+    detalle:
+      'La frase dice «QUE BAJE/SUBA LA ENERGÍA +/-». No se explica hacia dónde se dirige la esfera antes de llevarla al órgano.',
+    lectura:
+      'Se empareja en el orden del apunte: órganos de cielo (+) → «que BAJE la energía +», esfera dirigida hacia arriba; órganos de tierra (−) → «que SUBA la energía −», esfera dirigida hacia el piso.',
+    fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
+  },
+  {
+    id: 'cerrar-campo',
+    titulo: 'Cómo se cierra el propio campo energético',
+    detalle: '«Cierras tu campo energético» no describe el gesto.',
+    lectura: 'Se dibuja como un manto que se cierra alrededor de quien sana, sin gesto de manos concreto.',
+    fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
+  },
+  {
+    id: 'columna-izquierda',
+    titulo: '¿Qué es la «columna izquierda»?',
+    detalle:
+      '«Tomar energía de la columna izquierda y pasar a la mano derecha». No queda claro si es la arista vertical izquierda del cubo o el lado izquierdo de la columna central.',
+    lectura: 'Se dibuja la arista vertical del cubo que queda a la izquierda de quien sana.',
+    fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
+  },
+  {
+    id: 'agujero-esfera',
+    titulo: 'Dónde va el agujero de la esfera',
+    detalle: '«Hacer un agujero en la esfera» no indica la posición ni el tamaño.',
+    lectura: 'Abertura en la parte de abajo de la esfera, por donde baja la conexión de la pelvis al piso.',
+    fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
+  },
+  {
+    id: 'rosa-1-distancia',
+    titulo: 'Distancia de la primera rosa',
+    detalle:
+      'La foto va a 2 m y la segunda rosa a 1 m de la otra persona; de la primera solo se dice «entre tú y la otra persona».',
+    lectura: 'La primera rosa se coloca más cerca de ti (≈ 0,6 m) y la segunda a 1 m de la otra persona.',
+    fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
+  },
+  {
+    id: 'cubo-ex-pareja',
+    titulo: '¿Se construye el cubo para el ejercicio de la ex pareja?',
+    detalle: 'Se coloca el recipiente «en la columna del cubo», pero el ejercicio no dice «hacer cubo».',
+    lectura: 'Se muestra el cubo ya construido (como en «Sanar a otra persona»).',
+    fuente: 'MANEJO DE ENERGÍA SET 2026.docx',
+  },
+  {
+    id: 'esfera-de-carga',
+    titulo: 'Dónde está la «esfera de carga» del sellado final',
+    detalle: '«Expandir y contraer la esfera de carga» no indica su posición.',
+    lectura: 'Entre las manos, a la altura del ombligo.',
+    fuente: 'notas-1.txt',
+  },
+  {
+    id: 'frase-centros',
+    titulo: '¿«Con esta esfera de luz…» en las tres frases?',
+    detalle: 'Las notas solo anteponen «con esta esfera de luz» en la frase del corazón.',
+    lectura: 'Se muestran las tres frases tal como están en las notas.',
+    fuente: 'notas-1.txt',
+  },
+];
+
+export const EJERCICIOS: Ejercicio[] = [
+  // ───────────────────────── MANEJO DE ENERGÍA · SET 2026 ─────────────────────────
+  {
+    id: 'liberar-creencias',
+    numero: 1,
+    titulo: 'Liberación de creencias negativas',
+    origen: 'set2026',
+    resumen: 'Cargar, sellar y respirar; luego soltar la creencia soplándola en una bolsa negra que se amarra y se deja lejos.',
+    acento: 'violeta',
+    pasos: [
+      {
+        id: 'cargar-ombligo',
+        titulo: 'Cargar el ombligo',
+        texto: 'Cargar en el ombligo 30 veces.',
+        cantidad: { valor: 30, unidad: 'veces', pregunta: '¿Cuántas veces se carga el ombligo?' },
+        dudas: ['ombligo-30'],
+      },
+      {
+        id: 'sellar-cielo',
+        titulo: 'Sellar desde el cielo',
+        texto: 'Sellar desde el cielo.',
+        dudas: ['sellar-cielo'],
+      },
+      {
+        id: 'respirar-corazon',
+        titulo: 'Mano en el corazón',
+        texto: 'Colocar la mano sobre el corazón y hacer 15 respiraciones conscientes (4,3,4,4).',
+        cantidad: { valor: 15, unidad: 'respiraciones', pregunta: '¿Cuántas respiraciones conscientes con la mano en el corazón?' },
+        dudas: ['ritmo-4344'],
+      },
+      {
+        id: 'sostener-bolsa',
+        titulo: 'Bolsa en la mano izquierda',
+        texto: 'Sostener una bolsa negra con la mano izquierda.',
+      },
+      {
+        id: 'pensar-creencia',
+        titulo: 'Pensar la creencia',
+        texto: 'Pensar la creencia negativa.',
+      },
+      {
+        id: 'decir-gracias',
+        titulo: 'Decir la frase',
+        texto: 'Decir la frase de liberación.',
+        frase: 'GRACIAS, TE LIBERO, TE DEJO IR',
+      },
+      {
+        id: 'soplar',
+        titulo: 'Soplar 3 veces',
+        texto: 'Soplar con toda la fuerza 3 veces dentro de la bolsa.',
+        cantidad: { valor: 3, unidad: 'soplidos', pregunta: '¿Cuántas veces se sopla dentro de la bolsa?' },
+      },
+      {
+        id: 'amarrar-dejar',
+        titulo: 'Amarrar y dejar lejos',
+        texto: 'Amarrar la bolsa y dejarla en un tacho lejano.',
+      },
+    ],
+  },
+  {
+    id: 'equilibrar-organos',
+    numero: 2,
+    titulo: 'Equilibrar la energía de los órganos',
+    origen: 'set2026',
+    resumen: 'Cada órgano recibe energía de tierra (−) o de cielo (+). Se forma una esfera, se le pide la energía y se hace ingresar con la mano extendida.',
+    acento: 'cielo',
+    bloques: [
+      { titulo: 'Energía de tierra (−)', items: ['Vejiga', 'Riñones', 'Aparato reproductor', 'Bazo'] },
+      {
+        titulo: 'Energía del cielo (+)',
+        items: ['Corazón', 'Hígado', 'Páncreas', 'Pulmones', 'Estómago', 'Cerebro y columna vertebral', 'Tiroides'],
+      },
+    ],
+    pasos: [
+      {
+        id: 'respirar-30',
+        titulo: '30 respiraciones',
+        texto: '30 respiraciones conscientes.',
+        cantidad: { valor: 30, unidad: 'respiraciones', pregunta: '¿Cuántas respiraciones conscientes antes de equilibrar un órgano?' },
+      },
+      {
+        id: 'unir-bolsas',
+        titulo: 'Unir dos bolsas de energía',
+        texto: 'Tomar dos bolsas de energía, unirlas y darle forma.',
+        lectura: 'Se conserva el término «bolsas de energía» del apunte; se dibujan como dos esferas que se funden en una.',
+      },
+      {
+        id: 'dirigir-pedir',
+        titulo: 'Dirigir y pedir',
+        texto: 'Dirigir hacia el lugar que corresponde y decir la frase.',
+        frase: 'QUE BAJE/SUBA LA ENERGÍA +/- SUFICIENTE PARA SANAR MI ________ Y SUS FUNCIONES',
+        dudas: ['dirigir-organo'],
+      },
+      {
+        id: 'llevar-organo',
+        titulo: 'Llevar al órgano',
+        texto: 'Llevar la energía al órgano correspondiente, alejar y acercar la energía.',
+      },
+      {
+        id: 'hacer-ingresar',
+        titulo: 'Hacer ingresar',
+        texto: 'Con la mano extendida hacer ingresar la energía diciendo la frase.',
+        frase: 'TE AMO, SÁNATE',
+      },
+      {
+        id: 'retirar-mano',
+        titulo: 'Retirar la mano',
+        texto: 'Retirar lentamente la mano.',
+      },
+      {
+        id: 'repetir',
+        titulo: 'Repetir',
+        texto: 'Repetir al menos 2 veces.',
+        cantidad: { valor: 2, unidad: 'veces como mínimo', pregunta: '¿Cuántas veces, como mínimo, se repite con cada órgano?' },
+      },
+    ],
+  },
+  {
+    id: 'sanar-otra-persona',
+    numero: 3,
+    titulo: 'Sanar a otra persona',
+    origen: 'set2026',
+    resumen: 'Con el cubo hecho y la persona en la columna mirando al norte, se toma energía de la columna izquierda y con la mano derecha se pasa energía o se peina.',
+    acento: 'jade',
+    pasos: [
+      {
+        id: 'hacer-cubo',
+        titulo: 'Hacer cubo',
+        texto: 'Hacer cubo.',
+        lectura: 'Versión resumida de la construcción de «mejorar-apuntes»: 32 esferas, cuadrado inferior, superior, verticales y columna central.',
+      },
+      {
+        id: 'persona-columna',
+        titulo: 'Persona en la columna',
+        texto: 'Colocar a la persona en la columna orientada al N.',
+      },
+      {
+        id: 'cerrar-campo',
+        titulo: 'Cerrar tu campo',
+        texto: 'Cierras tu campo energético.',
+        dudas: ['cerrar-campo'],
+      },
+      {
+        id: 'tomar-columna',
+        titulo: 'Tomar de la columna izquierda',
+        texto: 'Tomar energía de la columna izquierda y pasar a la mano derecha.',
+        dudas: ['columna-izquierda'],
+      },
+      {
+        id: 'pasar-peinar',
+        titulo: 'Pasar energía o peinar',
+        texto:
+          'Manteniendo la mano izquierda conectada hacia la tierra, con la mano derecha pasar energía o peinar (según lo que necesite la persona).',
+      },
+    ],
+  },
+  {
+    id: 'enraizar',
+    numero: 4,
+    titulo: 'Enraizar',
+    subtitulo: 'generar lo material',
+    origen: 'set2026',
+    resumen: 'Una esfera cargada con − y +, abierta por un agujero, conecta la pelvis con el piso.',
+    acento: 'tierra',
+    pasos: [
+      {
+        id: 'esfera-cargar',
+        titulo: 'Esfera con − y +',
+        texto: 'Hacer una esfera, cargar – y +.',
+      },
+      {
+        id: 'agujero',
+        titulo: 'Agujero en la esfera',
+        texto: 'Hacer un agujero en la esfera.',
+        dudas: ['agujero-esfera'],
+      },
+      {
+        id: 'pelvis-piso',
+        titulo: 'Pelvis al piso',
+        texto: 'Conectar desde la pelvis al piso (tocar el piso).',
+      },
+      {
+        id: 'decir-conectate',
+        titulo: 'Decir la frase',
+        texto: 'Decir la frase.',
+        frase: 'SÁNATE, CONÉCTATE HASTA SANAR',
+      },
+    ],
+  },
+  {
+    id: 'separar-otra-persona',
+    numero: 5,
+    titulo: 'Separar tu energía de la de otra persona',
+    origen: 'set2026',
+    resumen: 'Dos rosas entre tú y la otra persona recogen la energía cruzada; se sellan con esferas y cada rosa vuelve a su dueño.',
+    acento: 'rosa',
+    pasos: [
+      {
+        id: 'foto-2m',
+        titulo: 'Foto a 2 m',
+        texto: 'Colocar una foto o dibujo o nombre de la otra persona a 2 m de distancia.',
+        cantidad: { valor: 2, unidad: 'm', pregunta: '¿A qué distancia se coloca la foto, dibujo o nombre de la otra persona?' },
+      },
+      {
+        id: 'visualizar',
+        titulo: 'Visualizar',
+        texto: 'Visualizar a esa persona.',
+      },
+      {
+        id: 'rosa-1',
+        titulo: 'Primera rosa',
+        texto: 'Sacar del pecho una rosa y colocarla en el piso, entre tú y la otra persona.',
+        dudas: ['rosa-1-distancia'],
+      },
+      {
+        id: 'frase-rosa-1',
+        titulo: 'Tu energía a la rosa',
+        texto: 'Pedir que tu energía vuelva a la primera rosa.',
+        frase: 'TODA MI ENERGÍA QUE HAYA QUEDADO EN EL CAMPO ENERGÉTICO DE _______, QUE SALGA Y CAIGA DENTRO DE ESTA ROSA',
+      },
+      {
+        id: 'rosa-2',
+        titulo: 'Segunda rosa a 1 m',
+        texto: 'Sacar una segunda rosa y colocarla a 1 m de la otra persona.',
+        cantidad: { valor: 1, unidad: 'm', pregunta: '¿A qué distancia de la otra persona va la segunda rosa?' },
+      },
+      {
+        id: 'frase-rosa-2',
+        titulo: 'Su energía a la rosa',
+        texto: 'Pedir que la energía de la otra persona salga de tu campo hacia la segunda rosa.',
+        frase: 'TODA LA ENERGÍA DE _______ QUE ESTÉ EN MI CAMPO ENERGÉTICO, QUE SALGA Y CAIGA DENTRO DE ESTA ROSA',
+      },
+      {
+        id: 'describir',
+        titulo: 'Describir diferencias',
+        texto:
+          'Describir a la persona en aquello que la diferencia de ti y con un gesto de tu mano colocar todas esas características dentro de esa rosa.',
+      },
+      {
+        id: 'sellar-rosa-2',
+        titulo: 'Sellar la segunda rosa',
+        texto: 'Tomar una esfera de energía y dispararla sobre la segunda rosa para sellar.',
+      },
+      {
+        id: 'sellar-rosa-1',
+        titulo: 'Sellar la primera rosa',
+        texto: 'Luego tomar otra esfera de energía y dispararla sobre la primera rosa para sellar.',
+      },
+      {
+        id: 'devolver',
+        titulo: 'Devolver cada rosa',
+        texto: 'Devolver cada rosa a su dueño.',
+      },
+    ],
+  },
+  {
+    id: 'separar-sangre',
+    numero: 6,
+    titulo: 'Separar tu energía de la sangre que donas',
+    origen: 'set2026',
+    resumen: 'Una rosa entre tú y el dibujo de la bolsa de sangre recoge tu energía; nombras 5 rasgos tuyos, la sellas y vuelve a tu pecho.',
+    acento: 'rosa',
+    pasos: [
+      {
+        id: 'dibujo-bolsa',
+        titulo: 'Dibujo de la bolsa',
+        texto:
+          'Colocar un dibujo de la bolsa de sangre que donaste, que representa a todos los desconocidos a los que puede llegar tu sangre.',
+      },
+      {
+        id: 'rosa',
+        titulo: 'Rosa entre ambos',
+        texto: 'Colocar una rosa entre ambos.',
+      },
+      {
+        id: 'frase-rosa',
+        titulo: 'Tu energía a la rosa',
+        texto: 'Pedir que tu energía vuelva a la rosa.',
+        frase:
+          'TODA MI ENERGÍA QUE HAYA QUEDADO EN EL CAMPO ENERGÉTICO DE LAS PERSONAS QUE RECIBIERON MI SANGRE, QUE SALGA Y CAIGA DENTRO DE ESTA ROSA',
+      },
+      {
+        id: 'cinco-rasgos',
+        titulo: '5 características tuyas',
+        texto: 'Mencionar 5 características tuyas que te diferencian (tu nombre, un lunar, una cicatriz, etc.).',
+        cantidad: { valor: 5, unidad: 'características', pregunta: '¿Cuántas características tuyas se mencionan?' },
+      },
+      {
+        id: 'sellar',
+        titulo: 'Sellar la rosa',
+        texto: 'Hacer esfera de energía y disparar sobre la rosa para sellarla.',
+      },
+      {
+        id: 'devolver-pecho',
+        titulo: 'Rosa al pecho',
+        texto: 'Devolver la rosa a tu pecho.',
+      },
+    ],
+  },
+  {
+    id: 'separar-ex-pareja',
+    numero: 7,
+    titulo: 'Separar la energía de una ex pareja',
+    origen: 'set2026',
+    resumen: 'El nombre o la foto va en un recipiente en la columna del cubo; la rosa recoge tu energía, se sella, vuelve a tu pecho y se quema la foto.',
+    acento: 'oro',
+    pasos: [
+      {
+        id: 'recipiente-columna',
+        titulo: 'Recipiente en la columna',
+        texto: 'Colocar un recipiente en la columna del cubo con la foto, dibujo o nombre de la ex pareja.',
+        dudas: ['cubo-ex-pareja'],
+      },
+      {
+        id: 'rosa',
+        titulo: 'Rosa entre ambos',
+        texto: 'Colocar una rosa entre ambos.',
+      },
+      {
+        id: 'frase-rosa',
+        titulo: 'Tu energía a la rosa',
+        texto: 'Pedir que tu energía vuelva a la rosa.',
+        frase: 'TODA MI ENERGÍA QUE HAYA QUEDADO EN EL CAMPO ENERGÉTICO DE ________, QUE SALGA Y CAIGA DENTRO DE ESTA ROSA',
+      },
+      {
+        id: 'cinco-rasgos',
+        titulo: '5 características tuyas',
+        texto: 'Mencionar 5 características tuyas que te diferencian (tu nombre, un lunar, una cicatriz, etc.).',
+        cantidad: { valor: 5, unidad: 'características', pregunta: '¿Cuántas características tuyas se mencionan con la ex pareja?' },
+      },
+      {
+        id: 'sellar',
+        titulo: 'Sellar la rosa',
+        texto: 'Hacer esfera de energía y disparar sobre la rosa para sellarla.',
+      },
+      {
+        id: 'devolver-pecho',
+        titulo: 'Rosa al pecho',
+        texto: 'Devolver la rosa a tu pecho.',
+      },
+      {
+        id: 'quemar',
+        titulo: 'Quemar la foto',
+        texto: 'Quemar la foto / dibujo. Si explota, hubo algo feo.',
+      },
+    ],
+  },
+
+  // ───────────────────────── NOTAS DEL REPASO ─────────────────────────
+  {
+    id: 'carga-y-sellado',
+    numero: 8,
+    titulo: 'Carga del ombligo y del pecho',
+    origen: 'notas',
+    resumen: 'La carga breve de quienes ya traen carga previa: 30 en el ombligo, 30 en el pecho y sellar.',
+    acento: 'oro',
+    bloques: [
+      {
+        titulo: 'Desde cero, la secuencia completa incluye',
+        items: [
+          'Activación de 3 puntos',
+          'Carga de manos',
+          'Limpieza de canales',
+          'Garganta',
+          'Tercer ojo',
+          'Ingles',
+          'Cola',
+          'Pies',
+        ],
+      },
+    ],
+    pasos: [
+      {
+        id: 'ombligo-30',
+        titulo: '30 en el ombligo',
+        texto: 'Cargar el ombligo 30 veces.',
+        cantidad: { valor: 30, unidad: 'veces', pregunta: '¿Cuántas cargas en el ombligo hacían quienes ya traían carga previa?' },
+        dudas: ['ombligo-30'],
+      },
+      {
+        id: 'pecho-30',
+        titulo: '30 en el pecho',
+        texto: 'Cargar el pecho 30 veces.',
+        cantidad: { valor: 30, unidad: 'veces', pregunta: '¿Cuántas cargas en el pecho?' },
+      },
+      {
+        id: 'sellar',
+        titulo: 'Sellar',
+        texto: 'Sellar.',
+        dudas: ['sellar-cielo'],
+      },
+    ],
+  },
+  {
+    id: 'sensibilizar-manos',
+    numero: 9,
+    titulo: 'Sensibilización de manos',
+    subtitulo: 'enseñado por Víctor',
+    origen: 'notas',
+    resumen: 'Dos esferas que se juntan, pasan de mano en mano y se deslizan por el brazo mientras la otra mano palpa a distancia.',
+    acento: 'oro',
+    bloques: [{ titulo: 'Sensaciones reportadas', items: ['Calor', 'Presión', 'Hormigueo', 'Electricidad'] }],
+    pasos: [
+      { id: 'dos-esferas', titulo: 'Tomar dos esferas', texto: 'Tomar dos esferas y juntarlas.' },
+      { id: 'mano-a-mano', titulo: 'De mano en mano', texto: 'Pasar la esfera de mano en mano.' },
+      {
+        id: 'deslizar',
+        titulo: 'Muñeca, antebrazo, codo',
+        texto: 'Deslizar por la muñeca, el antebrazo y el codo.',
+      },
+      { id: 'palpar', titulo: 'Palpar a distancia', texto: 'Palpar a distancia con la otra mano.' },
+    ],
+  },
+  {
+    id: 'activar-centros',
+    numero: 10,
+    titulo: 'Activación de centros energéticos',
+    origen: 'notas',
+    resumen: 'Hacer chicle con la esfera y empujarla a 5–10 cm del corazón, la garganta y el tercer ojo, diciendo la frase de cada centro.',
+    acento: 'jade',
+    pasos: [
+      {
+        id: 'chicle',
+        titulo: 'Hacer chicle',
+        texto: 'Hacer chicle con la esfera de luz.',
+      },
+      {
+        id: 'corazon',
+        titulo: 'Corazón',
+        texto: 'Empujar la bolita a 5–10 cm del corazón.',
+        frase: 'CON ESTA ESFERA DE LUZ ACTIVO EL PODER DEL AMOR QUE RADICA EN MÍ',
+        cantidad: { valor: 10, unidad: 'cm como máximo (5–10 cm)', pregunta: '¿A cuántos centímetros del centro se empuja la bolita? (máximo)' },
+        dudas: ['frase-centros'],
+      },
+      {
+        id: 'garganta',
+        titulo: 'Garganta',
+        texto: 'Empujar la bolita a 5–10 cm de la garganta.',
+        frase: 'ACTIVO EL PODER DE LA PALABRA QUE RADICA EN MI VOZ',
+      },
+      {
+        id: 'tercer-ojo',
+        titulo: 'Tercer ojo',
+        texto: 'Empujar la bolita a 5–10 cm del tercer ojo.',
+        frase: 'ACTIVO EL PODER DE LA CLARIVIDENCIA EN MÍ',
+      },
+    ],
+  },
+  {
+    id: 'recorrido-chakras',
+    numero: 11,
+    titulo: 'Recorrido por chakras',
+    origen: 'notas',
+    resumen: 'Una esfera baja desde la coronilla por el frente, sube por la espalda y vuelve a la coronilla para absorberse.',
+    acento: 'violeta',
+    bloques: [{ titulo: 'Sensación descrita', items: ['«Como un gorrito con punta que daba vueltas» en la coronilla'] }],
+    pasos: [
+      { id: 'coronilla', titulo: 'Esfera en la coronilla', texto: 'La esfera empieza en la coronilla.' },
+      {
+        id: 'frente',
+        titulo: 'Bajar por el frente',
+        texto: 'Bajar por la frente, la garganta, el corazón, el ombligo y la zona genital.',
+      },
+      {
+        id: 'espalda',
+        titulo: 'Subir por la espalda',
+        texto: 'Pasar por el coxis, los omóplatos y la nuca.',
+      },
+      {
+        id: 'absorber',
+        titulo: 'Volver y absorber',
+        texto: 'Regresar a la coronilla para absorberse.',
+      },
+    ],
+  },
+  {
+    id: 'sellado-final',
+    numero: 12,
+    titulo: 'Sellado final',
+    origen: 'notas',
+    resumen: 'Mano derecha debajo, mano izquierda encima; luego expandir y contraer la esfera de carga.',
+    acento: 'violeta',
+    pasos: [
+      {
+        id: 'manos',
+        titulo: 'Derecha debajo, izquierda encima',
+        texto: 'Mano derecha debajo, mano izquierda encima.',
+        dudas: ['esfera-de-carga'],
+      },
+      {
+        id: 'expandir-contraer',
+        titulo: 'Expandir y contraer',
+        texto: 'Expandir y contraer la esfera de carga.',
+      },
+    ],
+  },
+];
+
+export function buscarEjercicio(id: string): Ejercicio | undefined {
+  return EJERCICIOS.find((e) => e.id === id);
+}
+
+export function buscarDuda(id: string): Duda | undefined {
+  return DUDAS.find((d) => d.id === id);
+}
