@@ -183,7 +183,7 @@ export const EJERCICIOS: Ejercicio[] = [
     subtitulo: 'baja por la espalda, sube por el frente',
     origen: 'revision',
     resumen:
-      'Se une la energía de las dos barras en una esfera y se coloca sobre la coronilla. La esfera va sola: baja por detrás de la cabeza y por la espalda, pasa por debajo, entre las piernas, sale por la ingle, sube por el frente y vuelve a la coronilla, deteniéndose unos segundos en cada punto importante. Al final, las dos manos, entre las palmas, la introducen por la coronilla.',
+      'Se une la energía de las dos barras en una esfera y se coloca sobre la coronilla. La esfera va sola: baja por detrás de la cabeza y por la espalda, pasa por debajo, entre las piernas, sale por la ingle, sube por el frente y vuelve a la coronilla, deteniéndose unos segundos en cada punto importante. Al final, las dos manos la bajan entre las palmas y ayudan a introducirla por la coronilla.',
     acento: 'cielo',
     pasos: [
       {
