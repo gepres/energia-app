@@ -42,6 +42,9 @@ function cargaIngle(e: Estado, lado: Lado, cargas: number) {
     brillo: 0.75 + 0.45 * k,
     color: 'oro',
     opacidad: 1,
+    // Carga quieta: no se lleva la luz que alumbra el cuerpo. Si no, al empatar las dos
+    // ingles (después de cada entrega de la izquierda) la luz saltaba a la ingle izquierda.
+    ilumina: false,
   });
   e.centros[CENTRO[lado]] = 0.25 + 0.75 * k;
 }

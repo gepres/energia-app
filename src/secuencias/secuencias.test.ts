@@ -1209,6 +1209,26 @@ describe('Cargar las ingles (descrito en el taller)', () => {
     expect(INGLE_IZQ[1]).toBe(INGLE_DER[1]);
   });
 
+  it('la luz que alumbra el cuerpo va con la esfera que viaja, nunca con una ingle (si no, una ingle se encendía más que la otra)', () => {
+    // La única luz va a la esfera más brillante que puede llevarla (como en Energia.tsx).
+    const conLuz = (e: Estado) => {
+      let mejor = -1;
+      let valor = 0;
+      e.esferas.forEach((s, i) => {
+        const v = s.activa && s.ilumina ? s.brillo * s.opacidad * s.radio : 0;
+        if (v > valor) [valor, mejor] = [v, i];
+      });
+      return mejor;
+    };
+    for (let k = 0; k <= 600; k++) {
+      const e = enCiclo(-0.2 + (4 * k) / 600);
+      const i = conLuz(e);
+      expect([-1, 1, 2], `x ${(-0.2 + (4 * k) / 600).toFixed(3)}: la luz está en la esfera ${i}`).toContain(i);
+    }
+    const fin = evaluar(sec, 1, 1, OPCIONES_INICIALES);
+    expect(conLuz(fin), 'al final las dos ingles quedan iguales, sin luz en ninguna').toBe(-1);
+  });
+
   it('con la espalda recta: no se inclina; el hombro de la mano que cruza se adelanta y el torso gira un poco hacia esa ingle; los brazos llegan siempre', () => {
     // La espalda recta: nunca se inclina.
     for (let paso = 0; paso < sec.pasos.length; paso++)
