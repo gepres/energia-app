@@ -118,20 +118,25 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'unir-ombligo',
         titulo: 'Unir y llevar al ombligo',
         texto:
-          'Juntar la energía de las 2 barras: cada mano toma de su barra y forma una esfera; las manos se juntan al frente y las dos esferas se unen en una más grande. Las manos la llevan al ombligo y la entran.',
+          'Juntar la energía de las 2 barras: cada mano toma de su barra y forma una esfera; las manos se juntan al frente y las dos esferas se unen en una más grande. Las manos la llevan al ombligo y la entran, sin tocar el cuerpo: se acercan hasta quedar a 5–10 cm y desde ahí la energía entra.',
+        cantidad: {
+          valor: 10,
+          unidad: 'cm del cuerpo como máximo (5–10 cm)',
+          pregunta: '¿A qué distancia del cuerpo quedan las manos cuando entra la energía? (máximo)',
+        },
         aclaracion:
-          'Descrito en el taller: cada mano toma de su barra, las esferas se unen en una más grande entre las palmas y las manos la llevan y la entran; una vez en cada centro.',
+          'Descrito en el taller: cada mano toma de su barra, las esferas se unen en una más grande entre las palmas y las manos la llevan y la entran; una vez en cada centro. Las manos quedan a 5–10 cm del cuerpo, como en «Activación de centros energéticos».',
       },
       {
         id: 'unir-pecho',
         titulo: 'Unir y llevar al centro del pecho',
-        texto: 'Hacer lo mismo y llevar la energía al centro del pecho.',
+        texto: 'Hacer lo mismo y llevar la energía al centro del pecho, con las manos a 5–10 cm del cuerpo.',
         aclaracion: 'Descrito en el taller.',
       },
       {
         id: 'unir-frente',
         titulo: 'Unir y llevar a la frente',
-        texto: 'Hacer lo mismo y llevar la energía al centro de la frente.',
+        texto: 'Hacer lo mismo y llevar la energía al centro de la frente, con las manos a 5–10 cm del cuerpo.',
         aclaracion: 'Descrito en el taller: al centro de la frente, no entre las cejas; al terminar, las manos se sueltan a los costados.',
       },
     ],

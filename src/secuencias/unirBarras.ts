@@ -16,7 +16,7 @@ import { type Secuencia, encuadre, fijarPose, posar, puntoMundo, toma } from './
  */
 
 interface Centro {
-  id: PuntoCuerpo;
+  id: 'ombligo' | 'corazon' | 'frente';
   aviso: string;
 }
 const CENTROS: Centro[] = [
@@ -69,6 +69,20 @@ function separacionGoma(k: number) {
 }
 
 export const ENCUADRE = encuadre([0, 1.32, 0.3], 1.8, 0.62, 0.12);
+
+/**
+ * Al entrar la energía, las manos se acercan pero no tocan el cuerpo: quedan a
+ * 5–10 cm (como en «Activación de centros energéticos»). Se detienen a 7,5 cm
+ * de la piel y desde ahí la energía entra sola.
+ */
+export const DIST_MANOS = 0.075;
+/** Piel en el plano medio a la altura de cada centro (medida sobre la malla del maniquí). */
+export const PIEL_CENTRO: Record<'ombligo' | 'corazon' | 'frente', number> = { ombligo: 0.079, corazon: 0.1, frente: 0.083 };
+
+/** Centro de las manos delante de la esfera, sin acercarse a menos de DIST_MANOS de la piel. */
+function manosSinTocar(id: 'ombligo' | 'corazon' | 'frente', c: V3, sep: number): V3 {
+  return [c[0], c[1], Math.max(c[2], PIEL_CENTRO[id] + DIST_MANOS - sep)];
+}
 
 /** Punto de cada centro, apenas delante de la piel. */
 function puntoCentro(id: PuntoCuerpo): V3 {
@@ -222,12 +236,14 @@ function cicloCentro(e: Estado, t: number, n: number) {
     unida = { c: delante, r: R_UNIDA, estirar: 1 };
   } else if (fase === 'entrar') {
     // La entran en el cuerpo: la esfera avanza hasta el centro y se achica al entrar.
+    // Las manos la acompañan, pero se detienen a 5–10 cm del cuerpo: el último tramo lo hace sola.
     const c = lerpV(delante, destino, s);
-    pose = esferaEntrePalmas(c, R_UNIDA * (1 - 0.85 * s), 1, 0.05, 0);
+    const sep = R_UNIDA * (1 - 0.85 * s);
+    pose = esferaEntrePalmas(manosSinTocar(centro.id, c, sep), sep, 1, 0.05, 0);
     unida = { c, r: R_UNIDA * (1 - s), estirar: 1 };
   } else {
     // Vuelven a tomar las barras (o, en el último centro, se sueltan a los costados).
-    const entrada = esferaEntrePalmas(destino, R_UNIDA * 0.15, 1, 0.05, 0);
+    const entrada = esferaEntrePalmas(manosSinTocar(centro.id, destino, R_UNIDA * 0.15), R_UNIDA * 0.15, 1, 0.05, 0);
     pose = mezclarPose(entrada, ultimo ? SERENA : agarre(), s, 0.05);
   }
   e.figuras[0].pose = pose;
@@ -238,6 +254,16 @@ function cicloCentro(e: Estado, t: number, n: number) {
   if (fase === 'unir') pulso(e, puntoMundo(e, 0, JUNTAR), tramo(k, 0.45, 1), 0.2, 'oro');
   if (fase === 'entrar') pulso(e, puntoMundo(e, 0, destino), tramo(k, 0.6, 1), 0.3, 'oro');
   if (fase === 'volver') pulso(e, puntoMundo(e, 0, destino), 0.4 + 0.6 * tramo(k, 0, 0.5), 0.3, 'oro');
+  // Rótulo de la distancia entre las manos y el cuerpo mientras entra la energía.
+  const rotulo = fase === 'entrar' ? tramo(k, 0.55, 0.85) : fase === 'volver' ? 1 - tramo(k, 0, 0.45) : 0;
+  if (rotulo > 0) {
+    e.marcas.push({
+      pos: puntoMundo(e, 0, [0.17, destino[1] + 0.03, PIEL_CENTRO[centro.id] + DIST_MANOS / 2]),
+      texto: '5–10 cm',
+      opacidad: rotulo,
+      tipo: 'distancia',
+    });
+  }
 
   // El centro se enciende al entrar la energía y queda encendido.
   const orden = FASES.indexOf(fase);

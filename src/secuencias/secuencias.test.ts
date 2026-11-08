@@ -11,7 +11,7 @@ import { faseSellado } from './sellarCielo';
 import { faseUnir } from './unirBarras';
 import { masajeInterno } from './masajeManos';
 import { chakrasInterno } from './recorridoPorChakras';
-import { R_UNIDA } from './unirBarras';
+import { DIST_MANOS, PIEL_CENTRO, R_UNIDA, SEG } from './unirBarras';
 import { SERENA } from '../escena/poses';
 import { crearGeometrias, crearTorso } from '../escena/cuerpoGeo';
 import { Euler, Matrix4, Vector3, type BufferGeometry } from 'three';
@@ -333,6 +333,32 @@ describe('Colocar energía en los 3 puntos (descrito en el taller)', () => {
     for (let i = 0; i <= 40; i++) estirar.push(evaluar(sec, 1, instante('jugar', (i / 40) * 0.98), OPCIONES_INICIALES).esferas[1].estirar);
     expect(Math.max(...estirar)).toBeGreaterThan(1.3);
     expect(Math.min(...estirar)).toBeLessThan(0.85);
+  });
+
+  it('al entrar la energía, las manos quedan a 5–10 cm del cuerpo, sin tocarlo', () => {
+    const sec = SECUENCIAS['colocar-tres-puntos'];
+    const total = Object.values(SEG).reduce((a, b) => a + b, 0);
+    const finEntrar = SEG.tomar + SEG.juntar + SEG.unir + SEG.jugar + SEG.llevar + SEG.rodear + SEG.entrar;
+    const ids = ['ombligo', 'corazon', 'frente'] as const;
+    expect(DIST_MANOS).toBeGreaterThanOrEqual(0.05);
+    expect(DIST_MANOS).toBeLessThanOrEqual(0.1);
+    ids.forEach((id, n) => {
+      let minimo = Infinity;
+      // Durante toda la entrada y el comienzo de la vuelta, la palma nunca baja de 5 cm de la piel.
+      for (let i = 0; i <= 40; i++) {
+        const seg = finEntrar - SEG.entrar + (SEG.entrar + 0.3) * (i / 40);
+        const esq = resolverEsqueleto(evaluar(sec, 1 + n, seg / total, OPCIONES_INICIALES).figuras[0].pose);
+        for (const [m, p] of [
+          [esq.munecaD, esq.palmaD],
+          [esq.munecaI, esq.palmaI],
+        ] as const) {
+          const palma = huecoPalma(m, p.dedos, p.normal, 0);
+          minimo = Math.min(minimo, palma[2] - PIEL_CENTRO[id]);
+        }
+      }
+      expect(minimo, id).toBeGreaterThanOrEqual(0.05);
+      expect(minimo, id).toBeLessThanOrEqual(0.1);
+    });
   });
 
   it('al juntar, las manos no se retraen y la esfera se forma entre las barras, en su plano', () => {
