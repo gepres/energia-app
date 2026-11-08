@@ -62,7 +62,7 @@ export function anclaLocal(ref: Ref): V3 {
       p = r.esq.codoI;
       break;
     default:
-      p = transformarPunto(PUNTOS[ref.ancla], r.pose.agachar, r.pose.inclinar, r.pose.girar);
+      p = transformarPunto(PUNTOS[ref.ancla], r.pose.agachar, r.pose.inclinar, r.pose.girar, r.pose.atrasar);
   }
   return ref.off ? sumaV(p, ref.off) : p;
 }

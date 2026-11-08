@@ -123,7 +123,16 @@ function orbitar(posA: V3, miraA: V3, posB: V3, miraB: V3, k: number): V3 {
 export function puntoMundo(e: Estado, fig: 0 | 1, punto: PuntoCuerpo | V3): V3 {
   const f = e.figuras[fig];
   const local = Array.isArray(punto) ? punto : PUNTOS[punto];
-  const p = transformarPunto(local, f.pose.agachar, f.pose.inclinar);
+  return enMundo(e, fig, transformarPunto(local, f.pose.agachar, f.pose.inclinar, f.pose.girar, f.pose.atrasar));
+}
+
+/**
+ * Un punto que ya está en la postura de la figura (p. ej. medido sobre su esqueleto: la piel de
+ * una pierna doblada, la palma de una mano), en coordenadas del mundo. A diferencia de
+ * `puntoMundo`, no lo vuelve a mover con la postura.
+ */
+export function enMundo(e: Estado, fig: 0 | 1, p: V3): V3 {
+  const f = e.figuras[fig];
   return sumaV(rotarY(p, f.rotY), f.pos);
 }
 

@@ -82,6 +82,7 @@ function amortiguarPose(act: Pose, obj: Pose, l: number, dt: number) {
     }
   }
   act.agachar = amortiguar(act.agachar, obj.agachar, l, dt);
+  act.atrasar = amortiguar(act.atrasar, obj.atrasar, l, dt);
   act.inclinar = amortiguar(act.inclinar, obj.inclinar, l, dt);
   act.girar = amortiguar(act.girar, obj.girar, l, dt);
   act.adelantarD = amortiguar(act.adelantarD, obj.adelantarD, l, dt);

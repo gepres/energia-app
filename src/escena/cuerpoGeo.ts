@@ -1,9 +1,9 @@
 import { BufferGeometry, DynamicDrawUsage, Float32BufferAttribute, Quaternion, SphereGeometry, Vector3 } from 'three';
 import { type Esqueleto, PROP, adelantarHombro } from './cuerpo';
+import { type V3, lerp } from './mate';
 
 /** Dónde gira la piel con la clavícula: de 0 a 1 según |x| y según la altura (y). */
 export const PESO_HOMBRO = { x: [0, 0.17], y: [1.05, 1.38] };
-import { type V3, lerp } from './mate';
 
 /**
  * Geometrías esculpidas del maniquí (propuesta de diseño revisada con Codex).
@@ -291,18 +291,49 @@ function crearCuello(): BufferGeometry {
 }
 
 /** Pie en coordenadas de suelo (origen bajo el tobillo): talón, empeine, arco y puntera. */
+/** Perfil del pie: [z desde el tobillo, semiancho, cota superior, cota inferior] (apoyado en el piso). */
+export const PERFIL_PIE: readonly Fila[] = [
+  [-0.07, 0, 0.027, 0.027],
+  [-0.052, 0.032, 0.06, 0.006],
+  [-0.012, 0.038, 0.1, 0.005],
+  [0.035, 0.035, 0.084, 0.018],
+  [0.09, 0.047, 0.06, 0.009],
+  [0.135, 0.051, 0.048, 0.005],
+  [0.168, 0.038, 0.037, 0.007],
+  [0.19, 0, 0.021, 0.021],
+];
+
+/** Altura de la parte de arriba del pie (empeine y dedos) a `z` delante del tobillo. */
+export const altoPie = (z: number) => perfil(PERFIL_PIE, z, 2);
+
+/** [t (0 en la cadera o la rodilla, 1 en la rodilla o el tobillo), radio]; la sección se aplana por PLANO_*. */
+export const PERFIL_MUSLO: readonly Fila[] = [
+  [-0.12, 0, 0, 0],
+  [0, 0.066, 0, 0],
+  [0.21, 0.076, 0, 0],
+  [0.48, 0.071, 0, 0],
+  [0.78, 0.055, 0, 0],
+  [1, 0.044, 0, 0],
+  [1.09, 0, 0, 0],
+];
+export const PERFIL_PIERNA: readonly Fila[] = [
+  [-0.09, 0, 0, 0],
+  [0, 0.041, 0, 0],
+  [0.28, 0.052, 0, 0],
+  [0.47, 0.049, 0, 0],
+  [0.72, 0.033, 0, 0],
+  [1, 0.027, 0, 0],
+  [1.07, 0, 0, 0],
+];
+/** Cuánto más hondo es el muslo (y la pierna) por delante que de costado. */
+export const PLANO_MUSLO = 1.04;
+export const PLANO_PIERNA = 1.08;
+
+/** Radio de un miembro a lo largo (`t`), como en su malla. */
+export const radioMiembro = (f: readonly Fila[], t: number) => perfil(f, t, 1);
+
 function crearPie(): BufferGeometry {
-  // [Z, semiancho, cota superior, cota inferior].
-  const f: readonly Fila[] = [
-    [-0.07, 0, 0.027, 0.027],
-    [-0.052, 0.032, 0.06, 0.006],
-    [-0.012, 0.038, 0.1, 0.005],
-    [0.035, 0.035, 0.084, 0.018],
-    [0.09, 0.047, 0.06, 0.009],
-    [0.135, 0.051, 0.048, 0.005],
-    [0.168, 0.038, 0.037, 0.007],
-    [0.19, 0, 0.021, 0.021],
-  ];
+  const f = PERFIL_PIE;
   return superficie(34, 24, (u, a) => {
     const z = lerp(-0.07, 0.19, u);
     const arriba = perfil(f, z, 2);
@@ -349,33 +380,8 @@ export function crearGeometrias() {
       ],
       0.94,
     ),
-    muslo: miembro(
-      PROP.muslo,
-      [
-        [-0.12, 0, 0, 0],
-        [0, 0.066, 0, 0],
-        [0.21, 0.076, 0, 0],
-        [0.48, 0.071, 0, 0],
-        [0.78, 0.055, 0, 0],
-        [1, 0.044, 0, 0],
-        [1.09, 0, 0, 0],
-      ],
-      1.04,
-      32,
-    ),
-    pierna: miembro(
-      PROP.pierna,
-      [
-        [-0.09, 0, 0, 0],
-        [0, 0.041, 0, 0],
-        [0.28, 0.052, 0, 0],
-        [0.47, 0.049, 0, 0],
-        [0.72, 0.033, 0, 0],
-        [1, 0.027, 0, 0],
-        [1.07, 0, 0, 0],
-      ],
-      1.08,
-    ),
+    muslo: miembro(PROP.muslo, PERFIL_MUSLO, PLANO_MUSLO, 32),
+    pierna: miembro(PROP.pierna, PERFIL_PIERNA, PLANO_PIERNA),
   };
   for (const geo of Object.values(g)) if (!geo.hasAttribute('color')) cavidad(geo, () => 1);
   return g;

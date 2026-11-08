@@ -157,6 +157,12 @@ export interface Pose {
   separarI: number;
   /** Descenso de la pelvis (m): 0 de pie, ~0,6 en cuclillas. */
   agachar: number;
+  /**
+   * Cuánto más va la cadera hacia atrás (m), además de lo que retrocede al agacharse: al
+   * doblarse para tocar las piernas o los pies, la cadera va atrás y las canillas quedan
+   * casi verticales (las rodillas no se adelantan).
+   */
+  atrasar: number;
   /** Inclinación del torso hacia delante (rad). */
   inclinar: number;
   /**
@@ -196,6 +202,7 @@ export const NEUTRA: Pose = {
   separarD: 0,
   separarI: 0,
   agachar: 0,
+  atrasar: 0,
   inclinar: 0,
   girar: 0,
   adelantarD: 0,
@@ -249,6 +256,7 @@ export function mezclarPose(a: Pose, b: Pose, k: number, arcoManos = 0.06): Pose
     separarD: lerp(a.separarD, b.separarD, k),
     separarI: lerp(a.separarI, b.separarI, k),
     agachar: lerp(a.agachar, b.agachar, k),
+    atrasar: lerp(a.atrasar, b.atrasar, k),
     inclinar: lerp(a.inclinar, b.inclinar, k),
     girar: lerp(a.girar, b.girar, k),
     adelantarD: lerp(a.adelantarD, b.adelantarD, k),
@@ -329,16 +337,16 @@ export interface Esqueleto {
 }
 
 /** Desplazamiento de la pelvis según cuánto se agacha (hacia atrás para equilibrar). */
-function desplazamientoPelvis(agachar: number): V3 {
-  return [0, -agachar, -0.36 * agachar];
+function desplazamientoPelvis(agachar: number, atrasar = 0): V3 {
+  return [0, -agachar, -0.36 * agachar - atrasar];
 }
 
 /**
  * Lleva un punto del cuerpo erguido a la postura actual: baja con la pelvis y,
  * si está por encima de la cintura, rota con la inclinación y el giro del torso.
  */
-export function transformarPunto(p: V3, agachar: number, inclinar: number, girar = 0): V3 {
-  const off = desplazamientoPelvis(agachar);
+export function transformarPunto(p: V3, agachar: number, inclinar: number, girar = 0, atrasar = 0): V3 {
+  const off = desplazamientoPelvis(agachar, atrasar);
   const pivote: V3 = [0, PROP.pivoteY + off[1], off[2]];
   const q = sumaV(p, off);
   if (p[1] < PROP.pivoteY - 0.04) return q;
@@ -387,8 +395,8 @@ function marcoPalma(muneca: V3, antebrazo: V3, dedos: V3 | null, palma: V3) {
 }
 
 export function resolverEsqueleto(p: Pose): Esqueleto {
-  const off = desplazamientoPelvis(p.agachar);
-  const T = (q: V3) => transformarPunto(q, p.agachar, p.inclinar, p.girar);
+  const off = desplazamientoPelvis(p.agachar, p.atrasar);
+  const T = (q: V3) => transformarPunto(q, p.agachar, p.inclinar, p.girar, p.atrasar);
   const rotarDir = (d: V3) => rotarY(rotarX(d, p.inclinar, [0, 0, 0]), p.girar);
 
   const pelvis = sumaV([0, PROP.caderaY, 0], off);
