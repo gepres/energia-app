@@ -884,9 +884,8 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
   });
 
   it('palpa en orden: dedos; por delante, de la muñeca al codo en 4 tramos; por atrás, del codo a la muñeca; hasta el hombro', () => {
-    const puntos = ['punto0', 'hacia1', 'punto1', 'hacia2', 'punto2', 'hacia3', 'punto3', 'hacia4', 'punto4'];
-    expect(FASES_DELANTE[PRIMERO].map((f) => f.id)).toEqual(['preparar', 'dedos', 'aMuneca', ...puntos]);
-    expect(FASES_ATRAS[PRIMERO].map((f) => f.id)).toEqual(['girar', ...puntos, 'aYemas', 'recorrer', 'quieto']);
+    expect(FASES_DELANTE[PRIMERO].map((f) => f.id)).toEqual(['preparar', 'dedos', 'aMuneca', 'linea']);
+    expect(FASES_ATRAS[PRIMERO].map((f) => f.id)).toEqual(['girar', 'linea', 'aYemas', 'recorrer', 'quieto']);
     expect(FASES_ATRAS[SEGUNDO].map((f) => f.id).at(-1)).toBe('final');
     // Empieza la mano izquierda con la mano derecha: primero se palpa el brazo derecho y después el izquierdo.
     expect([PRIMERO, SEGUNDO]).toEqual(['D', 'I']);
@@ -975,10 +974,11 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     }
   });
 
-  it('de la muñeca al codo, la distancia dividida en 4: en cada punto hace goma lentamente, por delante y por atrás', () => {
+  it('de la muñeca al codo, la distancia dividida en 4: la mano los recorre de forma continua y hace goma en cada punto, por delante y por atrás', () => {
     expect(TRAMOS_BRAZO).toBe(4);
-    // Lento: al menos 2 s de goma en cada punto.
-    expect(SEG_PUNTO).toBeGreaterThanOrEqual(2);
+    // Ágil: unos 2 s por punto.
+    expect(SEG_PUNTO).toBeGreaterThanOrEqual(1.8);
+    expect(SEG_PUNTO).toBeLessThanOrEqual(2.4);
     for (const A of [PRIMERO, SEGUNDO]) {
       const linea = BRAZOS[A].linea;
       expect(linea).toHaveLength(5);
@@ -988,6 +988,11 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
       const tramos = linea.slice(1).map((p, i) => dist(p.piel, linea[i].piel));
       for (const d of tramos) expect(Math.abs(d - tramos[0]), `${A}: tramos iguales`).toBeLessThan(0.003);
     }
+    /** Base de la esfera (apoyada en la piel). */
+    const base = (e: Estado) => {
+      const esf = e.esferas[0];
+      return esf.pos.map((x, k) => x - esf.eje![k] * esf.radio * esf.estirar);
+    };
     for (const [paso, A, fases, delante] of [
       [2, PRIMERO, FASES_DELANTE[PRIMERO], true],
       [3, PRIMERO, FASES_ATRAS[PRIMERO], false],
@@ -995,23 +1000,33 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
       [5, SEGUNDO, FASES_ATRAS[SEGUNDO], false],
     ] as const) {
       const total = fases.reduce((a, f) => a + f.dur, 0);
+      const j = fases.findIndex((f) => f.id === 'linea');
+      const ini = fases.slice(0, j).reduce((a, f) => a + f.dur, 0);
+      const dur = fases[j].dur;
+      // `x`: punto en curso (0 = el primero … 4 = el último).
+      const en = (x: number) => evaluar(sec, paso, (ini + (dur * (x + 0.5)) / 5) / total, OPCIONES_INICIALES);
+      const B = A === 'D' ? 'I' : 'D';
+      const linea = BRAZOS[A].linea;
       for (let i = 0; i <= 4; i++) {
-        const j = fases.findIndex((f) => f.id === `punto${i}`);
-        const ini = fases.slice(0, j).reduce((a, f) => a + f.dur, 0);
-        const en = (k: number) => evaluar(sec, paso, (ini + fases[j].dur * k) / total, OPCIONES_INICIALES);
         // Por delante va de la muñeca al codo; por atrás, del codo a la muñeca.
-        const pp = BRAZOS[A].linea[delante ? i : 4 - i];
-        const quieto = en(0.05);
-        const arriba = en(0.5);
-        const B = A === 'D' ? 'I' : 'D';
-        // La esfera está sobre ese punto y, a mitad de la goma, la mano subió y la esfera se estiró.
-        const base = (e: Estado) => {
-          const esf = e.esferas[0];
-          return esf.pos.map((x, k) => x - esf.eje![k] * esf.radio * esf.estirar);
-        };
-        expect(dist(base(quieto), pp.piel), `paso ${paso + 1}, punto ${i}`).toBeLessThan(0.006);
+        const pp = linea[delante ? i : 4 - i];
+        const arriba = en(i);
+        const abajo = en(i - 0.5);
+        // En cada punto, la esfera está sobre él, la mano subió y la esfera se estiró (goma).
+        expect(dist(base(arriba), pp.piel), `paso ${paso + 1}, punto ${i}`).toBeLessThan(0.006);
         expect(arriba.esferas[0].estirar, `paso ${paso + 1}, punto ${i}: goma`).toBeGreaterThan(1 + (0.9 * GOMA) / (2 * R));
-        expect(dist(palmas(arriba)[B], palmas(quieto)[B]), `paso ${paso + 1}, punto ${i}: la mano sube`).toBeGreaterThan(0.9 * GOMA);
+        const sube = [0, 1, 2].reduce((a, k) => a + (palmas(arriba)[B][k] - palmas(abajo)[B][k]) * pp.normal[k], 0);
+        expect(sube, `paso ${paso + 1}, punto ${i}: la mano sube`).toBeGreaterThan(0.8 * GOMA);
+      }
+      // Continuo: entre el primer punto y el último, la esfera avanza siempre (no se detiene).
+      const ida = [0, 1, 2].map((k) => linea[delante ? 4 : 0].piel[k] - linea[delante ? 0 : 4].piel[k]);
+      const largo = Math.hypot(...ida);
+      const avance = (e: Estado) => [0, 1, 2].reduce((a, k) => a + (base(e)[k] - linea[delante ? 0 : 4].piel[k]) * (ida[k] / largo), 0);
+      let antes = avance(en(0));
+      for (let x = 0.05; x <= 4.001; x += 0.05) {
+        const ahora = avance(en(x));
+        expect(ahora - antes, `paso ${paso + 1}, x ${x.toFixed(2)}: avanza`).toBeGreaterThan(0.0002);
+        antes = ahora;
       }
     }
   });
