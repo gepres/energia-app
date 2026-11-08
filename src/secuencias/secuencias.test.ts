@@ -638,7 +638,8 @@ describe('Recorrido por chakras (descrito en el taller)', () => {
 
 describe('Sensibilización de manos (descrito en el taller)', () => {
   const sec = SECUENCIAS['sensibilizacion-manos'];
-  const { BRAZOS, R, DIST, FASES_DELANTE, FASES_ATRAS, FASES_TOMAR, FASES_TRASPASO, SEG_TRASPASO, PAUSA_TRASPASO, ORDEN_TRASPASOS } = sensibilizarInterno;
+  const { BRAZOS, R, DIST, FASES_DELANTE, FASES_ATRAS, FASES_TOMAR, FASES_TRASPASO, SEG_TRASPASO, PAUSA_TRASPASO, ORDEN_TRASPASOS, PRIMERO, SEGUNDO, CIERRE_CUBRIR } =
+    sensibilizarInterno;
   const muestras = (paso: number, n = 120) => Array.from({ length: n + 1 }, (_, i) => evaluar(sec, paso, i / n, OPCIONES_INICIALES));
   /** Punto del hueco de cada palma, según el esqueleto resuelto. */
   const palmas = (e: Estado) => {
@@ -701,12 +702,17 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     }
     // Hay momentos en que la sostienen entre las dos (en cada traspaso).
     expect(ambas).toBeGreaterThan(20);
-    // Al cambiar de brazo, la mano que la trae tampoco la suelta.
-    const total = FASES_DELANTE.D.reduce((a, f) => a + f.dur, 0);
-    for (let i = 0; i <= 60; i++) {
-      const e = evaluar(sec, 4, (FASES_DELANTE.D[0].dur * 0.6 * i) / 60 / total, OPCIONES_INICIALES);
-      const { D, I } = palmas(e);
-      expect(Math.min(dist(e.esferas[0].pos, D), dist(e.esferas[0].pos, I))).toBeLessThan(toca);
+    // Al ir a cubrir los dedos y al cambiar de brazo, tampoco la sueltan.
+    for (const [paso, A] of [
+      [2, PRIMERO],
+      [4, SEGUNDO],
+    ] as const) {
+      const total = FASES_DELANTE[A].reduce((a, f) => a + f.dur, 0);
+      for (let i = 0; i <= 80; i++) {
+        const e = evaluar(sec, paso, (FASES_DELANTE[A][0].dur * i) / 80 / total, OPCIONES_INICIALES);
+        const { D, I } = palmas(e);
+        expect(Math.min(dist(e.esferas[0].pos, D), dist(e.esferas[0].pos, I)), `paso ${paso + 1}`).toBeLessThan(toca);
+      }
     }
   });
 
@@ -763,8 +769,8 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     expect(DIST).toBeGreaterThanOrEqual(0.05);
     expect(DIST).toBeLessThanOrEqual(0.1);
     for (const [paso, A] of [
-      [3, 'I'],
-      [5, 'D'],
+      [3, PRIMERO],
+      [5, SEGUNDO],
     ] as const) {
       const fases = FASES_ATRAS[A];
       const total = fases.reduce((a, f) => a + f.dur, 0);
@@ -824,11 +830,12 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
       const t = Math.max(0, Math.min(1, [0, 1, 2].reduce((x, k) => x + (p[k] - a[k]) * ab[k], 0) / [0, 1, 2].reduce((x, k) => x + ab[k] * ab[k], 0)));
       return dist(p, [0, 1, 2].map((k) => a[k] + ab[k] * t)) - (r0 + (r1 - r0) * t);
     };
+    // Al cubrir los dedos la esfera envuelve el dedo a propósito (sin eje: no se mide aquí).
     for (const [paso, A] of [
-      [2, 'I'],
-      [3, 'I'],
-      [4, 'D'],
-      [5, 'D'],
+      [2, PRIMERO],
+      [3, PRIMERO],
+      [4, SEGUNDO],
+      [5, SEGUNDO],
     ] as const) {
       for (const e of muestras(paso, 120)) {
         const esf = e.esferas[0];
@@ -851,15 +858,73 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
   });
 
   it('palpa en orden: dedos, y por delante muñeca, antebrazo y codo; por atrás codo, antebrazo y muñeca; hasta el hombro', () => {
-    expect(FASES_DELANTE.I.map((f) => f.id)).toEqual(['preparar', 'dedos', 'aMuneca', 'muneca', 'aAntebrazo', 'antebrazo', 'aCodo', 'codo']);
-    expect(FASES_ATRAS.I.map((f) => f.id)).toEqual(['girar', 'codo', 'aAntebrazo', 'antebrazo', 'aMuneca', 'muneca', 'aYemas', 'recorrer', 'quieto']);
-    // Primero el brazo izquierdo y después el derecho; el recorrido termina en el hombro.
+    expect(FASES_DELANTE[PRIMERO].map((f) => f.id)).toEqual(['preparar', 'dedos', 'aMuneca', 'muneca', 'aAntebrazo', 'antebrazo', 'aCodo', 'codo']);
+    expect(FASES_ATRAS[PRIMERO].map((f) => f.id)).toEqual(['girar', 'codo', 'aAntebrazo', 'antebrazo', 'aMuneca', 'muneca', 'aYemas', 'recorrer', 'quieto']);
+    expect(FASES_ATRAS[SEGUNDO].map((f) => f.id).at(-1)).toBe('final');
+    // Empieza la mano izquierda con la mano derecha: primero se palpa el brazo derecho y después el izquierdo.
+    expect([PRIMERO, SEGUNDO]).toEqual(['D', 'I']);
+    // El recorrido termina en el hombro.
     expect(sec.pasos).toHaveLength(6);
     for (const A of ['I', 'D'] as const) {
       const r = BRAZOS[A].recorrido;
       const q = resolverEsqueleto(SERENA);
       const hombro = A === 'I' ? q.hombroI : q.hombroD;
       expect(dist(r[r.length - 1].piel, hombro)).toBeLessThan(0.08);
+    }
+  });
+
+  it('la mano izquierda, ahuecada y con la esfera dentro, cubre los dedos de la derecha uno por uno, del meñique al pulgar, sin tocarlos', () => {
+    expect(BRAZOS[PRIMERO].cubrir.map((d) => d.nombre)).toEqual(['meñique', 'anular', 'medio', 'índice', 'pulgar']);
+    expect(CIERRE_CUBRIR).toBeGreaterThanOrEqual(0.25);
+    for (const [paso, A] of [
+      [2, PRIMERO],
+      [4, SEGUNDO],
+    ] as const) {
+      const fases = FASES_DELANTE[A];
+      const total = fases.reduce((a, f) => a + f.dur, 0);
+      const ini = fases[0].dur;
+      const dur = fases[1].dur;
+      const n = BRAZOS[A].cubrir.length;
+      // Lento: al menos 1,5 s por dedo.
+      expect(dur / n).toBeGreaterThanOrEqual(1.5);
+      const B = A === 'D' ? 'I' : 'D';
+      for (let j = 0; j < n; j++) {
+        // A mitad de cada dedo, ya lo está cubriendo.
+        const e = evaluar(sec, paso, (ini + ((j + 0.65) / n) * dur) / total, OPCIONES_INICIALES);
+        const p = e.figuras[0].pose;
+        const q = resolverEsqueleto(p);
+        const W = A === 'D' ? q.munecaD : q.munecaI;
+        const pal = A === 'D' ? q.palmaD : q.palmaI;
+        const seg = segmentosMano(W, pal.dedos, pal.normal, A === 'D' ? 1 : -1, A === 'D' ? p.cierreD : p.cierreI);
+        const medio = (i: number) => [0, 1, 2].map((k) => seg[i].pos[k] + (seg[i].dir[k] * seg[i].largo) / 2);
+        const indices = [11, 8, 5, 2, 14];
+        const c = e.esferas[0].pos;
+        // La esfera envuelve el dedo que toca cubrir: es el dedo más cercano a su centro.
+        const cerca = indices.map((i) => dist(c, medio(i)));
+        expect(cerca.indexOf(Math.min(...cerca)), `${A}: dedo ${j + 1}`).toBe(j);
+        expect(cerca[j]).toBeLessThan(R);
+        // La mano que cubre va más cerrada y su palma queda por encima del dedo, sin tocarlo.
+        expect(B === 'I' ? p.cierreI : p.cierreD).toBeGreaterThanOrEqual(0.25);
+        const hueco = palmas(e)[B];
+        expect(dist(hueco, medio(indices[j]))).toBeGreaterThan(0.03);
+        const otra = segmentosMano(
+          B === 'I' ? q.munecaI : q.munecaD,
+          B === 'I' ? q.palmaI.dedos : q.palmaD.dedos,
+          B === 'I' ? q.palmaI.normal : q.palmaD.normal,
+          B === 'D' ? 1 : -1,
+          B === 'I' ? p.cierreI : p.cierreD,
+        );
+        let libre = 1e9;
+        for (const a of seg)
+          for (const b of otra)
+            for (let u = 0; u <= 4; u++)
+              for (let v = 0; v <= 4; v++) {
+                const pa = [0, 1, 2].map((k) => a.pos[k] + a.dir[k] * a.largo * (u / 4));
+                const pb = [0, 1, 2].map((k) => b.pos[k] + b.dir[k] * b.largo * (v / 4));
+                libre = Math.min(libre, dist(pa, pb) - a.radio - b.radio);
+              }
+        expect(libre, `${A}: dedo ${j + 1}, sin tocar`).toBeGreaterThan(0);
+      }
     }
   });
 });
