@@ -481,27 +481,39 @@ describe('Masaje de manos y dedos (descrito en el taller)', () => {
 });
 
 describe('Recorrido por chakras (descrito en el taller)', () => {
-  const { PARADAS, TRAMOS, PAUSA, ARRIBA, CURVA, puntoEnCurva, enRecorrido } = chakrasInterno;
+  const { PARADAS, TRAMOS, PAUSA, ARRIBA, CURVA, puntoEnCurva, enRecorrido, atraves } = chakrasInterno;
   const sec = SECUENCIAS['recorrido-por-chakras'];
 
-  it('baja por la espalda, pasa por la ingle y sube por el frente, en el orden del taller', () => {
+  it('baja por la espalda, pasa por el centro de abajo y sube por el frente, en el orden del taller', () => {
     expect(PARADAS.map((p) => p.nombre)).toEqual([
       'nuca',
       'detrás de la garganta',
       'detrás del pecho',
       'detrás del ombligo',
+      'detrás de la ingle',
+      'centro de abajo',
       'ingle',
       'ombligo',
       'centro del pecho',
       'garganta',
       'centro de la frente',
     ]);
-    // Las cuatro primeras por detrás (bajando) y las de adelante, subiendo.
-    const atras = PARADAS.slice(0, 4);
+    // Las cinco primeras por detrás (bajando), el centro de abajo y las de adelante, subiendo.
+    const atras = PARADAS.slice(0, 5);
+    const abajo = PARADAS[5];
+    const adelante = PARADAS.slice(6);
     for (const p of atras) expect(p.pos[2]).toBeLessThan(0);
-    for (const p of PARADAS.slice(4)) expect(p.pos[2]).toBeGreaterThan(0);
-    for (let i = 1; i < 4; i++) expect(atras[i].pos[1]).toBeLessThan(atras[i - 1].pos[1]);
-    for (let i = 5; i < PARADAS.length; i++) expect(PARADAS[i].pos[1]).toBeGreaterThan(PARADAS[i - 1].pos[1]);
+    for (const p of adelante) expect(p.pos[2]).toBeGreaterThan(0);
+    for (let i = 1; i < atras.length; i++) expect(atras[i].pos[1]).toBeLessThan(atras[i - 1].pos[1]);
+    for (let i = 1; i < adelante.length; i++) expect(adelante[i].pos[1]).toBeGreaterThan(adelante[i - 1].pos[1]);
+    // La de detrás de la ingle, a la altura de la ingle.
+    expect(atras[4].pos[1]).toBeCloseTo(adelante[0].pos[1], 6);
+    // El centro de abajo: en la misma vertical que la coronilla, debajo del cuerpo, y se ve a través de las piernas.
+    expect(abajo.pos[0]).toBe(0);
+    expect(abajo.pos[2]).toBe(0);
+    expect(abajo.pos[1]).toBeLessThan(PUNTOS.perineo[1]);
+    expect(atraves(abajo.pos)).toBe(1);
+    for (const p of [...atras, ...adelante]) expect(atraves(p.pos), p.nombre).toBe(0);
     // Empieza y termina arriba de la coronilla.
     expect(CURVA[0]).toEqual(ARRIBA);
     expect(CURVA[CURVA.length - 1]).toEqual(ARRIBA);
@@ -544,15 +556,18 @@ describe('Recorrido por chakras (descrito en el taller)', () => {
     for (const p of PARADAS) expect(libre(p.pos), p.nombre).toBeLessThan(0.025);
   });
 
-  it('las dos manos la introducen por la coronilla y al final se sueltan a los costados', () => {
+  it('las dos manos la introducen entre las palmas por la coronilla y al final se sueltan a los costados', () => {
     const ultimo = sec.pasos.length - 1;
-    // Mientras entra, las dos muñecas están encima de la cabeza.
+    // Mientras entra, las dos manos la tienen entre las palmas, enfrentadas, encima de la cabeza.
     const entrando = evaluar(sec, ultimo, 0.5, OPCIONES_INICIALES);
     const esq = resolverEsqueleto(entrando.figuras[0].pose);
     for (const m of [esq.munecaD, esq.munecaI]) {
       expect(m[1]).toBeGreaterThan(PUNTOS.coronilla[1]);
       expect(Math.abs(m[0])).toBeLessThan(0.12);
     }
+    expect(esq.palmaD.normal[0]).toBeGreaterThan(0.9);
+    expect(esq.palmaI.normal[0]).toBeLessThan(-0.9);
+    expect(entrando.esferas[1].radio).toBeLessThan(R_UNIDA);
     const fin = evaluar(sec, ultimo, 1, OPCIONES_INICIALES);
     expect(fin.esferas[1].activa).toBe(false);
     expect(fin.centros.coronilla).toBeGreaterThan(0.9);
@@ -561,7 +576,7 @@ describe('Recorrido por chakras (descrito en el taller)', () => {
     expect(f.munecaI[1]).toBeLessThan(1);
   });
 
-  it('cuenta los 9 puntos en orden y la esfera se forma con las barras como en el ejercicio 03', () => {
+  it('cuenta los 11 puntos en orden y la esfera se forma con las barras como en el ejercicio 03', () => {
     let previo = 0;
     for (const paso of [2, 3]) {
       for (let i = 0; i <= 300; i++) {
@@ -570,7 +585,7 @@ describe('Recorrido por chakras (descrito en el taller)', () => {
         previo = v;
       }
     }
-    expect(previo).toBe(9);
+    expect(previo).toBe(11);
     const formada = evaluar(sec, 0, 1, OPCIONES_INICIALES);
     expect(formada.esferas[1].activa).toBe(true);
     expect(formada.esferas[1].radio).toBeCloseTo(R_UNIDA, 6);

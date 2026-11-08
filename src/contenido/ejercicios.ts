@@ -183,7 +183,7 @@ export const EJERCICIOS: Ejercicio[] = [
     subtitulo: 'baja por la espalda, sube por el frente',
     origen: 'revision',
     resumen:
-      'Se une la energía de las dos barras en una esfera y se coloca sobre la coronilla. La esfera va sola: baja por detrás de la cabeza y por la espalda, pasa por la ingle, sube por el frente y vuelve a la coronilla, deteniéndose unos segundos en cada punto importante. Al final, las dos manos la introducen por la coronilla.',
+      'Se une la energía de las dos barras en una esfera y se coloca sobre la coronilla. La esfera va sola: baja por detrás de la cabeza y por la espalda, pasa por debajo, entre las piernas, sale por la ingle, sube por el frente y vuelve a la coronilla, deteniéndose unos segundos en cada punto importante. Al final, las dos manos, entre las palmas, la introducen por la coronilla.',
     acento: 'cielo',
     pasos: [
       {
@@ -205,23 +205,24 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'espalda',
         titulo: 'Bajar por la espalda',
         texto:
-          'La esfera baja por detrás de la cabeza y se desliza por la espalda. Se detiene unos segundos en cada punto para recalcarlo: la nuca, detrás de la garganta, detrás del pecho y detrás del ombligo.',
+          'La esfera baja por detrás de la cabeza y se desliza por la espalda. Se detiene unos segundos en cada punto para recalcarlo: la nuca, detrás de la garganta, detrás del pecho, detrás del ombligo y detrás de la ingle.',
         cantidad: { valor: 2, unidad: 'segundos en cada punto', pregunta: '¿Cuántos segundos se detiene la esfera en cada punto del recorrido?' },
         aclaracion:
           'Descrito en el taller: baja desde la parte de atrás de la cabeza y se detiene en cada punto importante (el apunte lo tenía al revés: bajar por el frente y subir por la espalda).',
       },
       {
         id: 'frente',
-        titulo: 'La ingle y subir por el frente',
+        titulo: 'Por abajo y subir por el frente',
         texto:
-          'Pasa por debajo hacia la ingle y se detiene. Después sube por delante y se detiene en el ombligo, el centro del pecho, la garganta y el centro de la frente.',
-        aclaracion: 'Descrito en el taller: da la vuelta por el frente; adelante se detiene en el ombligo, el pecho, la garganta y la frente.',
-        lectura: 'De la espalda a la ingle pasa por debajo, entre las piernas.',
+          'Pasa por debajo y se detiene en el centro de abajo, entre las piernas, en la misma línea que la coronilla. Sale por delante y se detiene en la ingle. Después sube y se detiene en el ombligo, el centro del pecho, la garganta y el centro de la frente.',
+        aclaracion:
+          'Descrito en el taller: también se detiene en el centro de abajo y da la vuelta por el frente; adelante se detiene en la ingle, el ombligo, el pecho, la garganta y la frente.',
+        lectura: 'Como las piernas están juntas, en el centro de abajo la esfera se ve a través de ellas.',
       },
       {
         id: 'introducir',
         titulo: 'Introducir por la coronilla',
-        texto: 'La esfera vuelve arriba de la cabeza. Las dos manos suben por los costados, la toman desde arriba y la introducen por la coronilla.',
+        texto: 'La esfera vuelve arriba de la cabeza. Las dos manos suben por los costados, la toman entre las palmas, la bajan sobre la coronilla y la esfera entra.',
         aclaracion: 'Descrito en el taller: regresa a la coronilla y se introduce con las dos manos.',
         lectura: 'Al terminar, las manos se sueltan a los costados.',
       },

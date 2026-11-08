@@ -51,6 +51,8 @@ export type PuntoCuerpo =
   | 'trasGarganta'
   | 'trasPecho'
   | 'trasOmbligo'
+  | 'trasIngle'
+  | 'perineo'
   | 'ingle'
   | 'pelvis'
   | 'pies';
@@ -73,6 +75,9 @@ export const PUNTOS: Record<PuntoCuerpo, V3> = {
   trasGarganta: [0, 1.455, -0.07],
   trasPecho: [0, 1.3, -0.115],
   trasOmbligo: [0, 1.04, -0.1],
+  trasIngle: [0, 0.885, -0.108],
+  /** Centro de abajo, entre las piernas: en la misma vertical que la coronilla. */
+  perineo: [0, 0.835, 0],
   /** Ingle: delante, en el centro, a la altura del pubis. */
   ingle: [0, 0.885, 0.08],
   pelvis: [0, 0.88, 0],

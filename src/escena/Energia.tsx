@@ -49,7 +49,11 @@ function UnaEsfera({ i }: { i: number }) {
     u.uColor2.value.copy(colorEnergia(s.color2 ?? s.color));
     u.uMezcla.value = s.color2 ? s.mezcla : 0;
     u.uBrillo.value = s.brillo * 1.5;
-    u.uOpacidad.value = s.opacidad;
+    // A través del cuerpo: se dibuja por encima de la figura, algo transparente.
+    const atraves = s.atraves > 0.5;
+    const opacidad = s.opacidad * (1 - 0.35 * s.atraves);
+    mat.depthTest = !atraves;
+    u.uOpacidad.value = opacidad;
     u.uAgujero.value = s.agujero;
     u.uSemilla.value = i;
     h.position.copy(m.position);
@@ -57,7 +61,8 @@ function UnaEsfera({ i }: { i: number }) {
     h.scale.set(tamHalo, tamHalo, 1);
     const hm = h.material;
     hm.color.copy(colorEnergia(s.color)).multiplyScalar(0.32 * s.brillo);
-    hm.opacity = s.opacidad;
+    hm.opacity = opacidad;
+    hm.depthTest = !atraves;
   }, -5);
   return (
     <>

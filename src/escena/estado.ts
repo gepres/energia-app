@@ -65,6 +65,11 @@ export interface Esfera {
    * la que gane el empate alumbra el cuerpo más que las demás.
    */
   ilumina: boolean;
+  /**
+   * Se ve a través del cuerpo (0–1): energía que pasa por dentro, p. ej. entre
+   * las piernas. Con más de 0,5 se dibuja por encima de la figura, algo transparente.
+   */
+  atraves: number;
 }
 
 export interface Flujo {
@@ -300,6 +305,7 @@ const esfera = (): Esfera => ({
   agujero: 0,
   opacidad: 1,
   ilumina: true,
+  atraves: 0,
 });
 
 const flujo = (): Flujo => ({
