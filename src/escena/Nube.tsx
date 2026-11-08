@@ -114,7 +114,7 @@ function materialNube() {
         float n = fbm(p * 2.4 + vec2(vSemilla * 13.0, -uTiempo * 0.1));
         float a = pow(1.0 - r, 1.7) * (0.35 + 0.85 * n);
         // La base de la nube algo más luminosa: ahí la tocan las manos.
-        a *= (0.8 + 0.35 * (1.0 - vProf)) * uIntensidad * 0.3;
+        a *= (0.8 + 0.35 * (1.0 - vProf)) * uIntensidad * 0.36;
         // Corazón casi blanco y borde del color de la energía: brilla (el bloom la envuelve).
         vec3 c = mix(uColor2, uColor, smoothstep(0.15, 1.0, r + (n - 0.5) * 0.5));
         gl_FragColor = vec4(c * a * 2.4, a);
@@ -144,5 +144,6 @@ export function Nube() {
     u.uColor.value.copy(colorEnergia(n.color));
     u.uColor2.value.copy(colorEnergia(n.color2));
   });
-  return <mesh ref={malla} geometry={geo} material={mat} visible={false} frustumCulled={false} renderOrder={7} />;
+  // Se dibuja después de la tela: es luz que se suma encima, no queda velada por ella.
+  return <mesh ref={malla} geometry={geo} material={mat} visible={false} frustumCulled={false} renderOrder={9} />;
 }

@@ -240,6 +240,38 @@ describe('Sellar desde el cielo (descrito en el taller)', () => {
     expect(Math.abs(e.munecaD[1] - 1.415)).toBeLessThan(0.15);
   });
 
+  it('al bajar, las palmas giran hacia el piso y las manos se abren poco a poco', () => {
+    const al = (k: number) => {
+      const e = evaluar(sec, 1, instante(0, 'bajar', k), OPCIONES_INICIALES);
+      return { cierre: e.figuras[0].pose.cierreD, palma: resolverEsqueleto(e.figuras[0].pose).palmaD.normal };
+    };
+    const inicio = al(0.05);
+    const mitad = al(0.5);
+    const final = al(0.95);
+    expect(inicio.cierre).toBeGreaterThan(0.6); // todavía agarra la nube
+    expect(mitad.cierre).toBeLessThan(inicio.cierre);
+    expect(final.cierre).toBeLessThan(0.02); // del todo abierta
+    expect(inicio.palma[1]).toBeGreaterThan(-0.3); // arriba la palma mira al frente
+    expect(mitad.palma[1]).toBeLessThan(-0.7); // en cruz ya mira al piso
+    expect(final.palma[1]).toBeLessThan(-0.8);
+  });
+
+  it('la tela baja con su ruedo en las manos y termina en el piso envolviendo el cuerpo', () => {
+    for (const k of [0.2, 0.5, 0.8]) {
+      const e = evaluar(sec, 1, instante(0, 'bajar', k), OPCIONES_INICIALES);
+      const esq = resolverEsqueleto(e.figuras[0].pose);
+      const t = e.telas[1];
+      expect(t.activa).toBe(true);
+      expect(Math.abs(t.borde - esq.munecaD[1]), `k=${k}`).toBeLessThan(0.06);
+      expect(Math.abs(t.ancho - Math.abs(esq.munecaD[0])), `k=${k}`).toBeLessThan(0.1);
+    }
+    const fin = evaluar(sec, 1, 1, OPCIONES_INICIALES).telas[0];
+    expect(fin.activa).toBe(true);
+    expect(fin.borde).toBeLessThan(0.05);
+    // Más ancha que los hombros y los brazos sueltos: envuelve el cuerpo sin atravesarlo.
+    expect(fin.ancho).toBeGreaterThan(0.4);
+  });
+
   it('cuenta 3 veces, sin saltos, y termina con las manos sueltas a los costados', () => {
     let previo = 0;
     for (let i = 0; i <= 300; i++) {

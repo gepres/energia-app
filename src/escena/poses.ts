@@ -1,6 +1,6 @@
 import { type Pose, NEUTRA, POS_ORGANOS, PUNTOS, type PuntoCuerpo, pose } from './cuerpo';
 import { cierreParaBarra } from './manos';
-import { type V3, entraSaleSeno, normV, sumaV } from './mate';
+import { type V3, clamp, entraSaleSeno, lerpV, normV, suave, sumaV } from './mate';
 
 /**
  * Biblioteca de poses. Coordenadas del cuerpo erguido (mirando a +Z;
@@ -541,6 +541,8 @@ export const NUBE_CIELO = { centro: [0, 2.16, 0.07] as V3, radio: 0.4 };
 /** Hombro (alto y separación) y distancia hombro–muñeca con el brazo casi recto. */
 const HOMBRO = { x: 0.182, y: 1.415, z: -0.01 };
 const BRAZO_RECTO = 0.535;
+/** Ángulo final de la bajada: las manos quedan junto a los muslos. */
+export const THETA_ABAJO = 2.93;
 /** Codo apenas hacia atrás: con el brazo casi recto, el mismo en todo el gesto (sin saltos). */
 const CODO_ATRAS = (s: number): V3 => normV([s * 0.6, 0, -1]);
 
@@ -555,16 +557,24 @@ export function manosALaNube(cierre = 0.22): Pose {
 /**
  * Bajada abriendo por los costados: cada brazo, casi recto, describe un arco en
  * el plano del cuerpo. `theta` es el ángulo desde arriba (0 = brazo hacia
- * arriba, π/2 = en cruz, ≈ 2,93 = abajo, junto al muslo). Las manos, que
- * sostienen el velo, miran al frente con los dedos siguiendo al brazo.
+ * arriba, π/2 = en cruz, ≈ 2,93 = abajo, junto al muslo).
+ * Las palmas, que arriba miran al frente (hacia la nube), van girando poco a
+ * poco hasta mirar al piso (del todo un poco después de la cruz). Pasada la
+ * cruz, la muñeca se dobla para que los dedos sigan hacia afuera y la palma
+ * siga mirando abajo, como apoyando el velo.
  */
 export function bajarPorLosCostados(theta: number, cierre: number): Pose {
   const brazo = (s: number) => {
     const z = HOMBRO.z + 0.087 * Math.pow(Math.max(0, 1 - theta / Math.PI), 2);
     const mano: V3 = [s * (HOMBRO.x + BRAZO_RECTO * Math.sin(theta)), HOMBRO.y + BRAZO_RECTO * Math.cos(theta), z];
-    // Arriba, la palma mira al frente y un poco arriba (hacia la nube).
-    const palma = normV([-s * 0.15 * Math.cos(theta), 0.3 * Math.max(0, Math.cos(theta)), 1]);
-    const dedos = normV([s * Math.sin(theta), Math.cos(theta), 0.06 * Math.cos(theta)]);
+    const aLoLargo: V3 = [s * Math.sin(theta), Math.cos(theta), 0.06 * Math.cos(theta)];
+    const palmaArriba = normV([-s * 0.15 * Math.cos(theta), 0.3 * Math.max(0, Math.cos(theta)), 1]);
+    const gira = suave(clamp(theta / 2.0));
+    const palma = normV(lerpV(palmaArriba, [0, -1, 0], gira));
+    // Dedos hacia afuera con la muñeca doblada ≈ 55° al final (no más: sería forzado).
+    const doblar = suave(clamp((theta - Math.PI / 2) / (THETA_ABAJO - Math.PI / 2)));
+    const afuera = normV(sumaV([s, 0, 0.08], [aLoLargo[0] * 0.45, aLoLargo[1] * 0.45, aLoLargo[2] * 0.45]));
+    const dedos = normV(lerpV(aLoLargo, afuera, doblar));
     return { mano, palma, dedos };
   };
   const D = brazo(-1);
@@ -585,6 +595,4 @@ export function bajarPorLosCostados(theta: number, cierre: number): Pose {
   });
 }
 
-/** Ángulo final de la bajada: las manos quedan junto a los muslos. */
-export const THETA_ABAJO = 2.93;
 

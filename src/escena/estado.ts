@@ -121,6 +121,29 @@ export interface Manto {
   lineas: number;
 }
 
+/**
+ * Velo de tela (en «Sellar desde el cielo»): cuelga recogido desde arriba de la
+ * cabeza y su borde (el ruedo) lo llevan las manos; entre ellas cae un poco más.
+ */
+export interface Tela {
+  activa: boolean;
+  /** Centro en el piso (mundo). */
+  centro: V3;
+  /** Altura desde donde cuelga, recogida. */
+  arriba: number;
+  /** Altura del ruedo a los costados (donde lo sostienen las manos). */
+  borde: number;
+  /** Semiancho del ruedo a los costados y semiprofundidad adelante y atrás. */
+  ancho: number;
+  fondo: number;
+  /** Cuánto más cae el ruedo adelante y atrás, entre las manos (m). */
+  caida: number;
+  opacidad: number;
+  /** Brillo del ruedo. */
+  brillo: number;
+  color: ColorEnergia;
+}
+
 /** Nube luminosa de energía (sobre la cabeza, en «Sellar desde el cielo»). */
 export interface Nube {
   activa: boolean;
@@ -213,6 +236,7 @@ export interface Estado {
   cubo: Cubo;
   barras: Barras;
   nube: Nube;
+  telas: Tela[];
   pulsos: Pulso[];
   marcas: Marca[];
   cotas: Cota[];
@@ -230,6 +254,20 @@ export const MAX_ESFERAS = 8;
 export const MAX_FLUJOS = 6;
 export const MAX_ROSAS = 2;
 export const MAX_MANTOS = 2;
+export const MAX_TELAS = 2;
+
+const tela = (): Tela => ({
+  activa: false,
+  centro: [0, 0, 0],
+  arriba: 2.08,
+  borde: 2,
+  ancho: 0.3,
+  fondo: 0.3,
+  caida: 0,
+  opacidad: 0,
+  brillo: 1,
+  color: 'violeta',
+});
 
 const figura = (activa: boolean, tono: Figura['tono']): Figura => ({
   activa,
@@ -336,6 +374,7 @@ export function crearEstado(): Estado {
     },
     barras: { activa: false, izq: [0, 0, 0], der: [0, 0, 0], alto: 1.75, opacidad: 0, resalte: 0, resalteDer: 0, radio: 0.035, crece: 0.6 },
     nube: { activa: false, centro: [0, 2.16, 0.07], radio: 0.4, intensidad: 0, color: 'violeta', color2: 'blanco' },
+    telas: Array.from({ length: MAX_TELAS }, tela),
     pulsos: [],
     marcas: [],
     cotas: [],

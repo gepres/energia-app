@@ -28,6 +28,7 @@ import {
 import { posicionPegada, registro } from './anclas';
 import { MAX_ROSAS } from './estado';
 import { Nube } from './Nube';
+import { Telas } from './Tela';
 import { esquinasCubo } from './geoCubo';
 import { type V3, clamp, saleAtras } from './mate';
 import { colorEnergia, HEX_ENERGIA } from './paleta';
@@ -832,6 +833,7 @@ export function Objetos() {
       <Haces />
       <BarrasEnergia />
       <Nube />
+      <Telas />
       <Cotas />
     </>
   );

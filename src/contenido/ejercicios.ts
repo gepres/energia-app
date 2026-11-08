@@ -91,10 +91,10 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'bajar-velo',
         titulo: 'Agarrar y bajar el velo · 3 veces',
         texto:
-          'Agarrar la nube y bajar los brazos abriéndolos por los costados: la energía va cubriendo el cuerpo como un velo. Al final, las manos quedan sueltas a los costados.',
+          'Agarrar la nube y bajar los brazos por los costados: las manos van girando poco a poco hacia abajo y soltándose hasta quedar del todo abiertas, mientras la energía cubre el cuerpo como un velo. Al final, las manos quedan sueltas a los costados.',
         cantidad: { valor: 3, unidad: 'veces', pregunta: '¿Cuántas veces se sella desde el cielo?' },
         aclaracion:
-          'Descrito en el taller: las dos manos arriba tocando una nube luminosa, se la agarra y se baja abriendo por los costados; 3 veces; las manos terminan sueltas a los costados.',
+          'Descrito en el taller: las dos manos arriba tocando una nube luminosa, se la agarra y se baja por los costados, con las palmas girando hacia abajo y las manos abriéndose poco a poco; 3 veces; las manos terminan sueltas a los costados.',
         lectura: 'Entre una vez y otra, las manos vuelven a subir por delante hasta la nube.',
       },
     ],
