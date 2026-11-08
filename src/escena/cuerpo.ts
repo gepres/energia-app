@@ -48,6 +48,7 @@ export type PuntoCuerpo =
   | 'coxis'
   | 'omoplatos'
   | 'nuca'
+  | 'trasFrente'
   | 'trasGarganta'
   | 'trasPecho'
   | 'trasOmbligo'
@@ -71,7 +72,8 @@ export const PUNTOS: Record<PuntoCuerpo, V3> = {
   coxis: [0, 0.9, -0.105],
   omoplatos: [0, 1.33, -0.115],
   nuca: [0, 1.52, -0.075],
-  /** Detrás de la garganta, del pecho y del ombligo (en la espalda, ≈ 2 cm fuera de la piel). */
+  /** Detrás de la frente, de la garganta, del pecho y del ombligo (atrás, ≈ 2 cm fuera de la piel). */
+  trasFrente: [0, 1.66, -0.105],
   trasGarganta: [0, 1.455, -0.07],
   trasPecho: [0, 1.3, -0.115],
   trasOmbligo: [0, 1.04, -0.1],

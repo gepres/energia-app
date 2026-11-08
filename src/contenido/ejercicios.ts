@@ -205,7 +205,7 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'espalda',
         titulo: 'Bajar por la espalda',
         texto:
-          'La esfera baja por detrás de la cabeza y se desliza por la espalda. Se detiene unos segundos en cada punto para recalcarlo: la nuca, detrás de la garganta, detrás del pecho, detrás del ombligo y detrás de la ingle.',
+          'La esfera baja por detrás de la cabeza y se desliza por la espalda. Se detiene unos segundos en cada punto para recalcarlo: detrás de la frente, detrás de la garganta, detrás del pecho, detrás del ombligo y detrás de la ingle.',
         cantidad: { valor: 2, unidad: 'segundos en cada punto', pregunta: '¿Cuántos segundos se detiene la esfera en cada punto del recorrido?' },
         aclaracion:
           'Descrito en el taller: baja desde la parte de atrás de la cabeza y se detiene en cada punto importante (el apunte lo tenía al revés: bajar por el frente y subir por la espalda).',
@@ -222,8 +222,9 @@ export const EJERCICIOS: Ejercicio[] = [
       {
         id: 'introducir',
         titulo: 'Introducir por la coronilla',
-        texto: 'La esfera vuelve arriba de la cabeza. Las dos manos suben por los costados, la toman entre las palmas, la bajan sobre la coronilla y la esfera entra.',
-        aclaracion: 'Descrito en el taller: regresa a la coronilla y se introduce con las dos manos.',
+        texto:
+          'La esfera vuelve arriba de la cabeza. Las dos manos suben por los costados, la toman entre las palmas y la bajan sobre la coronilla; después ayudan a introducirla, acompañándola hacia adentro hasta quedar sobre la coronilla con las palmas hacia abajo.',
+        aclaracion: 'Descrito en el taller: regresa a la coronilla y las dos manos ayudan a introducirla.',
         lectura: 'Al terminar, las manos se sueltan a los costados.',
       },
     ],

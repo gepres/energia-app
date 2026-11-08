@@ -1,7 +1,7 @@
 import { type Pose, type PuntoCuerpo, mezclarPose } from '../escena/cuerpo';
 import type { Camara, Estado } from '../escena/estado';
 import { type V3, campana, clamp, entraSaleSeno, lerp, lerpV, saleCubica, suave, tramo, ventana } from '../escena/mate';
-import { SERENA, THETA_ABAJO, bajarPorLosCostados, esferaEntrePalmas, subirPorLosCostados } from '../escena/poses';
+import { SERENA, THETA_ABAJO, bajarPorLosCostados, esferaEntrePalmas, manosSobreCoronilla, subirPorLosCostados } from '../escena/poses';
 import { barrasEnPuno } from './barras';
 import { TOMAS, pulso } from './comunes';
 import { type Secuencia, encuadre, fijarPose, posar, puntoMundo, toma } from './motor';
@@ -57,8 +57,9 @@ interface Parada {
  * medio, de pie): la piel más el radio de la esfera y 1,2 cm de luz.
  */
 const PARADAS: Parada[] = [
-  { id: 'nuca', nombre: 'nuca', pos: [0, 1.525, -0.142], antes: [[0, 1.745, -0.13], [0, 1.63, -0.163]] },
-  { id: 'trasGarganta', nombre: 'detrás de la garganta', pos: [0, 1.455, -0.127], antes: [] },
+  // Detrás de la cabeza, a la altura del centro de la frente.
+  { id: 'trasFrente', nombre: 'detrás de la frente', pos: [0, 1.66, -0.161], antes: [[0, 1.755, -0.12]] },
+  { id: 'trasGarganta', nombre: 'detrás de la garganta', pos: [0, 1.455, -0.127], antes: [[0, 1.56, -0.158]] },
   { id: 'trasPecho', nombre: 'detrás del pecho', pos: [0, 1.3, -0.172], antes: [[0, 1.39, -0.151]] },
   { id: 'trasOmbligo', nombre: 'detrás del ombligo', pos: [0, 1.04, -0.156], antes: [[0, 1.17, -0.161]] },
   // Por detrás de los glúteos, a la altura de la ingle.
@@ -340,13 +341,11 @@ function llevarArriba(e: Estado, seg: number) {
   e.hud.aviso = 'La esfera queda sobre la coronilla; desde aquí va sola';
 }
 
-/** Paso 5: la esfera vuelve arriba y las dos manos, entre las palmas, la bajan y la introducen por la coronilla. */
-const SEG_FINAL = { subir: 2.2, tomar: 1, bajar: 1, entrar: 1.4, sostener: 1, soltar: 3.6, quieto: 1 };
+/** Paso 5: la esfera vuelve arriba y las dos manos, entre las palmas, la bajan y ayudan a introducirla por la coronilla. */
+const SEG_FINAL = { subir: 2.2, tomar: 1, bajar: 1, entrar: 1.8, sostener: 1, soltar: 3.6, quieto: 1 };
 const INICIO_MANOS = 0.4;
 const DUR_FINAL = INICIO_MANOS + Object.values(SEG_FINAL).reduce((a, b) => a + b, 0);
 const ENCUADRE_CABEZA = encuadre([0, 1.62, 0.04], 0.85, 0.75, 0.3);
-/** Las palmas se abren un poco al soltar la esfera. */
-const SEP_ABRIR = R_UNIDA + 0.03;
 
 function introducir(e: Estado, seg: number) {
   centrosRecorrido(e, T_FRENTE + Math.min(seg, VIAJE_VUELTA));
@@ -385,23 +384,25 @@ function introducir(e: Estado, seg: number) {
   }
   x -= bajar;
   if (x < entrar) {
-    // La esfera entra por la coronilla y se achica; las palmas se abren un poco, sin bajar más.
+    // Las manos ayudan a introducirla: la acompañan hacia adentro y terminan sobre la
+    // coronilla, palmas hacia abajo; la esfera entra y se achica un poco detrás de las manos.
     const k = x / entrar;
     const s = entraSaleSeno(k);
-    const c = lerpV(SOBRE, DENTRO, s);
-    const r = R_UNIDA * (1 - s);
-    e.figuras[0].pose = esferaEntrePalmas(SOBRE, lerp(R_UNIDA, SEP_ABRIR, tramo(k, 0.3, 1)), 0, lerp(0.3, 0.2, tramo(k, 0.3, 1)), 0);
+    const sEsfera = entraSaleSeno(tramo(k, 0.1, 1, (u) => u));
+    const c = lerpV(SOBRE, DENTRO, sEsfera);
+    const r = R_UNIDA * (1 - sEsfera);
+    e.figuras[0].pose = mezclarPose(esferaEntrePalmas(SOBRE, R_UNIDA, 0, 0.3, 0), manosSobreCoronilla(), s, 0);
     esferaUnida(e, c, r, 1);
     e.centros.coronilla = 1.3 * tramo(k, 0.5, 1);
     pulso(e, puntoMundo(e, 0, 'coronilla'), tramo(k, 0.6, 1), 0.3, 'oro');
-    e.hud.aviso = 'La esfera entra por la coronilla';
+    e.hud.aviso = 'Las manos ayudan a introducirla por la coronilla';
     return;
   }
   x -= entrar;
   esferaUnida(e, DENTRO, 0, 1);
-  const abiertas = esferaEntrePalmas(SOBRE, SEP_ABRIR, 0, 0.2, 0);
+  const encima = manosSobreCoronilla();
   if (x < sostener) {
-    e.figuras[0].pose = abiertas;
+    e.figuras[0].pose = encima;
     e.centros.coronilla = 1.3;
     pulso(e, puntoMundo(e, 0, 'coronilla'), 0.4 + 0.6 * tramo(x / sostener, 0, 0.6), 0.3, 'oro');
     e.hud.aviso = 'La esfera entró por la coronilla';
@@ -410,7 +411,7 @@ function introducir(e: Estado, seg: number) {
   x -= sostener;
   // Las manos se sueltan a los costados; la coronilla queda encendida.
   const k = clamp(x / soltar);
-  e.figuras[0].pose = soltarDesdeArriba(abiertas, k);
+  e.figuras[0].pose = soltarDesdeArriba(encima, k);
   e.centros.coronilla = lerp(1.3, 1, clamp(k / 0.5));
   e.hud.aviso = k > 0.5 ? 'Recorrido completo: la esfera entró por la coronilla' : 'Las manos se sueltan a los costados';
 }
@@ -437,7 +438,7 @@ export const recorridoPorChakras: Secuencia = {
         llevarArriba(e, t * DUR_CORONILLA);
       },
     },
-    // 3 · Baja por la espalda: nuca, detrás de la garganta, del pecho, del ombligo y de la ingle
+    // 3 · Baja por detrás: de la frente, de la garganta, del pecho, del ombligo y de la ingle
     {
       dur: T_ESPALDA,
       aplicar: (e, t) => {
@@ -470,4 +471,4 @@ export const recorridoPorChakras: Secuencia = {
   ],
 };
 
-export const chakrasInterno = { PARADAS, TRAMOS, PAUSA, ARRIBA, CURVA, LARGO_TOTAL, puntoEnCurva, enRecorrido, atraves, DUR_FINAL, T_ESPALDA, T_FRENTE };
+export const chakrasInterno = { PARADAS, TRAMOS, PAUSA, ARRIBA, CURVA, LARGO_TOTAL, puntoEnCurva, enRecorrido, atraves, DUR_FINAL, SEG_FINAL, INICIO_MANOS, T_ESPALDA, T_FRENTE };

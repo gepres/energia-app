@@ -481,12 +481,12 @@ describe('Masaje de manos y dedos (descrito en el taller)', () => {
 });
 
 describe('Recorrido por chakras (descrito en el taller)', () => {
-  const { PARADAS, TRAMOS, PAUSA, ARRIBA, CURVA, puntoEnCurva, enRecorrido, atraves } = chakrasInterno;
+  const { PARADAS, TRAMOS, PAUSA, ARRIBA, CURVA, puntoEnCurva, enRecorrido, atraves, DUR_FINAL, SEG_FINAL, INICIO_MANOS } = chakrasInterno;
   const sec = SECUENCIAS['recorrido-por-chakras'];
 
   it('baja por la espalda, pasa por el centro de abajo y sube por el frente, en el orden del taller', () => {
     expect(PARADAS.map((p) => p.nombre)).toEqual([
-      'nuca',
+      'detrás de la frente',
       'detrás de la garganta',
       'detrás del pecho',
       'detrás del ombligo',
@@ -506,7 +506,8 @@ describe('Recorrido por chakras (descrito en el taller)', () => {
     for (const p of adelante) expect(p.pos[2]).toBeGreaterThan(0);
     for (let i = 1; i < atras.length; i++) expect(atras[i].pos[1]).toBeLessThan(atras[i - 1].pos[1]);
     for (let i = 1; i < adelante.length; i++) expect(adelante[i].pos[1]).toBeGreaterThan(adelante[i - 1].pos[1]);
-    // La de detrás de la ingle, a la altura de la ingle.
+    // Las de atrás a la altura de las de adelante: la frente y la ingle.
+    expect(atras[0].pos[1]).toBeCloseTo(adelante[adelante.length - 1].pos[1], 6);
     expect(atras[4].pos[1]).toBeCloseTo(adelante[0].pos[1], 6);
     // El centro de abajo: en la misma vertical que la coronilla, debajo del cuerpo, y se ve a través de las piernas.
     expect(abajo.pos[0]).toBe(0);
@@ -556,18 +557,34 @@ describe('Recorrido por chakras (descrito en el taller)', () => {
     for (const p of PARADAS) expect(libre(p.pos), p.nombre).toBeLessThan(0.025);
   });
 
-  it('las dos manos la introducen entre las palmas por la coronilla y al final se sueltan a los costados', () => {
+  it('las dos manos la bajan entre las palmas, ayudan a introducirla y al final se sueltan a los costados', () => {
     const ultimo = sec.pasos.length - 1;
-    // Mientras entra, las dos manos la tienen entre las palmas, enfrentadas, encima de la cabeza.
-    const entrando = evaluar(sec, ultimo, 0.5, OPCIONES_INICIALES);
-    const esq = resolverEsqueleto(entrando.figuras[0].pose);
-    for (const m of [esq.munecaD, esq.munecaI]) {
+    const en = (seg: number) => evaluar(sec, ultimo, seg / DUR_FINAL, OPCIONES_INICIALES);
+    const { subir, tomar, bajar, entrar } = SEG_FINAL;
+    // Al bajarla, la tienen entre las palmas enfrentadas, encima de la cabeza.
+    const bajando = resolverEsqueleto(en(INICIO_MANOS + subir + tomar + bajar * 0.9).figuras[0].pose);
+    for (const m of [bajando.munecaD, bajando.munecaI]) {
       expect(m[1]).toBeGreaterThan(PUNTOS.coronilla[1]);
       expect(Math.abs(m[0])).toBeLessThan(0.12);
     }
-    expect(esq.palmaD.normal[0]).toBeGreaterThan(0.9);
-    expect(esq.palmaI.normal[0]).toBeLessThan(-0.9);
+    expect(bajando.palmaD.normal[0]).toBeGreaterThan(0.9);
+    expect(bajando.palmaI.normal[0]).toBeLessThan(-0.9);
+    // Mientras entra, las manos la acompañan hacia adentro.
+    const entrando = en(INICIO_MANOS + subir + tomar + bajar + entrar * 0.5);
     expect(entrando.esferas[1].radio).toBeLessThan(R_UNIDA);
+    // Ya adentro, las palmas quedan sobre la coronilla, hacia abajo y hacia el centro, sin apoyarse en la cabeza.
+    const dentro = en(INICIO_MANOS + subir + tomar + bajar + entrar + 0.5);
+    const esq = resolverEsqueleto(dentro.figuras[0].pose);
+    expect(esq.palmaD.normal[1]).toBeLessThan(-0.5);
+    expect(esq.palmaI.normal[1]).toBeLessThan(-0.5);
+    expect(esq.palmaD.normal[0]).toBeGreaterThan(0.5);
+    expect(esq.palmaI.normal[0]).toBeLessThan(-0.5);
+    for (const m of [esq.munecaD, esq.munecaI]) {
+      expect(m[1]).toBeGreaterThan(1.62);
+      expect(Math.abs(m[0])).toBeGreaterThan(0.09);
+      expect(Math.abs(m[0])).toBeLessThan(0.16);
+    }
+    expect(dentro.esferas[1].activa).toBe(false);
     const fin = evaluar(sec, ultimo, 1, OPCIONES_INICIALES);
     expect(fin.esferas[1].activa).toBe(false);
     expect(fin.centros.coronilla).toBeGreaterThan(0.9);

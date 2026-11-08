@@ -944,11 +944,27 @@ button {
   cursor: pointer;
 }
 
+/*
+ * «Volver a la toma» no entra en la columna del transporte: si la empujara, la
+ * línea de tiempo subiría y taparía el aviso de la escena.
+ */
+@media (min-width: 960px) {
+  .boton-toma {
+    position: absolute;
+    right: 0;
+    bottom: 12px;
+  }
+}
+
 @media (max-width: 959px) {
   .boton-toma {
     position: absolute;
     top: -52px;
     right: 16px;
+  }
+  /* En el celular el botón queda sobre la escena: el aviso sube para no quedar debajo. */
+  body:has(.boton-toma) .hud-aviso {
+    bottom: 68px;
   }
 }
 

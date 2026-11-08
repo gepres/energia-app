@@ -663,3 +663,41 @@ export function esferaEntrePalmas(c: V3, r: number, alFrente = 0, cierre = 0.28,
     cabezaPitch: clamp((1.5 - c[1]) * 0.5, -0.1, 0.3),
   });
 }
+
+/**
+ * Las dos manos sobre la coronilla, como un techo: palmas hacia abajo y hacia
+ * adentro (45°), dedos hacia arriba y hacia el centro, con las puntas casi
+ * tocándose sobre la cabeza. Acompañan la energía hacia adentro sin apoyarse;
+ * cada mano sigue la línea de su antebrazo y los codos van a los costados.
+ */
+export function manosSobreCoronilla(alto = 1.72, lado = 0.08, cierre = 0.15): Pose {
+  const mano = (s: number) => {
+    const palma = normV([-s * 0.7, -0.7, 0]);
+    const dedos = normV([-s * 0.7, 0.7, 0.06]);
+    const hueco: V3 = [s * lado, alto, 0.005];
+    return {
+      mano: [
+        hueco[0] - dedos[0] * HUECO.dedos - palma[0] * HUECO.piel,
+        hueco[1] - dedos[1] * HUECO.dedos - palma[1] * HUECO.piel,
+        hueco[2] - dedos[2] * HUECO.dedos - palma[2] * HUECO.piel,
+      ] as V3,
+      palma,
+      dedos,
+    };
+  };
+  const D = mano(-1);
+  const I = mano(1);
+  return pose({
+    manoD: D.mano,
+    manoI: I.mano,
+    codoD: normV([-1, -0.25, 0.15]),
+    codoI: normV([1, -0.25, 0.15]),
+    palmaD: D.palma,
+    palmaI: I.palma,
+    dedosD: D.dedos,
+    dedosI: I.dedos,
+    cierreD: cierre,
+    cierreI: cierre,
+    cabezaPitch: 0,
+  });
+}
