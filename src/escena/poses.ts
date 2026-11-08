@@ -618,7 +618,7 @@ function brazosEnArco(theta: number, cierre: number, sentido: 'bajan' | 'suben')
 // ── Unir la energía de las barras (descrito en el taller) ───────────────
 
 /** Distancias del hueco de la palma (ver `huecoPalma` en manos.ts): a lo largo de los dedos y piel. */
-const HUECO = { dedos: 0.0564, piel: 0.0099 };
+export const HUECO = { dedos: 0.0564, piel: 0.0099 };
 
 /**
  * Esfera sostenida entre las dos palmas, con centro `c` (cuerpo) y `r` de la

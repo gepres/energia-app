@@ -70,6 +70,8 @@ export interface Esfera {
    * las piernas. Con más de 0,5 se dibuja por encima de la figura, algo transparente.
    */
   atraves: number;
+  /** Dirección del estiramiento (goma); sin ella se estira en horizontal. */
+  eje: V3 | null;
 }
 
 export interface Flujo {
@@ -306,6 +308,7 @@ const esfera = (): Esfera => ({
   opacidad: 1,
   ilumina: true,
   atraves: 0,
+  eje: null,
 });
 
 const flujo = (): Flujo => ({

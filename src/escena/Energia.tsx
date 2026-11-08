@@ -23,6 +23,8 @@ import { crearMaterialCascara, crearMaterialEsfera, crearMaterialParticulas, rel
 import { escena } from './tienda';
 
 const GEO_ESFERA = new SphereGeometry(1, 48, 32);
+const _ejeX = new Vector3(1, 0, 0);
+const _eje = new Vector3();
 
 // ── Esferas ─────────────────────────────────────────────────────────────
 
@@ -42,7 +44,12 @@ function UnaEsfera({ i }: { i: number }) {
     const est = Math.max(0.2, s.estirar);
     const r = s.radio;
     m.scale.set(r * est, r / Math.sqrt(est), r / Math.sqrt(est));
-    m.rotation.y = s.ref ? registro[s.ref.figura].rotY : 0;
+    if (s.eje) {
+      // Se estira a lo largo de `eje` (p. ej. entre el brazo y la mano que palpa).
+      m.quaternion.setFromUnitVectors(_ejeX, _eje.set(s.eje[0], s.eje[1], s.eje[2]).normalize());
+    } else {
+      m.rotation.set(0, s.ref ? registro[s.ref.figura].rotY : 0, 0);
+    }
     const u = mat.uniforms;
     u.uTiempo.value = reloj.valor;
     u.uColor.value.copy(colorEnergia(s.color));

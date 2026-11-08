@@ -234,6 +234,71 @@ export const EJERCICIOS: Ejercicio[] = [
       },
     ],
   },
+  {
+    id: 'sensibilizacion-manos',
+    numero: 6,
+    titulo: 'Sensibilización de manos',
+    subtitulo: 'sin soltar la esfera, palpando dedos y brazos',
+    origen: 'revision',
+    resumen:
+      'Se toman dos esferas y se juntan. La esfera pasa de mano en mano sin soltarla nunca. Después la otra mano palpa la energía de los dedos y acompaña a la esfera por el brazo, haciendo de goma en la muñeca, el antebrazo y el codo, por delante y por atrás; y recorre el brazo sin tocarlo, a 5–10 cm, hasta el hombro. Luego, lo mismo con el otro brazo.',
+    acento: 'oro',
+    bloques: [{ titulo: 'Sensaciones reportadas', items: ['Calor', 'Presión', 'Hormigueo', 'Electricidad'] }],
+    pasos: [
+      {
+        id: 'tomar-esferas',
+        titulo: 'Tomar dos esferas y juntarlas',
+        texto: 'Con las palmas hacia arriba, tomar una esfera en cada mano; acercar las manos y juntar las dos esferas en una.',
+        aclaracion: 'Del apunte (enseñado por Víctor): tomar dos esferas y juntarlas.',
+        lectura: 'Las esferas aparecen en las palmas y se juntan entre las manos enfrentadas; después la derecha se queda con ella.',
+      },
+      {
+        id: 'mano-a-mano',
+        titulo: 'De mano en mano, sin soltarla',
+        texto:
+          'Pasar la esfera de una mano a la otra sin soltarla nunca: la otra mano se acerca y la toma, la sostienen entre las dos, y recién entonces la primera la suelta.',
+        aclaracion: 'Descrito en el taller: en ningún momento la mano suelta la esfera mientras se la pasa a la otra.',
+        lectura: 'Tres traspasos: derecha → izquierda → derecha → izquierda.',
+      },
+      {
+        id: 'izquierdo-delante',
+        titulo: 'Brazo izquierdo: dedos y por delante',
+        texto:
+          'Con la palma izquierda hacia arriba y la esfera en los dedos, la mano derecha palpa la energía de los dedos, frotando el pulgar contra los dedos como quien toca la tela de un poncho, y la estira como goma. Después acompaña a la esfera por delante del brazo y hace de goma en la muñeca, el antebrazo y el codo.',
+        aclaracion:
+          'Descrito en el taller: primero los dedos, como con un poncho pero con energía, haciendo de goma cerca de los dedos; después, al palpar a distancia, la mano acompaña a la esfera y hace como goma en los 3 puntos del brazo.',
+        lectura: 'Empieza el brazo izquierdo, palpado por la mano derecha.',
+      },
+      {
+        id: 'izquierdo-atras',
+        titulo: 'Brazo izquierdo: por atrás y hasta el hombro',
+        texto:
+          'El brazo gira con la palma hacia abajo y se palpa por atrás: codo, antebrazo y muñeca, como goma. Después la mano recorre el brazo suavemente, sin tocarlo, a 5–10 cm de la piel, desde los dedos hasta el hombro.',
+        cantidad: {
+          valor: 10,
+          unidad: 'cm de la piel como máximo (5–10 cm)',
+          pregunta: '¿A qué distancia de la piel recorre la mano el brazo hasta el hombro? (máximo)',
+        },
+        aclaracion:
+          'Descrito en el taller: el brazo se palpa a distancia por delante y por atrás (el brazo gira); después la mano lo recorre sin tocarlo, a 5–10 cm, hasta el hombro.',
+      },
+      {
+        id: 'derecho-delante',
+        titulo: 'Brazo derecho: dedos y por delante',
+        texto:
+          'Se sigue con la otra mano: la esfera pasa a la mano derecha sin soltarla, y la izquierda palpa los dedos y acompaña a la esfera por delante del brazo derecho, como goma en la muñeca, el antebrazo y el codo.',
+        aclaracion: 'Descrito en el taller: después se sigue con la otra mano.',
+      },
+      {
+        id: 'derecho-atras',
+        titulo: 'Brazo derecho: por atrás y hasta el hombro',
+        texto:
+          'El brazo derecho gira y se palpa por atrás; después la mano izquierda lo recorre sin tocarlo, a 5–10 cm de la piel, desde los dedos hasta el hombro.',
+        aclaracion: 'Descrito en el taller.',
+        lectura: 'Al terminar, la esfera vuelve a la palma y se absorbe; las manos se sueltan a los costados.',
+      },
+    ],
+  },
 
   // ───────────────────────── VERSIÓN DE REFERENCIA ─────────────────────────
   // ───────────────────────── MANEJO DE ENERGÍA · SET 2026 ─────────────────────────

@@ -11,6 +11,7 @@ import { faseSellado } from './sellarCielo';
 import { faseUnir } from './unirBarras';
 import { masajeInterno } from './masajeManos';
 import { chakrasInterno } from './recorridoPorChakras';
+import { sensibilizarInterno } from './sensibilizarManos';
 import { DIST_MANOS, PIEL_CENTRO, R_UNIDA, SEG } from './unirBarras';
 import { SERENA } from '../escena/poses';
 import { crearGeometrias, crearTorso } from '../escena/cuerpoGeo';
@@ -632,5 +633,154 @@ describe('Recorrido por chakras (descrito en el taller)', () => {
     const formada = evaluar(sec, 0, 1, OPCIONES_INICIALES);
     expect(formada.esferas[1].activa).toBe(true);
     expect(formada.esferas[1].radio).toBeCloseTo(R_UNIDA, 6);
+  });
+});
+
+describe('Sensibilización de manos (descrito en el taller)', () => {
+  const sec = SECUENCIAS['sensibilizacion-manos'];
+  const { BRAZOS, R, DIST, FASES_DELANTE, FASES_ATRAS } = sensibilizarInterno;
+  const muestras = (paso: number, n = 120) => Array.from({ length: n + 1 }, (_, i) => evaluar(sec, paso, i / n, OPCIONES_INICIALES));
+  /** Punto del hueco de cada palma, según el esqueleto resuelto. */
+  const palmas = (e: Estado) => {
+    const q = resolverEsqueleto(e.figuras[0].pose);
+    return { D: huecoPalma(q.munecaD, q.palmaD.dedos, q.palmaD.normal, 0), I: huecoPalma(q.munecaI, q.palmaI.dedos, q.palmaI.normal, 0), q };
+  };
+  const dist = (a: number[], b: number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+
+  it('los brazos llegan siempre a donde se los pide (la mano no se queda corta)', () => {
+    for (let paso = 0; paso < sec.pasos.length; paso++) {
+      for (const e of muestras(paso, 80)) {
+        const p = e.figuras[0].pose;
+        const q = resolverEsqueleto(p);
+        expect(dist(q.munecaD, p.manoD), `paso ${paso + 1}, derecha`).toBeLessThan(0.003);
+        expect(dist(q.munecaI, p.manoI), `paso ${paso + 1}, izquierda`).toBeLessThan(0.003);
+      }
+    }
+  });
+
+  it('al pasarla de mano en mano nunca la sueltan: siempre hay una palma tocándola y, al pasarla, las dos', () => {
+    const toca = R + 0.016;
+    let ambas = 0;
+    for (const e of muestras(1, 300)) {
+      const c = e.esferas[0].pos;
+      const { D, I } = palmas(e);
+      const dD = dist(c, D);
+      const dI = dist(c, I);
+      expect(Math.min(dD, dI)).toBeLessThan(toca);
+      if (dD < toca && dI < toca) ambas++;
+    }
+    // Hay momentos en que la sostienen entre las dos (en cada traspaso).
+    expect(ambas).toBeGreaterThan(20);
+    // Al cambiar de brazo, la mano que la trae tampoco la suelta.
+    const total = FASES_DELANTE.D.reduce((a, f) => a + f.dur, 0);
+    for (let i = 0; i <= 60; i++) {
+      const e = evaluar(sec, 4, (FASES_DELANTE.D[0].dur * 0.6 * i) / 60 / total, OPCIONES_INICIALES);
+      const { D, I } = palmas(e);
+      expect(Math.min(dist(e.esferas[0].pos, D), dist(e.esferas[0].pos, I))).toBeLessThan(toca);
+    }
+  });
+
+  it('la mano que palpa queda a 7,5 cm de la piel y el recorrido hasta el hombro es sin tocar, a 5–10 cm', () => {
+    expect(DIST).toBeGreaterThanOrEqual(0.05);
+    expect(DIST).toBeLessThanOrEqual(0.1);
+    for (const [paso, A] of [
+      [3, 'I'],
+      [5, 'D'],
+    ] as const) {
+      const fases = FASES_ATRAS[A];
+      const total = fases.reduce((a, f) => a + f.dur, 0);
+      const ini = fases.slice(0, fases.findIndex((f) => f.id === 'recorrer')).reduce((a, f) => a + f.dur, 0);
+      const dur = fases.find((f) => f.id === 'recorrer')!.dur;
+      const B = A === 'I' ? 'D' : 'I';
+      for (let i = 0; i <= 40; i++) {
+        const e = evaluar(sec, paso, (ini + (dur * i) / 40) / total, OPCIONES_INICIALES);
+        const { q } = palmas(e);
+        const h = palmas(e)[B];
+        // Piel del brazo palpado: mano, antebrazo y brazo como cilindros sobre sus huesos.
+        const W = A === 'I' ? q.munecaI : q.munecaD;
+        const E = A === 'I' ? q.codoI : q.codoD;
+        const H = A === 'I' ? q.hombroI : q.hombroD;
+        const F = A === 'I' ? q.palmaI.dedos : q.palmaD.dedos;
+        const yema = [0, 1, 2].map((k) => W[k] + F[k] * 0.17);
+        const aSeg = (p: number[], a: number[], b: number[]) => {
+          const ab = [0, 1, 2].map((k) => b[k] - a[k]);
+          const t = Math.max(0, Math.min(1, [0, 1, 2].reduce((x, k) => x + (p[k] - a[k]) * ab[k], 0) / [0, 1, 2].reduce((x, k) => x + ab[k] * ab[k], 0)));
+          return dist(p, [0, 1, 2].map((k) => a[k] + ab[k] * t));
+        };
+        const d = Math.min(aSeg(h, yema, W) - 0.013, aSeg(h, W, E) - 0.033, aSeg(h, E, H) - 0.045);
+        expect(d, `${A} ${i}`).toBeGreaterThan(0.05);
+        expect(d, `${A} ${i}`).toBeLessThan(0.1);
+      }
+    }
+  });
+
+  it('las manos no se atraviesan al palpar (tolerancia 4 mm)', () => {
+    const holgura = (A: { pos: number[]; dir: number[]; largo: number; radio: number }, B: typeof A) => {
+      let m = 1e9;
+      for (let i = 0; i <= 6; i++)
+        for (let j = 0; j <= 6; j++) {
+          const a = [0, 1, 2].map((k) => A.pos[k] + A.dir[k] * A.largo * (i / 6));
+          const b = [0, 1, 2].map((k) => B.pos[k] + B.dir[k] * B.largo * (j / 6));
+          m = Math.min(m, dist(a, b));
+        }
+      return m - A.radio - B.radio;
+    };
+    for (const paso of [2, 3, 4, 5]) {
+      for (const e of muestras(paso, 60)) {
+        const p = e.figuras[0].pose;
+        const q = resolverEsqueleto(p);
+        const sD = segmentosMano(q.munecaD, q.palmaD.dedos, q.palmaD.normal, 1, p.cierreD, p.pinzaD, p.tipoPinzaD);
+        const sI = segmentosMano(q.munecaI, q.palmaI.dedos, q.palmaI.normal, -1, p.cierreI, p.pinzaI, p.tipoPinzaI);
+        let m = 1e9;
+        for (const a of sD) for (const b of sI) m = Math.min(m, holgura(a, b));
+        expect(m, `paso ${paso + 1}`).toBeGreaterThan(-0.004);
+      }
+    }
+  });
+
+  it('la esfera, aun estirada como goma, no atraviesa el brazo que se palpa (tolerancia 4 mm)', () => {
+    /** Distancia a un hueso con su grosor (de r0 en `a` a r1 en `b`, como en la malla del maniquí). */
+    const aSeg = (p: number[], a: number[], b: number[], r0: number, r1 = r0) => {
+      const ab = [0, 1, 2].map((k) => b[k] - a[k]);
+      const t = Math.max(0, Math.min(1, [0, 1, 2].reduce((x, k) => x + (p[k] - a[k]) * ab[k], 0) / [0, 1, 2].reduce((x, k) => x + ab[k] * ab[k], 0)));
+      return dist(p, [0, 1, 2].map((k) => a[k] + ab[k] * t)) - (r0 + (r1 - r0) * t);
+    };
+    for (const [paso, A] of [
+      [2, 'I'],
+      [3, 'I'],
+      [4, 'D'],
+      [5, 'D'],
+    ] as const) {
+      for (const e of muestras(paso, 120)) {
+        const esf = e.esferas[0];
+        if (!esf.activa || !esf.eje) continue;
+        const q = resolverEsqueleto(e.figuras[0].pose);
+        const W = A === 'I' ? q.munecaI : q.munecaD;
+        const E = A === 'I' ? q.codoI : q.codoD;
+        const H = A === 'I' ? q.hombroI : q.hombroD;
+        const F = A === 'I' ? q.palmaI.dedos : q.palmaD.dedos;
+        const yema = [0, 1, 2].map((k) => W[k] + F[k] * 0.17);
+        const rh = esf.radio / Math.sqrt(esf.estirar);
+        const largo = esf.radio * esf.estirar - rh;
+        for (const u of [-1, -0.5, 0, 0.5, 1]) {
+          const c = [0, 1, 2].map((k) => esf.pos[k] + esf.eje![k] * largo * u);
+          const libre = Math.min(aSeg(c, yema, W, 0.012), aSeg(c, W, E, 0.023, 0.035), aSeg(c, E, H, 0.035, 0.046)) - rh;
+          expect(libre, `paso ${paso + 1}`).toBeGreaterThan(-0.004);
+        }
+      }
+    }
+  });
+
+  it('palpa en orden: dedos, y por delante muñeca, antebrazo y codo; por atrás codo, antebrazo y muñeca; hasta el hombro', () => {
+    expect(FASES_DELANTE.I.map((f) => f.id)).toEqual(['preparar', 'dedos', 'aMuneca', 'muneca', 'aAntebrazo', 'antebrazo', 'aCodo', 'codo']);
+    expect(FASES_ATRAS.I.map((f) => f.id)).toEqual(['girar', 'codo', 'aAntebrazo', 'antebrazo', 'aMuneca', 'muneca', 'aYemas', 'recorrer', 'quieto']);
+    // Primero el brazo izquierdo y después el derecho; el recorrido termina en el hombro.
+    expect(sec.pasos).toHaveLength(6);
+    for (const A of ['I', 'D'] as const) {
+      const r = BRAZOS[A].recorrido;
+      const q = resolverEsqueleto(SERENA);
+      const hombro = A === 'I' ? q.hombroI : q.hombroD;
+      expect(dist(r[r.length - 1].piel, hombro)).toBeLessThan(0.08);
+    }
   });
 });
