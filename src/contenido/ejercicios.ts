@@ -259,11 +259,11 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'mano-a-mano',
         titulo: 'De mano en mano, lentamente y como goma',
         texto:
-          'Pasar la esfera de una mano a la otra lentamente, sin soltarla nunca, con una mano arriba y la otra abajo: la que la tiene la da vuelta y la pone arriba; la otra la recibe por abajo; juegan con ella como si fuera de goma (alejan y acercan las manos: se estira hacia arriba y se aplasta), y recién entonces la de arriba la suelta: la esfera queda en la mano de abajo.',
+          'Pasar la esfera de una mano a la otra lentamente, sin soltarla nunca, con una mano arriba y la otra abajo: las dos manos van al medio al mismo tiempo, la que la tiene la da vuelta y la pone arriba y la otra se pone abajo y la recibe; juegan con ella como si fuera de goma (alejan y acercan las manos: se estira hacia arriba y se aplasta), y recién entonces la de arriba la suelta: la esfera queda en la mano de abajo.',
         aclaracion:
           'Descrito en el taller: en ningún momento la mano suelta la esfera mientras se la pasa a la otra; se la pasa lentamente, jugando con ella como si fuera de goma, con una mano arriba y otra abajo (no de costado), y termina en la mano de abajo.',
         lectura:
-          'La que la tiene la da vuelta con la esfera pegada a la palma para ponerla arriba. Tres traspasos (derecha → izquierda → derecha → izquierda), de unos 10 s cada uno; en cada uno, dos idas y vueltas de goma.',
+          'La que la tiene la da vuelta con la esfera pegada a la palma para ponerla arriba. Tres traspasos (derecha → izquierda → derecha → izquierda), de unos 9 s cada uno; en cada uno, dos idas y vueltas de goma.',
       },
       {
         id: 'izquierdo-delante',

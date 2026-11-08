@@ -710,12 +710,24 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     }
   });
 
+  it('al pasarla, las dos manos van al medio al mismo tiempo: una la pone arriba y la otra se pone abajo', () => {
+    const total = sec.pasos[1].dur;
+    const dur = FASES_TRASPASO[0].dur;
+    const mitad = evaluar(sec, 1, dur / 2 / total, OPCIONES_INICIALES);
+    const ini = evaluar(sec, 1, 0, OPCIONES_INICIALES);
+    // A mitad del camino, las dos muñecas ya se movieron (ninguna espera a la otra).
+    const q0 = resolverEsqueleto(ini.figuras[0].pose);
+    const q1 = resolverEsqueleto(mitad.figuras[0].pose);
+    expect(dist(q0.munecaD, q1.munecaD)).toBeGreaterThan(0.03);
+    expect(dist(q0.munecaI, q1.munecaI)).toBeGreaterThan(0.03);
+  });
+
   it('cada traspaso es lento y, con una mano arriba y otra abajo, juegan con ella como goma; queda en la de abajo', () => {
-    expect(FASES_TRASPASO.map((f) => f.id)).toEqual(['arriba', 'debajo', 'goma', 'quedarse']);
+    expect(FASES_TRASPASO.map((f) => f.id)).toEqual(['juntar', 'goma', 'quedarse']);
     expect(SEG_TRASPASO).toBeGreaterThanOrEqual(8);
     const total = sec.pasos[1].dur;
-    const ini = FASES_TRASPASO.slice(0, 2).reduce((a, f) => a + f.dur, 0);
-    const dur = FASES_TRASPASO[2].dur;
+    const ini = FASES_TRASPASO[0].dur;
+    const dur = FASES_TRASPASO[1].dur;
     for (let n = 0; n < ORDEN_TRASPASOS.length; n++) {
       const est: number[] = [];
       for (let i = 0; i <= 40; i++) {
