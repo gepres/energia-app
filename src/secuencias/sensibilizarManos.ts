@@ -46,9 +46,10 @@ import {
  *    lentamente y sin tocarlos (del meñique al pulgar), con la yema de cada dedo
  *    en el centro de la esfera, y en cada uno hace goma; el dedo que cubre se
  *    separa un poco de los demás;
- *  - la esfera se desliza por el brazo y la mano la acompaña, haciendo de goma
- *    en la muñeca, el antebrazo y el codo: por delante (palma arriba) y, con el
- *    brazo girado, por atrás;
+ *  - la esfera se desliza por el brazo y la mano la acompaña: de la muñeca al
+ *    codo, la distancia dividida en 4, haciendo goma lentamente en cada punto
+ *    (muñeca, ¼, ½, ¾ y codo); por delante (palma arriba) y, con el brazo
+ *    girado, por atrás, del codo a la muñeca;
  *  - la mano recorre el brazo sin tocarlo, a 5–10 cm, desde los dedos hasta el hombro;
  *  - después, lo mismo con el otro brazo (la derecha cubre los dedos de la izquierda).
  */
@@ -204,6 +205,8 @@ interface Brazo {
   /** El brazo extendido al frente; `giro` 0 = palma arriba (por delante), 1 = palma abajo (por atrás). */
   palpado: (giro: number) => Mano;
   puntos: Record<'dedos' | 'muneca' | 'antebrazo' | 'codo', PuntoPiel>;
+  /** Puntos de goma de la muñeca al codo: la distancia dividida en TRAMOS_BRAZO. */
+  linea: PuntoPiel[];
   /**
    * Dedos que cubre la otra mano, en orden: `yema`, el centro de la esfera al cubrirlo;
    * `normal`, hacia dónde mira la palma cubierta; `sobre`, la piel de encima del dedo.
@@ -238,6 +241,15 @@ const CIERRE_CUBRIR = 0.35;
 const GOMA_DEDO = 0.03;
 /** Segundos por dedo: llegar, hacer goma y quedarse. */
 const POR_DEDO = 2.6;
+/**
+ * De la muñeca al codo, la distancia se divide en 4 (descrito en el taller): 5 puntos
+ * (muñeca, ¼, ½, ¾ y codo) y en cada uno la goma, lenta.
+ */
+const TRAMOS_BRAZO = 4;
+const SEG_PUNTO = 2.4;
+const SEG_TRAMO = 0.8;
+const NOMBRES_LINEA = ['muñeca', '¼', '½', '¾', 'codo'];
+const DONDE_LINEA = ['la muñeca', 'el primer cuarto del antebrazo', 'la mitad del antebrazo', 'el tercer cuarto del antebrazo', 'el codo'];
 /**
  * Hacia dónde apuntan los dedos de la mano que cubre (grados desde el frente; 45 = al
  * palpar el brazo, cruzados). Al cubrir van al frente y un poco hacia afuera, casi a lo
@@ -293,6 +305,13 @@ function brazo(A: Lado): Brazo {
     // Junto al codo, sobre el antebrazo: encima del codo mismo la esfera rozaría el brazo que sube.
     codo: p(lerpV(E, W, 0.24), arribaAnte, 0.037),
   };
+  // Los puntos de goma, a distancias iguales de la muñeca al codo. `t` va del codo (0) a la
+  // muñeca (1); el grosor del antebrazo, como en los puntos de arriba (medido sobre la malla).
+  const grosor = (t: number) => (t >= 0.5 ? lerp(0.034, 0.024, (t - 0.5) / 0.5) : lerp(0.037, 0.034, (t - 0.24) / 0.26));
+  const linea = Array.from({ length: TRAMOS_BRAZO + 1 }, (_, i) => {
+    const t = lerp(1, 0.24, i / TRAMOS_BRAZO);
+    return p(lerpV(E, W, t), arribaAnte, grosor(t));
+  });
   // Del codo al hombro, la mano pasa por delante del brazo (por el pliegue del codo), sin rozarlo.
   const nBrazo = ortogonal(normV([-s * 0.2, 0.3, 1]), normV(restaV(H, E)));
   const nPliegue = normV(sumaV(arribaAnte, nBrazo));
@@ -306,7 +325,7 @@ function brazo(A: Lado): Brazo {
     p(lerpV(E, H, 0.5), nBrazo, 0.046),
     p(H, normV([s * 0.3, 1, 0.25]), 0.06),
   ];
-  return { A, B, s, palpado, puntos, cubrir, recorrido };
+  return { A, B, s, palpado, puntos, linea, cubrir, recorrido };
 }
 
 const BRAZOS: Record<Lado, Brazo> = { I: brazo('I'), D: brazo('D') };
@@ -367,8 +386,8 @@ function esferaEn(e: Estado, c: V3, r = R, brillo = 1.25, estirar = 1, eje: V3 |
   esfera(e, 0, { ref: null, pegado: 0, pos: puntoMundo(e, 0, c), radio: r, estirar, eje, brillo, color: 'oro', color2: 'blanco', mezcla: 0.3, opacidad: 1 });
 }
 
-/** Dos idas y vueltas de goma en `k` ∈ [0, 1]. */
-const goma = (k: number) => GOMA * (0.5 - 0.5 * Math.cos(2 * Math.PI * 2 * clamp(k)));
+/** Goma lenta en cada punto del brazo: la mano sube y baja una vez, con una pausa al empezar y al terminar. */
+const goma = (k: number) => GOMA * (0.5 - 0.5 * Math.cos(2 * Math.PI * tramo(k, 0.1, 0.9)));
 
 // ── Fases ───────────────────────────────────────────────────────────────
 
@@ -575,8 +594,16 @@ function pasar(e: Estado, seg: number) {
 
 // ── Pasos 3–6 · Cada brazo ──────────────────────────────────────────────
 
-const NOMBRES = { dedos: 'dedos', muneca: 'muñeca', antebrazo: 'antebrazo', codo: 'codo' } as const;
-type Punto = keyof typeof NOMBRES;
+/** Nombre de un punto del brazo, justo debajo y por delante de él (los puntos están a 5 cm uno de otro). */
+function rotuloPunto(e: Estado, pp: PuntoPiel, texto: string, opacidad: number) {
+  if (opacidad > 0) e.marcas.push({ pos: puntoMundo(e, 0, sumaV(pp.piel, [0, -0.05, 0.04])), texto, opacidad, tipo: 'nombre' });
+}
+
+/** Fase de un punto de goma (`punto2`) o del tramo que lleva a él (`hacia2`): tipo y número. */
+function puntoDe(id: string): ['punto' | 'hacia', number] {
+  const m = /^(punto|hacia)(\d+)$/.exec(id);
+  return m ? [m[1] as 'punto' | 'hacia', Number(m[2])] : ['punto', 0];
+}
 
 function rotulo(e: Estado, b: Brazo, pp: PuntoPiel, texto: string, opacidad: number, tipo: 'nombre' | 'distancia' = 'nombre') {
   if (opacidad <= 0) return;
@@ -675,17 +702,20 @@ function prepararCubrir(b: Brazo, k: number): { manos: Manos; c: V3; r: number }
   return { manos: manos(b.A, mA, mB), c, r: R };
 }
 
-type IdDelante = 'preparar' | 'dedos' | 'aMuneca' | 'muneca' | 'aAntebrazo' | 'antebrazo' | 'aCodo' | 'codo';
+type IdPunto = `punto${number}` | `hacia${number}`;
+/** Los puntos de goma con los tramos entre ellos (por delante, de la muñeca al codo; por atrás, al revés). */
+const fasesPuntos = (): Fase<IdPunto>[] =>
+  Array.from({ length: TRAMOS_BRAZO + 1 }, (_, i): Fase<IdPunto>[] => [
+    ...(i > 0 ? [{ id: `hacia${i}` as IdPunto, dur: SEG_TRAMO }] : []),
+    { id: `punto${i}` as IdPunto, dur: SEG_PUNTO },
+  ]).flat();
+type IdDelante = 'preparar' | 'dedos' | 'aMuneca' | IdPunto;
 const fasesDelante = (preparar: number): Fase<IdDelante>[] => [
   { id: 'preparar', dur: preparar },
   // Cinco dedos, POR_DEDO s cada uno: lento.
   { id: 'dedos', dur: 5 * POR_DEDO },
   { id: 'aMuneca', dur: 0.9 },
-  { id: 'muneca', dur: 2.2 },
-  { id: 'aAntebrazo', dur: 0.8 },
-  { id: 'antebrazo', dur: 2.2 },
-  { id: 'aCodo', dur: 0.8 },
-  { id: 'codo', dur: 2.2 },
+  ...fasesPuntos(),
 ];
 /** Primero se palpa el brazo derecho (con la mano izquierda) y después el izquierdo (descrito en el taller). */
 const PRIMERO: Lado = 'D';
@@ -695,14 +725,10 @@ const CAMBIO = { llevar: 2.4, pasar: 1.8, preparar: 2.6 };
 const DUR_CAMBIO = CAMBIO.llevar + CAMBIO.pasar + CAMBIO.preparar;
 const FASES_DELANTE: Record<Lado, Fase<IdDelante>[]> = { [PRIMERO]: fasesDelante(CAMBIO.preparar), [SEGUNDO]: fasesDelante(DUR_CAMBIO) } as Record<Lado, Fase<IdDelante>[]>;
 
-type IdAtras = 'girar' | 'codo' | 'aAntebrazo' | 'antebrazo' | 'aMuneca' | 'muneca' | 'aYemas' | 'recorrer' | 'quieto' | 'final';
+type IdAtras = 'girar' | IdPunto | 'aYemas' | 'recorrer' | 'quieto' | 'final';
 const fasesAtras = (final: number): Fase<IdAtras>[] => [
   { id: 'girar', dur: 1.4 },
-  { id: 'codo', dur: 2.2 },
-  { id: 'aAntebrazo', dur: 0.8 },
-  { id: 'antebrazo', dur: 2.2 },
-  { id: 'aMuneca', dur: 0.8 },
-  { id: 'muneca', dur: 2.2 },
+  ...fasesPuntos(),
   { id: 'aYemas', dur: 0.9 },
   { id: 'recorrer', dur: 4.6 },
   { id: 'quieto', dur: 0.6 },
@@ -769,7 +795,6 @@ function cambiarDeBrazo(b: Brazo, seg: number): { manos: Manos; c: V3; r: number
 
 function delante(e: Estado, A: Lado, seg: number) {
   const b = BRAZOS[A];
-  const P = b.puntos;
   const { id, k } = enFase(FASES_DELANTE[A], seg);
   if (id === 'preparar') {
     if (A === PRIMERO) {
@@ -789,20 +814,24 @@ function delante(e: Estado, A: Lado, seg: number) {
     cubrirDedos(e, b, k);
     return;
   }
-  const orden: Punto[] = ['muneca', 'antebrazo', 'codo'];
-  const hechos = id === 'aMuneca' || id === 'muneca' ? 0 : id === 'aAntebrazo' || id === 'antebrazo' ? 1 : 2;
-  e.hud.contador = { valor: hechos + (k >= 1 && !id.startsWith('a') ? 1 : 0), total: 3, etiqueta: 'puntos · por delante' };
-  if (id.startsWith('a')) {
-    const a = orden[hechos];
-    // Desde el último dedo (el pulgar), la mano se abre y acompaña a la esfera.
-    const de = hechos === 0 ? b.cubrir[b.cubrir.length - 1].sobre : P[orden[hechos - 1]];
-    deslizar(e, b, 0, de, P[a], k, hechos === 0);
-    e.hud.aviso = `La mano acompaña a la esfera hasta ${a === 'muneca' ? 'la muñeca' : a === 'antebrazo' ? 'el antebrazo' : 'el codo'}`;
+  const n = b.linea.length;
+  if (id === 'aMuneca') {
+    // Desde el último dedo (el pulgar), la mano se abre y acompaña a la esfera hasta la muñeca.
+    deslizar(e, b, 0, b.cubrir[b.cubrir.length - 1].sobre, b.linea[0], k, true);
+    e.hud.contador = { valor: 0, total: n, etiqueta: 'puntos · por delante' };
+    e.hud.aviso = 'La mano acompaña a la esfera hasta la muñeca';
+    return;
+  }
+  // De la muñeca al codo, en 4 tramos iguales: en cada punto, goma lenta.
+  const [tipo, i] = puntoDe(id);
+  e.hud.contador = { valor: i + (tipo === 'punto' && k >= 1 ? 1 : 0), total: n, etiqueta: 'puntos · por delante' };
+  if (tipo === 'hacia') {
+    deslizar(e, b, 0, b.linea[i - 1], b.linea[i], k);
+    e.hud.aviso = `La mano acompaña a la esfera hasta ${DONDE_LINEA[i]}`;
   } else {
-    const pto = id as Punto;
-    palparEn(e, b, 0, P[pto], k);
-    rotulo(e, b, P[pto], NOMBRES[pto], ventana(k, 0, 1, 0.1));
-    e.hud.aviso = `Por delante: como goma en ${pto === 'muneca' ? 'la muñeca' : pto === 'antebrazo' ? 'el antebrazo' : 'el codo'}`;
+    palparEn(e, b, 0, b.linea[i], k);
+    rotuloPunto(e, b.linea[i], NOMBRES_LINEA[i], ventana(k, 0, 1, 0.1));
+    e.hud.aviso = `Por delante: como goma, lentamente, en ${DONDE_LINEA[i]}`;
   }
 }
 
@@ -818,22 +847,23 @@ function atras(e: Estado, A: Lado, seg: number) {
     e.hud.aviso = 'El brazo gira: ahora por atrás';
     return;
   }
-  const orden: Punto[] = ['codo', 'antebrazo', 'muneca'];
-  if (id === 'codo' || id === 'antebrazo' || id === 'muneca' || id === 'aAntebrazo' || id === 'aMuneca') {
-    const hechos = id === 'codo' ? 0 : id === 'aAntebrazo' || id === 'antebrazo' ? 1 : 2;
-    e.hud.contador = { valor: hechos + (k >= 1 && !id.startsWith('a') ? 1 : 0), total: 3, etiqueta: 'puntos · por atrás' };
-    if (id.startsWith('a')) {
-      deslizar(e, b, 1, P[orden[hechos - 1]], P[orden[hechos]], k);
-      e.hud.aviso = 'La mano acompaña a la esfera, por atrás';
+  const n = b.linea.length;
+  if (id.startsWith('punto') || id.startsWith('hacia')) {
+    // Del codo a la muñeca, en los mismos 5 puntos: en cada uno, goma lenta.
+    const [tipo, i] = puntoDe(id);
+    const li = n - 1 - i;
+    e.hud.contador = { valor: i + (tipo === 'punto' && k >= 1 ? 1 : 0), total: n, etiqueta: 'puntos · por atrás' };
+    if (tipo === 'hacia') {
+      deslizar(e, b, 1, b.linea[li + 1], b.linea[li], k);
+      e.hud.aviso = `Por atrás, la mano acompaña a la esfera hasta ${DONDE_LINEA[li]}`;
     } else {
-      const pto = id as Punto;
-      palparEn(e, b, 1, P[pto], k);
-      rotulo(e, b, P[pto], NOMBRES[pto], ventana(k, 0, 1, 0.1));
-      e.hud.aviso = `Por atrás: como goma en ${pto === 'muneca' ? 'la muñeca' : pto === 'antebrazo' ? 'el antebrazo' : 'el codo'}`;
+      palparEn(e, b, 1, b.linea[li], k);
+      rotuloPunto(e, b.linea[li], NOMBRES_LINEA[li], ventana(k, 0, 1, 0.1));
+      e.hud.aviso = `Por atrás: como goma, lentamente, en ${DONDE_LINEA[li]}`;
     }
     return;
   }
-  e.hud.contador = { valor: 3, total: 3, etiqueta: 'puntos · por atrás' };
+  e.hud.contador = { valor: n, total: n, etiqueta: 'puntos · por atrás' };
   if (id === 'aYemas') {
     // La esfera va con la mano hasta la punta de los dedos, para empezar el recorrido.
     deslizar(e, b, 1, P.muneca, b.recorrido[0], k);
@@ -973,6 +1003,8 @@ export const sensibilizarInterno = {
   PAUSA_TRASPASO,
   FASES_DELANTE,
   FASES_ATRAS,
+  TRAMOS_BRAZO,
+  SEG_PUNTO,
   PRIMERO,
   SEGUNDO,
   CIERRE_CUBRIR,
