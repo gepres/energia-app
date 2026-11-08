@@ -241,7 +241,7 @@ export const EJERCICIOS: Ejercicio[] = [
     subtitulo: 'sin soltar la esfera, palpando dedos y brazos',
     origen: 'revision',
     resumen:
-      'Primero se carga de las barras: una esfera en cada mano, se juntan en una y se juega con ella como goma. La esfera pasa de mano en mano, lentamente y sin soltarla nunca: una mano arriba y otra abajo, jugando con ella como goma. Después la mano izquierda, con forma de agarrar y con la energía de la esfera dentro, cubre los dedos de la derecha uno por uno, lentamente y sin tocarlos, con la yema de cada dedo en el centro de la esfera, y en cada uno hace goma; acompaña a la esfera por el brazo, haciendo de goma en la muñeca, el antebrazo y el codo, por delante y por atrás, y recorre el brazo sin tocarlo, a 5–10 cm, hasta el hombro. Luego, lo mismo con el otro brazo.',
+      'Primero se carga de las barras: una esfera en cada mano, se juntan en una y se juega con ella como goma. La esfera pasa de mano en mano, lentamente y sin soltarla nunca: una mano arriba y otra abajo, jugando con ella como goma. Después la mano izquierda, con forma de agarrar y con la energía de la esfera dentro, cubre los dedos de la derecha uno por uno, lentamente y sin tocarlos, con la yema de cada dedo en el centro de la esfera y ese dedo un poco separado de los demás, y en cada uno hace goma; acompaña a la esfera por el brazo, haciendo de goma en la muñeca, el antebrazo y el codo, por delante y por atrás, y recorre el brazo sin tocarlo, a 5–10 cm, hasta el hombro. Luego, lo mismo con el otro brazo.',
     acento: 'oro',
     bloques: [{ titulo: 'Sensaciones reportadas', items: ['Calor', 'Presión', 'Hormigueo', 'Electricidad'] }],
     pasos: [
@@ -269,11 +269,11 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'derecho-delante',
         titulo: 'Brazo derecho: la izquierda cubre los dedos',
         texto:
-          'Empieza la mano izquierda con la mano derecha. La derecha se extiende con la palma hacia arriba; la izquierda da vuelta la esfera sin soltarla y, con forma de agarrar y la energía de la esfera dentro, cubre los dedos de la derecha uno por uno, lentamente y sin tocarlos: meñique, anular, medio, índice y pulgar. En cada dedo, la yema queda en el centro de la esfera y la mano hace goma: sube y baja, y la esfera se estira con ella. Después acompaña a la esfera por delante del brazo y hace de goma en la muñeca, el antebrazo y el codo.',
+          'Empieza la mano izquierda con la mano derecha. La derecha se extiende con la palma hacia arriba; la izquierda da vuelta la esfera sin soltarla y, con forma de agarrar y la energía de la esfera dentro, cubre los dedos de la derecha uno por uno, lentamente y sin tocarlos: meñique, anular, medio, índice y pulgar. En cada dedo, ese dedo se separa un poco de los demás, la yema queda en el centro de la esfera y la mano hace goma: sube y baja, y la esfera se estira con ella. Después acompaña a la esfera por delante del brazo y hace de goma en la muñeca, el antebrazo y el codo.',
         aclaracion:
-          'Descrito en el taller: empieza la mano izquierda tocando la mano derecha, primero los dedos: la mano izquierda, un poco más cerrada y con la energía de la esfera dentro, intenta cubrir los dedos de la otra mano uno por uno, de forma lenta. En la revisión: del meñique al pulgar, sin tocarlos, la mano con forma de agarrar algo, haciendo goma en cada dedo y con la yema del dedo en el centro de la esfera. Después, al palpar a distancia, la mano acompaña a la esfera y hace como goma en los 3 puntos del brazo.',
+          'Descrito en el taller: empieza la mano izquierda tocando la mano derecha, primero los dedos: la mano izquierda, un poco más cerrada y con la energía de la esfera dentro, intenta cubrir los dedos de la otra mano uno por uno, de forma lenta. En la revisión: del meñique al pulgar, sin tocarlos, la mano con forma de agarrar algo, haciendo goma en cada dedo, con la yema del dedo en el centro de la esfera, la esfera de su tamaño de siempre y ese dedo un poco separado de los demás. Después, al palpar a distancia, la mano acompaña a la esfera y hace como goma en los 3 puntos del brazo.',
         lectura:
-          'Para cubrir los dedos, la izquierda da vuelta la esfera con la palma hacia abajo. La esfera crece un poco mientras cubre los dedos (para llenar la mano que la agarra sin que toque los dedos vecinos) y vuelve a su tamaño al seguir hacia la muñeca.',
+          'Para cubrir los dedos, la izquierda da vuelta la esfera con la palma hacia abajo. Para separar el dedo, se levanta un poco desde el nudillo y sus vecinos se abren hacia los costados; así la mano que agarra no los toca.',
       },
       {
         id: 'derecho-atras',
@@ -292,7 +292,7 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'izquierdo-delante',
         titulo: 'Brazo izquierdo: la derecha cubre los dedos',
         texto:
-          'Se sigue con la otra mano: la izquierda lleva la esfera al medio, la derecha se pone abajo y la recibe (como en los traspasos), da vuelta la esfera sin soltarla y, con forma de agarrar, cubre los dedos de la izquierda uno por uno, lentamente y sin tocarlos, con la yema en el centro de la esfera y haciendo goma en cada uno. Después acompaña a la esfera por delante del brazo izquierdo, como goma en la muñeca, el antebrazo y el codo.',
+          'Se sigue con la otra mano: la izquierda lleva la esfera al medio, la derecha se pone abajo y la recibe (como en los traspasos), da vuelta la esfera sin soltarla y, con forma de agarrar, cubre los dedos de la izquierda uno por uno, lentamente y sin tocarlos, con cada dedo un poco separado de los demás, la yema en el centro de la esfera y haciendo goma en cada uno. Después acompaña a la esfera por delante del brazo izquierdo, como goma en la muñeca, el antebrazo y el codo.',
         aclaracion: 'Descrito en el taller: después se sigue con la otra mano.',
         lectura: 'La esfera pasa a la derecha como en los traspasos del paso 2 (una mano arriba y otra abajo, queda en la de abajo).',
       },

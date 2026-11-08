@@ -272,6 +272,7 @@ export function segmentosMano(
   tipo = 0,
   aislado = -1,
   aislar = 0,
+  separar = 0,
 ): Segmento[] {
   const X = normV(cruzV(F, N));
   const T: V3 = [X[0] * s, X[1] * s, X[2] * s];
@@ -296,12 +297,21 @@ export function segmentosMano(
     // o imposible para el anular); con el índice o el meñique, más.
     if (aislado >= 0 && aislar > 0) c = lerp(c, i === aislado ? 0 : RECOGER_OTROS[aislado], clamp(aislar));
     // Sin pinza, la abertura es la de siempre (según el cierre general).
-    const phi = d.abre * (1.15 - 0.55 * lerp(cierre, c, q));
-    const d0: V3 = normV([
+    let phi = d.abre * (1.15 - 0.55 * lerp(cierre, c, q));
+    // Separar el dedo aislado: sus vecinos se abren hacia los costados, alejándose de él (los del
+    // lado del pulgar, hacia el pulgar; los del lado del meñique, hacia afuera). Con el pulgar
+    // aislado (4), los cuatro dedos se apartan de él.
+    if (aislado >= 0 && separar > 0 && i !== aislado) phi += (i < aislado ? 1 : -1) * SEPARAR_DEDOS * clamp(separar);
+    let d0: V3 = normV([
       F[0] * Math.cos(phi) + T[0] * Math.sin(phi),
       F[1] * Math.cos(phi) + T[1] * Math.sin(phi),
       F[2] * Math.cos(phi) + T[2] * Math.sin(phi),
     ]);
+    // Al separarlo, el dedo aislado además se levanta un poco desde el nudillo, recto, hacia el lado de la palma.
+    if (aislado >= 0 && separar > 0 && i === aislado) {
+      const b = LEVANTAR_DEDO * clamp(separar);
+      d0 = normV([d0[0] * Math.cos(b) + N[0] * Math.sin(b), d0[1] * Math.cos(b) + N[1] * Math.sin(b), d0[2] * Math.cos(b) + N[2] * Math.sin(b)]);
+    }
     // Eje de flexión: los dedos se curvan hacia la palma (N).
     const L = normV(cruzV(d0, N));
     const angulos = [c * 1.2, c * 1.55, c * 1.05];
@@ -360,8 +370,12 @@ export function segmentosMano(
  * pieza en `segmentosMano` (índice 1–3, medio 4–6, anular 7–9, meñique 10–12).
  */
 const DEDOS_EN_PIEZAS = ['índice', 'medio', 'anular', 'meñique'];
-/** Cuánto se recogen los demás dedos cuando se aísla cada uno (índice, medio, anular, meñique). */
-const RECOGER_OTROS = [0.62, 0.3, 0.38, 0.58];
+/** Cuánto se recogen los demás dedos cuando se aísla cada uno (índice, medio, anular, meñique y pulgar). */
+const RECOGER_OTROS = [0.62, 0.3, 0.38, 0.58, 0.45];
+/** Cuánto se abren hacia los costados los vecinos del dedo aislado al separarlo (rad, ≈ 15°). */
+const SEPARAR_DEDOS = 0.26;
+/** Cuánto se levanta desde el nudillo el dedo aislado al separarlo (rad): queda un poco por encima de los demás. */
+const LEVANTAR_DEDO = 0.35;
 export const FALANGES: { dedo: string; falange: number; i: number }[] = [
   ...['meñique', 'anular', 'medio', 'índice'].flatMap((dedo) =>
     [1, 2, 3].map((f) => ({ dedo, falange: f, i: 1 + DEDOS_EN_PIEZAS.indexOf(dedo) * 3 + (f - 1) })),
@@ -448,16 +462,16 @@ export function crearManos(material: Material): Manos {
   malla.bind(esqueleto, new Matrix4());
   malla.frustumCulled = false;
 
-  function mano(h0: number, s: number, muneca: V3, F: V3, N: V3, cierre: number, pinza: number, tipo: number, aislado: number, aislar: number) {
-    segmentosMano(muneca, F, N, s, cierre, pinza, tipo, aislado, aislar).forEach((g, j) => colocar(huesos[h0 + j], g.pos, g.dir, g.z));
+  function mano(h0: number, s: number, muneca: V3, F: V3, N: V3, cierre: number, pinza: number, tipo: number, aislado: number, aislar: number, separar: number) {
+    segmentosMano(muneca, F, N, s, cierre, pinza, tipo, aislado, aislar, separar).forEach((g, j) => colocar(huesos[h0 + j], g.pos, g.dir, g.z));
   }
 
   return {
     malla,
     raiz,
     actualizar(e, p) {
-      mano(LADOS[0].h0, LADOS[0].s, e.munecaD, e.palmaD.dedos, e.palmaD.normal, p.cierreD, p.pinzaD, p.tipoPinzaD, p.aisladoD, p.aislarD);
-      mano(LADOS[1].h0, LADOS[1].s, e.munecaI, e.palmaI.dedos, e.palmaI.normal, p.cierreI, p.pinzaI, p.tipoPinzaI, p.aisladoI, p.aislarI);
+      mano(LADOS[0].h0, LADOS[0].s, e.munecaD, e.palmaD.dedos, e.palmaD.normal, p.cierreD, p.pinzaD, p.tipoPinzaD, p.aisladoD, p.aislarD, p.separarD);
+      mano(LADOS[1].h0, LADOS[1].s, e.munecaI, e.palmaI.dedos, e.palmaI.normal, p.cierreI, p.pinzaI, p.tipoPinzaI, p.aisladoI, p.aislarI, p.separarI);
     },
   };
 }
