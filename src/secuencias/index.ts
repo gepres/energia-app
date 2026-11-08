@@ -30,7 +30,7 @@ function generica(ej: Ejercicio): Secuencia {
 const PROPIAS: Record<string, Secuencia> = {
   'cargar-ombligo': cargarOmbligo,
   'sellar-cielo': sellarCielo,
-  'unir-barras': unirBarras,
+  'colocar-tres-puntos': unirBarras,
   'liberar-creencias': liberarCreencias,
   'equilibrar-organos': equilibrarOrganos,
   'sanar-otra-persona': sanarOtraPersona,

@@ -7,7 +7,8 @@ import { TOMAS, esfera, flujo, pulso } from './comunes';
 import { type Secuencia, encuadre, fijarPose, posar, puntoMundo, toma } from './motor';
 
 /**
- * «Unir la energía de las barras», tal como lo describió el taller: cada mano
+ * «Colocar energía en los 3 puntos (ombligo, pecho y frente)», tal como lo
+ * describió el taller: se une la energía de las dos barras. Cada mano
  * toma energía de su barra (brazos estirados) y forma una esfera; las manos se
  * juntan al frente y las dos esferas se unen en una más grande; las manos la
  * llevan y la entran en el centro. Una vez al ombligo, una al centro del pecho

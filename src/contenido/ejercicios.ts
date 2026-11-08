@@ -99,10 +99,10 @@ export const EJERCICIOS: Ejercicio[] = [
     ],
   },
   {
-    id: 'unir-barras',
+    id: 'colocar-tres-puntos',
     numero: 3,
-    titulo: 'Unir la energía de las barras',
-    subtitulo: 'ombligo · pecho · frente',
+    titulo: 'Colocar energía en los 3 puntos',
+    subtitulo: 'ombligo, pecho y frente',
     origen: 'revision',
     resumen:
       'Cada mano toma energía de su barra y forma una esfera; las manos se juntan al frente y las dos esferas se unen en una más grande, que las manos llevan y entran: primero al ombligo, después al centro del pecho y después a la frente.',

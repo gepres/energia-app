@@ -295,8 +295,8 @@ describe('Sellar desde el cielo (descrito en el taller)', () => {
   });
 });
 
-describe('Unir la energía de las barras (descrito en el taller)', () => {
-  const sec = SECUENCIAS['unir-barras'];
+describe('Colocar energía en los 3 puntos (descrito en el taller)', () => {
+  const sec = SECUENCIAS['colocar-tres-puntos'];
   const centros = ['ombligo', 'corazon', 'frente'] as const;
   const dur = sec.pasos[1].dur;
   /** Primer t del paso de un centro en que el ciclo está en esa fase con ese avance. */
