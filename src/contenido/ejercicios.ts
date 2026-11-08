@@ -158,9 +158,9 @@ export const EJERCICIOS: Ejercicio[] = [
         texto:
           'Masajear la mano izquierda dedo por dedo, empezando por el meñique (meñique, anular, medio, índice y al final el pulgar): cada falange se toma entre el pulgar (arriba) y el índice (abajo) y se hacen 3 círculos.',
         cantidad: { valor: 3, unidad: 'círculos por falange', pregunta: '¿Cuántos círculos se hacen en cada falange?' },
-        aclaracion: 'Descrito en el taller: dedo por dedo, por cada falange, con pulgar e índice en círculos; empezando por el meñique.',
-        lectura:
-          'Mientras se masajea un dedo, los otros se recogen un poco y ese queda estirado. Para el pulgar, la mano gira la palma hacia abajo y el pulgar apunta a la otra mano.',
+        aclaracion:
+          'Descrito en el taller: dedo por dedo, por cada falange, con pulgar e índice en círculos; empezando por el meñique. Para el pulgar, la mano gira la palma hacia abajo y el pulgar apunta a la otra mano.',
+        lectura: 'Mientras se masajea un dedo, los otros se recogen un poco y ese queda estirado.',
       },
       {
         id: 'palma-derecha',
@@ -172,8 +172,7 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'dedos-derecha',
         titulo: 'Dedo por dedo · mano derecha',
         texto: 'Masajear la mano derecha dedo por dedo, empezando por el meñique y terminando en el pulgar, con 3 círculos en cada falange.',
-        aclaracion: 'Descrito en el taller.',
-        lectura: 'Al terminar, las manos se sueltan a los costados.',
+        aclaracion: 'Descrito en el taller: al terminar, las manos se sueltan a los costados.',
       },
     ],
   },
