@@ -172,7 +172,7 @@ export const sellarCielo: Secuencia = {
           // Las manos se van soltando poco a poco hasta quedar del todo abiertas (las palmas giran
           // hacia el piso en la pose).
           e.figuras[0].pose = bajarPorLosCostados(theta, lerp(CIERRE.agarra, CIERRE.abierta, suave(clamp(k / 0.9))));
-          // La nube queda más tenue y se rearma mientras el velo baja.
+          // La nube se rearma (sigue luminosa) mientras la tela baja.
           nube(e, lerp(1.05, NUBE_TRANQUILA, s), lerp(0.3, NUBE_CIELO.radio, s), 0.05 * (1 - s));
         } else if (fase === 'asentar') {
           theta = THETA_ABAJO;
