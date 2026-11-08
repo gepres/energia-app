@@ -1,8 +1,7 @@
-import { resolverEsqueleto } from '../escena/cuerpo';
 import { type Estado, enPalma, ref } from '../escena/estado';
-import { centroAgarre } from '../escena/manos';
 import { type V3, campana, clamp, saleAtras, tramo } from '../escena/mate';
-import { RADIO_BARRA, SERENA, poseCargaBarras } from '../escena/poses';
+import { SERENA, poseCargaBarras } from '../escena/poses';
+import { BARRA_DER, BARRA_IZQ, barrasEnPuno } from './barras';
 import { TOMAS, esfera, flujo, pulso } from './comunes';
 import { type Secuencia, encuadre, fijarPose, posar, puntoMundo, toma } from './motor';
 
@@ -25,34 +24,13 @@ const SEG_ANTES = 0.6;
 const SEG_DESPUES = 3.5;
 const DUR_CARGAS = SEG_ANTES + SEG_CARGAS + SEG_DESPUES;
 
-// Cada barra pasa justo por el puño de la mano que la agarra (con los brazos estirados).
-const AGARRE = resolverEsqueleto(poseCargaBarras(null, null));
-function barraEnElPuno(p: { dedos: V3; normal: V3 }, muneca: V3): V3 {
-  const c = centroAgarre(muneca, p.dedos, p.normal, RADIO_BARRA);
-  return [c[0], 0, c[2]];
-}
-const BARRA_DER = barraEnElPuno(AGARRE.palmaD, AGARRE.munecaD);
-const BARRA_IZQ = barraEnElPuno(AGARRE.palmaI, AGARRE.munecaI);
 /** Punto de la carga, justo delante del ombligo. */
 const OMBLIGO: V3 = [0, 1.04, 0.14];
 
 type Lado = 'D' | 'I';
 const LADOS: Lado[] = ['D', 'I'];
 
-function barras(e: Estado, opacidad: number, resalteDer = 0, resalteIzq = 0) {
-  Object.assign(e.barras, {
-    activa: true,
-    izq: [...BARRA_IZQ],
-    der: [...BARRA_DER],
-    alto: 1.75,
-    opacidad,
-    resalte: resalteIzq,
-    resalteDer,
-    radio: RADIO_BARRA,
-    // Brilla más al tomar energía, pero casi no se ensancha: si no, se tragaría la mano.
-    crece: 0.12,
-  });
-}
+const barras = barrasEnPuno;
 
 /** La carga acumulada en el ombligo (0–30). */
 function cargaOmbligo(e: Estado, cargas: number) {

@@ -4,6 +4,7 @@ import { SERENA } from '../escena/poses';
 import { TOMAS } from './comunes';
 import { cargarOmbligo } from './cargarOmbligo';
 import { sellarCielo } from './sellarCielo';
+import { unirBarras } from './unirBarras';
 import { enraizar } from './enraizar';
 import { liberarCreencias } from './liberar';
 import { activarCentros, cargaYSellado, recorridoChakras, selladoFinal, sensibilizarManos } from './notas';
@@ -29,6 +30,7 @@ function generica(ej: Ejercicio): Secuencia {
 const PROPIAS: Record<string, Secuencia> = {
   'cargar-ombligo': cargarOmbligo,
   'sellar-cielo': sellarCielo,
+  'unir-barras': unirBarras,
   'liberar-creencias': liberarCreencias,
   'equilibrar-organos': equilibrarOrganos,
   'sanar-otra-persona': sanarOtraPersona,

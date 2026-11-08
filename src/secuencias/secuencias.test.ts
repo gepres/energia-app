@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { DUDAS, EJERCICIOS, ORGANOS, fraseOrgano } from '../contenido/ejercicios';
 import { MeshBasicMaterial } from 'three';
-import { NEUTRA, ik2, resolverEsqueleto } from '../escena/cuerpo';
+import { NEUTRA, PUNTOS, ik2, resolverEsqueleto } from '../escena/cuerpo';
 import { crearManos, huecoPalma } from '../escena/manos';
 import type { Estado } from '../escena/estado';
 import { largoV, restaV } from '../escena/mate';
 import { SECUENCIAS } from './index';
 import { OPCIONES_INICIALES, duracionTotal, evaluar, ubicar } from './motor';
 import { faseSellado } from './sellarCielo';
+import { faseUnir } from './unirBarras';
 
 const MUESTRAS = [0, 0.13, 0.37, 0.5, 0.71, 0.94, 1];
 
@@ -294,3 +295,67 @@ describe('Sellar desde el cielo (descrito en el taller)', () => {
   });
 });
 
+describe('Unir la energía de las barras (descrito en el taller)', () => {
+  const sec = SECUENCIAS['unir-barras'];
+  const centros = ['ombligo', 'corazon', 'frente'] as const;
+  const dur = sec.pasos[1].dur;
+  /** Primer t del paso de un centro en que el ciclo está en esa fase con ese avance. */
+  const instante = (fase: string, k: number) => {
+    for (let i = 0; i <= 3000; i++) {
+      const f = faseUnir((i / 3000) * dur);
+      if (f.fase === fase && f.k >= k) return i / 3000;
+    }
+    throw new Error(`no hay ${fase}`);
+  };
+
+  it('tiene un paso para agarrar las barras y uno por cada centro', () => {
+    expect(sec.pasos).toHaveLength(4);
+  });
+
+  it('une las esferas a la altura de las barras, con los brazos estirados, y juega con ella como goma', () => {
+    const e = evaluar(sec, 1, instante('unir', 0.97), OPCIONES_INICIALES);
+    const esq = resolverEsqueleto(e.figuras[0].pose);
+    for (const [m, h] of [
+      [esq.munecaD, esq.hombroD],
+      [esq.munecaI, esq.hombroI],
+    ]) {
+      expect(Math.abs(m[1] - 1.41)).toBeLessThan(0.05);
+      expect(Math.hypot(m[0] - h[0], m[1] - h[1], m[2] - h[2])).toBeGreaterThan(0.48);
+    }
+    // Durante el juego (≈ 4 s) la esfera se estira y se aplasta con las manos.
+    const estirar: number[] = [];
+    for (let i = 0; i <= 40; i++) estirar.push(evaluar(sec, 1, instante('jugar', (i / 40) * 0.98), OPCIONES_INICIALES).esferas[1].estirar);
+    expect(Math.max(...estirar)).toBeGreaterThan(1.3);
+    expect(Math.min(...estirar)).toBeLessThan(0.85);
+  });
+
+  centros.forEach((id, n) => {
+    it(`une las esferas y entra la energía en ${id}`, () => {
+      const paso = n + 1;
+      // Antes de unirse: cada mano trae su esfera.
+      const antes = evaluar(sec, paso, instante('juntar', 0.9), OPCIONES_INICIALES);
+      expect(antes.esferas[2].activa && antes.esferas[3].activa).toBe(true);
+      // Unidas: una sola esfera, más grande que las de cada mano.
+      const unida = evaluar(sec, paso, instante('llevar', 0.2), OPCIONES_INICIALES);
+      expect(unida.esferas[2].activa || unida.esferas[3].activa).toBe(false);
+      expect(unida.esferas[1].radio).toBeGreaterThan(antes.esferas[2].radio * 1.5);
+      // Entrando: las manos delante del centro con las palmas hacia el cuerpo.
+      const entra = evaluar(sec, paso, instante('entrar', 0.3), OPCIONES_INICIALES);
+      const esq = resolverEsqueleto(entra.figuras[0].pose);
+      expect(esq.palmaD.normal[2]).toBeLessThan(-0.7);
+      expect(esq.palmaI.normal[2]).toBeLessThan(-0.7);
+      expect(Math.abs(esq.palmaD.centro[1] - PUNTOS[id][1])).toBeLessThan(0.12);
+      // Después: el centro encendido y el contador sumó uno.
+      const despues = evaluar(sec, paso, instante('volver', 0.1), OPCIONES_INICIALES);
+      expect(despues.centros[id]).toBeGreaterThan(0.9);
+      expect(despues.hud.contador?.valor).toBe(n + 1);
+    });
+  });
+
+  it('termina con los tres centros encendidos y las manos sueltas a los costados', () => {
+    const e = evaluar(sec, 3, 1, OPCIONES_INICIALES);
+    for (const id of centros) expect(e.centros[id]).toBeGreaterThan(0.9);
+    const esq = resolverEsqueleto(e.figuras[0].pose);
+    expect(esq.munecaD[1]).toBeLessThan(1.0);
+  });
+});

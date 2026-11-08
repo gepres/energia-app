@@ -39,6 +39,7 @@ export const PROP = {
 export type PuntoCuerpo =
   | 'coronilla'
   | 'tercerOjo'
+  | 'frente'
   | 'boca'
   | 'garganta'
   | 'corazon'
@@ -54,6 +55,8 @@ export type PuntoCuerpo =
 export const PUNTOS: Record<PuntoCuerpo, V3> = {
   coronilla: [0, 1.715, 0],
   tercerOjo: [0, 1.62, 0.1],
+  /** Centro de la frente, unos centímetros sobre el entrecejo (sobre la piel). */
+  frente: [0, 1.66, 0.085],
   boca: [0, 1.545, 0.1],
   garganta: [0, 1.455, 0.065],
   corazon: [0, 1.3, 0.125],

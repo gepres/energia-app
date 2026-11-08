@@ -98,6 +98,45 @@ export const EJERCICIOS: Ejercicio[] = [
       },
     ],
   },
+  {
+    id: 'unir-barras',
+    numero: 3,
+    titulo: 'Unir la energía de las barras',
+    subtitulo: 'ombligo · pecho · frente',
+    origen: 'revision',
+    resumen:
+      'Cada mano toma energía de su barra y forma una esfera; las manos se juntan al frente y las dos esferas se unen en una más grande, que las manos llevan y entran: primero al ombligo, después al centro del pecho y después a la frente.',
+    acento: 'jade',
+    pasos: [
+      {
+        id: 'agarrar-barras',
+        titulo: 'Agarrar las barras',
+        texto: 'Estirar los brazos al frente y agarrar con cada mano su barra de energía.',
+        aclaracion: 'Descrito en el taller.',
+      },
+      {
+        id: 'unir-ombligo',
+        titulo: 'Unir y llevar al ombligo',
+        texto:
+          'Juntar la energía de las 2 barras: cada mano toma de su barra y forma una esfera; las manos se juntan al frente y las dos esferas se unen en una más grande. Las manos la llevan al ombligo y la entran.',
+        aclaracion:
+          'Descrito en el taller: cada mano toma de su barra, las esferas se unen en una más grande entre las palmas y las manos la llevan y la entran; una vez en cada centro.',
+      },
+      {
+        id: 'unir-pecho',
+        titulo: 'Unir y llevar al centro del pecho',
+        texto: 'Hacer lo mismo y llevar la energía al centro del pecho.',
+        aclaracion: 'Descrito en el taller.',
+      },
+      {
+        id: 'unir-frente',
+        titulo: 'Unir y llevar a la frente',
+        texto: 'Hacer lo mismo y llevar la energía al centro de la frente.',
+        aclaracion: 'Descrito en el taller: al centro de la frente, no entre las cejas.',
+        lectura: 'Al terminar, las manos se sueltan a los costados y las barras se desvanecen.',
+      },
+    ],
+  },
 
   // ───────────────────────── VERSIÓN DE REFERENCIA ─────────────────────────
   // ───────────────────────── MANEJO DE ENERGÍA · SET 2026 ─────────────────────────

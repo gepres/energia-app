@@ -615,4 +615,52 @@ function brazosEnArco(theta: number, cierre: number, sentido: 'bajan' | 'suben')
   });
 }
 
+// ── Unir la energía de las barras (descrito en el taller) ───────────────
+
+/** Distancias del hueco de la palma (ver `huecoPalma` en manos.ts): a lo largo de los dedos y piel. */
+const HUECO = { dedos: 0.0564, piel: 0.0099 };
+
+/**
+ * Esfera sostenida entre las dos palmas, con centro `c` (cuerpo) y `r` de la
+ * piel de cada palma al centro. Con `alFrente` = 0 las manos están a los
+ * costados de la esfera, palmas enfrentadas; con 1 la rodearon y quedaron
+ * delante de ella, lado a lado, con las palmas hacia el cuerpo, para entrarla.
+ * `dedosAlFrente` = 1 apunta los dedos al frente (brazos estirados); 0, arriba.
+ */
+export function esferaEntrePalmas(c: V3, r: number, alFrente = 0, cierre = 0.28, dedosAlFrente = 0): Pose {
+  const phi = (clamp(alFrente) * Math.PI) / 2;
+  const mano = (s: number) => {
+    // De la esfera hacia la mano: del costado (s) hacia el frente (+Z).
+    const dir: V3 = [s * Math.cos(phi), 0, Math.sin(phi)];
+    const dedos = normV(lerpV([0, 1, 0.25 * (1 - clamp(alFrente))], [0, 0.06, 1], clamp(dedosAlFrente)));
+    const palma: V3 = [-dir[0], -dir[1], -dir[2]];
+    const a = HUECO.piel + r;
+    const lado = s * 0.045 * Math.sin(phi);
+    return {
+      mano: [
+        c[0] + dir[0] * a - dedos[0] * HUECO.dedos + lado,
+        c[1] + dir[1] * a - dedos[1] * HUECO.dedos,
+        c[2] + dir[2] * a - dedos[2] * HUECO.dedos,
+      ] as V3,
+      palma,
+      dedos,
+    };
+  };
+  const D = mano(-1);
+  const I = mano(1);
+  return pose({
+    manoD: D.mano,
+    manoI: I.mano,
+    codoD: normV([-1, -0.6, -0.35]),
+    codoI: normV([1, -0.6, -0.35]),
+    palmaD: D.palma,
+    palmaI: I.palma,
+    dedosD: D.dedos,
+    dedosI: I.dedos,
+    cierreD: cierre,
+    cierreI: cierre,
+    // Mira la esfera: hacia abajo si está baja, al frente si está a la altura de la cara.
+    cabezaPitch: clamp((1.5 - c[1]) * 0.5, -0.1, 0.3),
+  });
+}
 
