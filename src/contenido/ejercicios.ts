@@ -346,7 +346,7 @@ export const EJERCICIOS: Ejercicio[] = [
         aclaracion:
           'Descrito en el taller: parecido a «Cargar el ombligo», pero la mano derecha va a la ingle izquierda y la izquierda a la ingle derecha, colocando las esferas en esas partes. Elegido en la revisión: intercaladas, 15 por mano.',
         lectura:
-          'Empieza la derecha. Para llegar a la ingle del otro lado, el cuerpo se inclina un poco hacia adelante y gira hacia esa ingle mientras la mano lleva la esfera; cada esfera se acumula en su ingle.',
+          'Empieza la derecha. La espalda queda recta: para llegar a la ingle del otro lado, el hombro de esa mano se adelanta y el torso gira un poco hacia esa ingle mientras la mano lleva la esfera. Cada esfera se acumula en su ingle.',
       },
     ],
   },

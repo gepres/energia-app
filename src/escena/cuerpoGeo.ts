@@ -1,5 +1,5 @@
 import { BufferGeometry, DynamicDrawUsage, Float32BufferAttribute, Quaternion, SphereGeometry, Vector3 } from 'three';
-import { type Esqueleto, PROP } from './cuerpo';
+import { type Esqueleto, PROP, adelantoHombro } from './cuerpo';
 import { type V3, lerp } from './mate';
 
 /**
@@ -154,6 +154,11 @@ export function crearTorso() {
   for (let i = 0; i < position.count; i++) {
     pesos[i] = pasoSuave(0.11, 0.185, Math.abs(reposo[i * 3])) * pasoSuave(1.32, 1.4, reposo[i * 3 + 1]);
   }
+  // Lo que acompaña al hombro cuando se adelanta: el hombro y la parte alta del pecho y de la espalda de ese lado.
+  const pesosHombro = new Float32Array(position.count);
+  for (let i = 0; i < position.count; i++) {
+    pesosHombro[i] = pasoSuave(0.05, 0.15, Math.abs(reposo[i * 3])) * pasoSuave(1.2, 1.36, reposo[i * 3 + 1]);
+  }
 
   const v = new Vector3();
   const direccion = new Vector3();
@@ -167,7 +172,7 @@ export function crearTorso() {
   return {
     geometry,
     deformar(e: Esqueleto): void {
-      const clave = [...e.pelvis, e.inclinar, e.girar, ...e.codoD, ...e.codoI].join(',');
+      const clave = [...e.pelvis, e.inclinar, e.girar, e.adelantarD, e.adelantarI, ...e.codoD, ...e.codoI].join(',');
       if (clave === claveAnterior) return;
       claveAnterior = clave;
 
@@ -181,9 +186,16 @@ export function crearTorso() {
       qI.setFromUnitVectors(base, direccion);
 
       for (let i = 0; i < position.count; i++) {
-        const x = reposo[i * 3];
-        const y = reposo[i * 3 + 1];
-        const z = reposo[i * 3 + 2];
+        let x = reposo[i * 3];
+        let y = reposo[i * 3 + 1];
+        let z = reposo[i * 3 + 2];
+        const adelanto = x < 0 ? e.adelantarD : e.adelantarI;
+        if (adelanto && pesosHombro[i] > 0) {
+          const d = adelantoHombro(x < 0 ? -1 : 1, adelanto * pesosHombro[i]);
+          x += d[0];
+          y += d[1];
+          z += d[2];
+        }
         const a = e.inclinar * pasoSuave(PROP.pivoteY - 0.04, PROP.pivoteY + 0.04, y);
         const c = Math.cos(a);
         const s = Math.sin(a);

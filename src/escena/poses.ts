@@ -540,12 +540,6 @@ export function poseCargaBarras(uD: number | null, uI: number | null): Pose {
  */
 export const INGLE_DER: V3 = [-0.075, 0.9, 0.125];
 export const INGLE_IZQ: V3 = [0.075, 0.9, 0.125];
-/**
- * Inclinación del torso hacia adelante mientras se cargan las ingles (rad, ≈ 11°): con el
- * cuerpo derecho, la mano no llega a la ingle del otro lado (el hombro queda a 0,55 y el
- * brazo alcanza 0,545), y el brazo, casi estirado, cruzaría por el pecho.
- */
-export const INCLINAR_INGLES = 0.2;
 
 /**
  * Mano frente a la ingle del otro lado entregando la esfera: palma hacia el cuerpo, dedos
@@ -572,11 +566,14 @@ function entregaIngle(lado: Lado): Mano {
 const arcoIngle = (lado: Lado): V3 => [(lado === 'D' ? -1 : 1) * 0.1, 1.05, 0.5];
 
 /**
- * Giro del torso hacia la ingle del otro lado mientras una mano lleva su esfera (rad, ≈ 23°):
- * con la inclinación, el brazo llega por delante del cuerpo sin meterse en el pecho, y la
- * otra mano sigue en su barra.
+ * La espalda queda recta (descrito en la revisión): no se inclina. Para llegar a la ingle del
+ * otro lado (con el cuerpo quieto el hombro queda a 0,55 y el brazo alcanza 0,545, y el brazo
+ * casi estirado cruzaría por el pecho), el hombro de la mano que cruza se adelanta (escápula)
+ * y el torso gira un poco hacia esa ingle (rad, ≈ 11°).
  */
-export const GIRAR_INGLES = 0.4;
+export const GIRAR_INGLES = 0.2;
+/** Cuánto se adelanta el hombro de la mano que espera en su barra mientras el torso gira (0–1): así no se aleja de la barra. */
+export const ADELANTAR_ESPERA = 0.7;
 
 /** Cuánto acompaña el torso a la mano que lleva su esfera: gira mientras la lleva y vuelve al regresar. */
 function giroDeMano(u: number | null): number {
@@ -586,11 +583,11 @@ function giroDeMano(u: number | null): number {
 
 /**
  * Pose del gesto de cargar las ingles: como `poseCargaBarras`, pero cada mano lleva su
- * esfera a la ingle del otro lado. El torso se inclina (`inclinar`) y gira un poco hacia
- * la ingle a la que va la mano: así el brazo llega por delante del cuerpo, sin cruzarse
- * por el pecho.
+ * esfera a la ingle del otro lado. Con la espalda recta: el hombro de la mano que cruza se
+ * adelanta y el torso gira un poco hacia la ingle a la que va la mano; así el brazo llega
+ * por delante del cuerpo, sin cruzarse por el pecho.
  */
-export function poseCargaIngles(uD: number | null, uI: number | null, inclinar = 0): Pose {
+export function poseCargaIngles(uD: number | null, uI: number | null): Pose {
   const D = uD === null ? agarre('D') : cicloMano('D', uD, entregaIngle('D'), arcoIngle('D'));
   const I = uI === null ? agarre('I') : cicloMano('I', uI, entregaIngle('I'), arcoIngle('I'));
   return pose({
@@ -606,9 +603,12 @@ export function poseCargaIngles(uD: number | null, uI: number | null, inclinar =
     cierreI: I.cierre,
     // Mira hacia las ingles.
     cabezaPitch: uD !== null || uI !== null ? 0.3 : 0.02,
-    inclinar,
     // La derecha va a la ingle izquierda: el torso gira hacia la izquierda (+); la izquierda, al revés.
     girar: GIRAR_INGLES * (giroDeMano(uD) - giroDeMano(uI)),
+    // El hombro de la mano que cruza se adelanta (la espalda queda recta); el de la mano que
+    // espera en su barra, un poco: así el giro no la aleja de la barra.
+    adelantarD: Math.max(giroDeMano(uD), ADELANTAR_ESPERA * giroDeMano(uI)),
+    adelantarI: Math.max(giroDeMano(uI), ADELANTAR_ESPERA * giroDeMano(uD)),
   });
 }
 

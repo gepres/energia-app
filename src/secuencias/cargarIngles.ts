@@ -1,7 +1,7 @@
 import type { PuntoCuerpo } from '../escena/cuerpo';
 import { type Estado, enPalma, ref } from '../escena/estado';
 import { type V3, campana, clamp, saleAtras, tramo } from '../escena/mate';
-import { INCLINAR_INGLES, INGLE_DER, INGLE_IZQ, SERENA, poseCargaBarras, poseCargaIngles } from '../escena/poses';
+import { INGLE_DER, INGLE_IZQ, SERENA, poseCargaBarras, poseCargaIngles } from '../escena/poses';
 import { BARRA_DER, BARRA_IZQ, barrasEnPuno } from './barras';
 import { CICLOS, DUR_CARGAS, POR_MANO, SEG_ANTES, SEG_CARGAS, SEG_CICLO, TOTAL, entregas, faseMano } from './cargarOmbligo';
 import { TOMAS, esfera, flujo, pulso } from './comunes';
@@ -12,8 +12,8 @@ import { type Secuencia, encuadre, fijarPose, posar, puntoMundo, toma } from './
  * estirados al frente tomando energía de dos barras verticales, manos intercaladas,
  * 15 por cada mano), pero cada mano lleva su esfera a la ingle del otro lado: la
  * derecha a la ingle izquierda y la izquierda a la ingle derecha, colocando la esfera
- * en cada una. Empieza la derecha. Para llegar a la ingle del otro lado, el torso se
- * inclina un poco hacia adelante y gira hacia esa ingle mientras la mano lleva la esfera.
+ * en cada una. Empieza la derecha. La espalda queda recta: para llegar a la ingle del
+ * otro lado, el hombro de esa mano se adelanta y el torso gira un poco hacia esa ingle.
  */
 
 type Lado = 'D' | 'I';
@@ -96,9 +96,7 @@ export const cargarIngles: Secuencia = {
           I: terminado || x < 0 ? null : faseMano(x, 'I'),
         };
 
-        // El torso se inclina un poco hacia adelante mientras carga, y vuelve al terminar.
-        const inclinar = INCLINAR_INGLES * tramo(seg, 0, SEG_ANTES + 0.5 * SEG_CICLO);
-        e.figuras[0].pose = poseCargaIngles(fases.D, fases.I, inclinar);
+        e.figuras[0].pose = poseCargaIngles(fases.D, fases.I);
         if (terminado) posar(e, 0, SERENA, seg, SEG_ANTES + SEG_CARGAS + 0.3, DUR_CARGAS);
 
         const resalte = { D: 0, I: 0 };

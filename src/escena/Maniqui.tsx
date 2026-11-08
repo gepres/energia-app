@@ -84,6 +84,8 @@ function amortiguarPose(act: Pose, obj: Pose, l: number, dt: number) {
   act.agachar = amortiguar(act.agachar, obj.agachar, l, dt);
   act.inclinar = amortiguar(act.inclinar, obj.inclinar, l, dt);
   act.girar = amortiguar(act.girar, obj.girar, l, dt);
+  act.adelantarD = amortiguar(act.adelantarD, obj.adelantarD, l, dt);
+  act.adelantarI = amortiguar(act.adelantarI, obj.adelantarI, l, dt);
   act.cabezaPitch = amortiguar(act.cabezaPitch, obj.cabezaPitch, l, dt);
   act.cabezaYaw = amortiguar(act.cabezaYaw, obj.cabezaYaw, l, dt);
 }

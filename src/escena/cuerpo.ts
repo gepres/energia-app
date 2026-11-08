@@ -164,6 +164,12 @@ export interface Pose {
    * de la figura (+X). Lo usa una mano que va al otro lado del cuerpo.
    */
   girar: number;
+  /**
+   * Cuánto se adelanta cada hombro (0–1): la escápula se desliza hacia adelante, como al
+   * estirar el brazo hacia el otro lado del cuerpo, sin doblar la espalda. Ver `ADELANTAR_HOMBRO`.
+   */
+  adelantarD: number;
+  adelantarI: number;
   cabezaPitch: number;
   cabezaYaw: number;
 }
@@ -192,6 +198,8 @@ export const NEUTRA: Pose = {
   agachar: 0,
   inclinar: 0,
   girar: 0,
+  adelantarD: 0,
+  adelantarI: 0,
   cabezaPitch: 0,
   cabezaYaw: 0,
 };
@@ -243,6 +251,8 @@ export function mezclarPose(a: Pose, b: Pose, k: number, arcoManos = 0.06): Pose
     agachar: lerp(a.agachar, b.agachar, k),
     inclinar: lerp(a.inclinar, b.inclinar, k),
     girar: lerp(a.girar, b.girar, k),
+    adelantarD: lerp(a.adelantarD, b.adelantarD, k),
+    adelantarI: lerp(a.adelantarI, b.adelantarI, k),
     cabezaPitch: lerp(a.cabezaPitch, b.cabezaPitch, k),
     cabezaYaw: lerp(a.cabezaYaw, b.cabezaYaw, k),
   };
@@ -295,6 +305,8 @@ export interface Esqueleto {
   pivote: V3;
   inclinar: number;
   girar: number;
+  adelantarD: number;
+  adelantarI: number;
   cuello: V3;
   cabeza: V3;
   cabezaPitch: number;
@@ -336,6 +348,18 @@ export function transformarPunto(p: V3, agachar: number, inclinar: number, girar
   return girar ? girarEn(r, girar * k, pivote) : r;
 }
 
+/**
+ * Cuánto se mueve el hombro adelantado al máximo (en el cuerpo erguido): 9 cm hacia
+ * adelante, 2 cm hacia el centro y 1 cm hacia abajo, como cuando la escápula se desliza
+ * al estirar el brazo hacia el otro lado.
+ */
+export const ADELANTAR_HOMBRO = { adelante: 0.09, adentro: 0.02, abajo: 0.01 };
+
+/** Desplazamiento del hombro del lado `s` (−1 derecha, +1 izquierda) adelantado `a` (0–1). */
+export function adelantoHombro(s: number, a: number): V3 {
+  return [-s * ADELANTAR_HOMBRO.adentro * a, -ADELANTAR_HOMBRO.abajo * a, ADELANTAR_HOMBRO.adelante * a];
+}
+
 /** Gira un punto alrededor de la vertical que pasa por `pivote` (+ hacia +X). */
 function girarEn(p: V3, ang: number, pivote: V3): V3 {
   const r = rotarY(restaV(p, pivote), ang);
@@ -361,8 +385,8 @@ export function resolverEsqueleto(p: Pose): Esqueleto {
   const pivote: V3 = [0, PROP.pivoteY + off[1], off[2]];
   const cuello = T([0, PROP.cuelloY, -0.005]);
   const cabeza = T([0, PROP.cabezaY, 0.005]);
-  const hombroD = T([-PROP.hombroX, PROP.hombroY, -0.01]);
-  const hombroI = T([PROP.hombroX, PROP.hombroY, -0.01]);
+  const hombroD = T(sumaV([-PROP.hombroX, PROP.hombroY, -0.01], adelantoHombro(-1, p.adelantarD)));
+  const hombroI = T(sumaV([PROP.hombroX, PROP.hombroY, -0.01], adelantoHombro(1, p.adelantarI)));
 
   const bD = ik2(hombroD, p.manoD, PROP.brazo, PROP.antebrazo, rotarDir(p.codoD));
   const bI = ik2(hombroI, p.manoI, PROP.brazo, PROP.antebrazo, rotarDir(p.codoI));
@@ -382,6 +406,8 @@ export function resolverEsqueleto(p: Pose): Esqueleto {
     pivote,
     inclinar: p.inclinar,
     girar: p.girar,
+    adelantarD: p.adelantarD,
+    adelantarI: p.adelantarI,
     cuello,
     cabeza,
     cabezaPitch: p.cabezaPitch + p.inclinar,

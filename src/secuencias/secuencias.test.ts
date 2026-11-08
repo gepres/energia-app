@@ -10,7 +10,7 @@ import { OPCIONES_INICIALES, duracionTotal, evaluar, ubicar } from './motor';
 import { faseSellado } from './sellarCielo';
 import { faseUnir } from './unirBarras';
 import { DUR_CARGAS, SEG_ANTES, SEG_CICLO, DESFASE } from './cargarOmbligo';
-import { GIRAR_INGLES, INCLINAR_INGLES, INGLE_DER, INGLE_IZQ } from '../escena/poses';
+import { GIRAR_INGLES, INGLE_DER, INGLE_IZQ } from '../escena/poses';
 import { masajeInterno } from './masajeManos';
 import { chakrasInterno } from './recorridoPorChakras';
 import { sensibilizarInterno } from './sensibilizarManos';
@@ -1209,11 +1209,19 @@ describe('Cargar las ingles (descrito en el taller)', () => {
     expect(INGLE_IZQ[1]).toBe(INGLE_DER[1]);
   });
 
-  it('para llegar, el torso se inclina un poco y gira hacia la ingle a la que va la mano; los brazos llegan siempre a donde se los pide', () => {
-    expect(enCiclo(0.82).figuras[0].pose.inclinar).toBeCloseTo(INCLINAR_INGLES, 5);
-    // Un poco: menos de 15° de inclinación y menos de 25° de giro.
-    expect(INCLINAR_INGLES).toBeLessThan(0.26);
-    expect(GIRAR_INGLES).toBeLessThan(0.44);
+  it('con la espalda recta: no se inclina; el hombro de la mano que cruza se adelanta y el torso gira un poco hacia esa ingle; los brazos llegan siempre', () => {
+    // La espalda recta: nunca se inclina.
+    for (let paso = 0; paso < sec.pasos.length; paso++)
+      for (let k = 0; k <= 100; k++) expect(evaluar(sec, paso, k / 100, OPCIONES_INICIALES).figuras[0].pose.inclinar).toBe(0);
+    // El hombro de la mano que cruza se adelanta del todo; el de la que espera, menos.
+    const d = enCiclo(0.82).figuras[0].pose;
+    expect(d.adelantarD).toBeCloseTo(1, 5);
+    expect(d.adelantarI).toBeLessThan(1);
+    const i = enCiclo(DESFASE + 0.82).figuras[0].pose;
+    expect(i.adelantarI).toBeCloseTo(1, 5);
+    expect(i.adelantarD).toBeLessThan(1);
+    // Un giro chico: menos de 15°.
+    expect(GIRAR_INGLES).toBeLessThan(0.27);
     // La derecha va a la ingle izquierda: el torso gira hacia la izquierda (+); la izquierda, hacia la derecha (−).
     expect(enCiclo(0.82).figuras[0].pose.girar).toBeCloseTo(GIRAR_INGLES, 2);
     expect(enCiclo(DESFASE + 0.82).figuras[0].pose.girar).toBeCloseTo(-GIRAR_INGLES, 2);
