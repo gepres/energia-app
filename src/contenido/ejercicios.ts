@@ -241,7 +241,7 @@ export const EJERCICIOS: Ejercicio[] = [
     subtitulo: 'sin soltar la esfera, palpando dedos y brazos',
     origen: 'revision',
     resumen:
-      'Primero se carga de las barras: una esfera en cada mano, se juntan en una y se juega con ella como goma. La esfera pasa de mano en mano, lentamente y jugando como goma, sin soltarla nunca. Después la otra mano palpa la energía de los dedos y acompaña a la esfera por el brazo, haciendo de goma en la muñeca, el antebrazo y el codo, por delante y por atrás; y recorre el brazo sin tocarlo, a 5–10 cm, hasta el hombro. Luego, lo mismo con el otro brazo.',
+      'Primero se carga de las barras: una esfera en cada mano, se juntan en una y se juega con ella como goma. La esfera pasa de mano en mano, lentamente y sin soltarla nunca: una mano arriba y otra abajo, jugando con ella como goma. Después la otra mano palpa la energía de los dedos y acompaña a la esfera por el brazo, haciendo de goma en la muñeca, el antebrazo y el codo, por delante y por atrás; y recorre el brazo sin tocarlo, a 5–10 cm, hasta el hombro. Luego, lo mismo con el otro brazo.',
     acento: 'oro',
     bloques: [{ titulo: 'Sensaciones reportadas', items: ['Calor', 'Presión', 'Hormigueo', 'Electricidad'] }],
     pasos: [
@@ -259,10 +259,11 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'mano-a-mano',
         titulo: 'De mano en mano, lentamente y como goma',
         texto:
-          'Pasar la esfera de una mano a la otra lentamente, sin soltarla nunca: la otra mano se acerca y la toma, la sostienen entre las dos y juegan con ella como si fuera de goma (alejan y acercan las manos: se estira y se aplasta); recién entonces la primera la suelta.',
+          'Pasar la esfera de una mano a la otra lentamente, sin soltarla nunca, con una mano arriba y la otra abajo: la que la tiene la da vuelta y la pone arriba; la otra la recibe por abajo; juegan con ella como si fuera de goma (alejan y acercan las manos: se estira hacia arriba y se aplasta), y recién entonces la de arriba la suelta: la esfera queda en la mano de abajo.',
         aclaracion:
-          'Descrito en el taller: en ningún momento la mano suelta la esfera mientras se la pasa a la otra; se la pasa lentamente, jugando con ella como si fuera de goma.',
-        lectura: 'Tres traspasos (derecha → izquierda → derecha → izquierda), de unos 9 s cada uno; en cada uno, dos idas y vueltas de goma.',
+          'Descrito en el taller: en ningún momento la mano suelta la esfera mientras se la pasa a la otra; se la pasa lentamente, jugando con ella como si fuera de goma, con una mano arriba y otra abajo (no de costado), y termina en la mano de abajo.',
+        lectura:
+          'La que la tiene la da vuelta con la esfera pegada a la palma para ponerla arriba. Tres traspasos (derecha → izquierda → derecha → izquierda), de unos 10 s cada uno; en cada uno, dos idas y vueltas de goma.',
       },
       {
         id: 'izquierdo-delante',

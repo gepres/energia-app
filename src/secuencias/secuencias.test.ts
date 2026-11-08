@@ -710,8 +710,8 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     }
   });
 
-  it('cada traspaso es lento y, mientras la sostienen entre las dos, juegan con ella como goma', () => {
-    expect(FASES_TRASPASO.map((f) => f.id)).toEqual(['toma', 'enfrentar', 'goma', 'quedarse']);
+  it('cada traspaso es lento y, con una mano arriba y otra abajo, juegan con ella como goma; queda en la de abajo', () => {
+    expect(FASES_TRASPASO.map((f) => f.id)).toEqual(['arriba', 'debajo', 'goma', 'quedarse']);
     expect(SEG_TRASPASO).toBeGreaterThanOrEqual(8);
     const total = sec.pasos[1].dur;
     const ini = FASES_TRASPASO.slice(0, 2).reduce((a, f) => a + f.dur, 0);
@@ -727,7 +727,20 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
         expect(dist(e.esferas[0].pos, D), `traspaso ${n + 1}`).toBeLessThan(toca);
         expect(dist(e.esferas[0].pos, I), `traspaso ${n + 1}`).toBeLessThan(toca);
         est.push(e.esferas[0].estirar);
+        // Una mano arriba (la que la da, palma hacia abajo) y otra abajo (la que la recibe, palma hacia arriba).
+        const q = resolverEsqueleto(e.figuras[0].pose);
+        const normal = { D: q.palmaD.normal, I: q.palmaI.normal };
+        const da = ORDEN_TRASPASOS[n];
+        const rec = da === 'D' ? 'I' : 'D';
+        expect(normal[da][1], `traspaso ${n + 1}: la de arriba`).toBeLessThan(-0.9);
+        expect(normal[rec][1], `traspaso ${n + 1}: la de abajo`).toBeGreaterThan(0.9);
+        // Cuando se estira o se aplasta, es hacia arriba, entre las dos palmas.
+        if (Math.abs(e.esferas[0].estirar - 1) > 1e-6) expect(e.esferas[0].eje).toEqual([0, 1, 0]);
       }
+      // Al terminar el traspaso, la esfera quedó en la palma de la mano que estaba abajo.
+      const fin = evaluar(sec, 1, Math.min(1, ((n + 1) * SEG_TRASPASO + n * PAUSA_TRASPASO) / total), OPCIONES_INICIALES);
+      const rec = ORDEN_TRASPASOS[n] === 'D' ? 'I' : 'D';
+      expect(dist(fin.esferas[0].pos, palmas(fin)[rec]), `traspaso ${n + 1}: queda en la de abajo`).toBeLessThan(R + 0.016);
       // Se estira al alejar las manos y se aplasta al acercarlas.
       expect(Math.max(...est), `traspaso ${n + 1}`).toBeGreaterThan(1.4);
       expect(Math.min(...est), `traspaso ${n + 1}`).toBeLessThan(0.88);
