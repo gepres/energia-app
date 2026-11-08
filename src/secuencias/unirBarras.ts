@@ -47,8 +47,12 @@ export function faseUnir(seg: number): { fase: Fase; k: number } {
 /** Radio de la esfera de cada mano y de la esfera unida («más grande»). */
 const R_MANO = 0.035;
 const R_UNIDA = 0.065;
-/** Donde se juntan las manos: entre las barras, a su misma altura, con los brazos estirados. */
-const JUNTAR: V3 = [0, 1.41, 0.55];
+/**
+ * Donde se juntan las manos: entre las barras, a su misma altura y lo más
+ * adelante que permiten los brazos estirados hacia el medio (las muñecas
+ * quedan a ≈ 0,52 del cuerpo, como al agarrar las barras: no se retraen).
+ */
+const JUNTAR: V3 = [0, 1.41, 0.575];
 /** Separación de cada palma al centro cuando cada una trae su esfera (antes de unirlas). */
 const SEP_ABIERTAS = 0.095;
 /** Juego de goma: 2 idas y vueltas; las palmas se alejan hasta +3 cm y se acercan hasta −1,5 cm. */

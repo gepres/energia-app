@@ -329,6 +329,35 @@ describe('Unir la energía de las barras (descrito en el taller)', () => {
     expect(Math.min(...estirar)).toBeLessThan(0.85);
   });
 
+  it('al juntar, las manos no se retraen y la esfera se forma entre las barras, en su plano', () => {
+    const zAgarre = resolverEsqueleto(evaluar(sec, 1, 0.01, OPCIONES_INICIALES).figuras[0].pose).munecaD[2];
+    for (const [fase, k] of [
+      ['juntar', 0.5],
+      ['juntar', 0.95],
+      ['unir', 0.9],
+      ['jugar', 0.25],
+      ['jugar', 0.6],
+    ] as const) {
+      const e = evaluar(sec, 1, instante(fase, k), OPCIONES_INICIALES);
+      const esq = resolverEsqueleto(e.figuras[0].pose);
+      // Las muñecas no vuelven hacia el cuerpo más de 1 cm respecto de cuando agarran las barras.
+      expect(esq.munecaD[2], `${fase} ${k}`).toBeGreaterThan(zAgarre - 0.01);
+      expect(esq.munecaI[2], `${fase} ${k}`).toBeGreaterThan(zAgarre - 0.01);
+      // Brazos estirados: la muñeca llega a donde se la pide (dentro del alcance).
+      const d = Math.hypot(esq.munecaD[0] - esq.hombroD[0], esq.munecaD[1] - esq.hombroD[1], esq.munecaD[2] - esq.hombroD[2]);
+      expect(d, `${fase} ${k}`).toBeGreaterThan(0.53);
+      expect(d, `${fase} ${k}`).toBeLessThanOrEqual(0.545);
+      // Y la mano llega a donde la pide la pose (si quedara corta, las palmas no tocarían la esfera).
+      const objetivo = e.figuras[0].pose.manoD;
+      expect(Math.hypot(esq.munecaD[0] - objetivo[0], esq.munecaD[1] - objetivo[1], esq.munecaD[2] - objetivo[2]), `${fase} ${k}`).toBeLessThan(0.003);
+    }
+    // La esfera unida queda entre las barras: a su altura y a menos de 4 cm de su plano.
+    const unida = evaluar(sec, 1, instante('jugar', 0.5), OPCIONES_INICIALES);
+    const c = unida.esferas[1].pos;
+    expect(Math.abs(c[1] - 1.41)).toBeLessThan(0.02);
+    expect(Math.abs(c[2] - unida.barras.der[2])).toBeLessThan(0.04);
+  });
+
   centros.forEach((id, n) => {
     it(`une las esferas y entra la energía en ${id}`, () => {
       const paso = n + 1;
