@@ -132,7 +132,7 @@ describe('manos articuladas', () => {
   const e = resolverEsqueleto(NEUTRA);
   const manos = crearManos(new MeshBasicMaterial());
   const puntas = (cierre: number) => {
-    manos.actualizar(e, cierre, cierre);
+    manos.actualizar(e, { ...NEUTRA, cierreD: cierre, cierreI: cierre });
     manos.raiz.updateMatrixWorld(true);
     // Hueso 3 = base de la falange distal del índice de la mano derecha.
     return manos.raiz.children.map((h) => h.position.toArray() as [number, number, number]);
@@ -151,7 +151,7 @@ describe('manos articuladas', () => {
       dedosD: [0, -1, 0],
       dedosI: [0, -1, 0],
     });
-    manos.actualizar(anatomica, 0, 0);
+    manos.actualizar(anatomica, { ...NEUTRA, cierreD: 0, cierreI: 0 });
     const h = manos.raiz.children;
     // Hueso 15 = punta del pulgar derecho; 31 = del izquierdo. El derecho está en −X.
     expect(h[15].position.x).toBeLessThan(anatomica.munecaD[0] - 0.02);
@@ -399,44 +399,68 @@ describe('Colocar energía en los 3 puntos (descrito en el taller)', () => {
 });
 
 describe('Masaje de manos y dedos (descrito en el taller)', () => {
-  const { RECORRIDO, tomar, poseMasajeada } = masajeInterno;
+  const { RECORRIDO, tomar, poseMasaje } = masajeInterno;
+  /** Distancia mínima entre dos piezas (cilindros), por muestreo de sus ejes. */
+  const holgura = (A: { pos: number[]; dir: number[]; largo: number; radio: number }, B: typeof A) => {
+    let m = 1e9;
+    for (let i = 0; i <= 8; i++)
+      for (let j = 0; j <= 8; j++) {
+        const a = [0, 1, 2].map((k) => A.pos[k] + A.dir[k] * A.largo * (i / 8));
+        const b = [0, 1, 2].map((k) => B.pos[k] + B.dir[k] * B.largo * (j / 8));
+        m = Math.min(m, Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]));
+      }
+    return m - A.radio - B.radio;
+  };
 
   for (const [masajeada, masajea, s] of [
     ['I', 'D', 1],
     ['D', 'I', -1],
   ] as const) {
-    it(`la mano ${masajea === 'D' ? 'derecha' : 'izquierda'} toma cada zona y cada falange con el pulgar arriba y el índice abajo`, () => {
+    it(`la mano ${masajea === 'D' ? 'derecha' : 'izquierda'} toma cada zona y cada falange sin atravesar la otra mano`, () => {
       const paradas = RECORRIDO[masajeada];
       expect(paradas.filter((p) => p.tipo === 'palma')).toHaveLength(5);
       expect(paradas.filter((p) => p.tipo === 'falange')).toHaveLength(14);
       for (const p of paradas) {
+        const nombre = `${p.dedo ?? 'palma'} ${p.falange ?? ''}`;
         const m = tomar(masajea, p);
-        const pose = poseMasajeada(masajeada);
-        if (masajea === 'D') Object.assign(pose, { manoD: m.muneca, dedosD: m.dedos, palmaD: m.palma, codoD: [-1, -0.8, -0.1] });
-        else Object.assign(pose, { manoI: m.muneca, dedosI: m.dedos, palmaI: m.palma, codoI: [1, -0.8, -0.1] });
-        const esq = resolverEsqueleto(pose);
+        const esq = resolverEsqueleto(poseMasaje(masajeada, p, m));
         const muneca = masajea === 'D' ? esq.munecaD : esq.munecaI;
         // El brazo llega: la muñeca está donde la pide la pinza.
-        expect(Math.hypot(muneca[0] - m.muneca[0], muneca[1] - m.muneca[1], muneca[2] - m.muneca[2]), `${p.dedo ?? 'palma'} ${p.falange ?? ''}`).toBeLessThan(0.003);
+        expect(Math.hypot(muneca[0] - m.muneca[0], muneca[1] - m.muneca[1], muneca[2] - m.muneca[2]), nombre).toBeLessThan(0.003);
         const pm = masajea === 'D' ? esq.palmaD : esq.palmaI;
-        const segs = segmentosMano(muneca, pm.dedos, pm.normal, s, 0.12, 1);
+        const segs = segmentosMano(muneca, pm.dedos, pm.normal, s, 0.12, 1, p.pinza === 'dedo' ? 1 : 0);
+        // Pulgar arriba y el índice abajo de lo que se toma.
         const pul = segs[15];
         const yema = [0, 1, 2].map((i) => pul.pos[i] + pul.dir[i] * pul.largo - p.C[i]);
         const arriba = yema[0] * p.n[0] + yema[1] * p.n[1] + yema[2] * p.n[2];
-        expect(arriba, `${p.dedo ?? 'palma'} ${p.falange ?? ''}: pulgar arriba`).toBeGreaterThan(0.008);
-        expect(arriba).toBeLessThan(0.03);
+        expect(arriba, `${nombre}: pulgar arriba`).toBeGreaterThan(0.008);
+        expect(arriba, `${nombre}: pulgar arriba`).toBeLessThan(0.03);
         const idx = segs[1];
         const w = [0, 1, 2].map((i) => p.C[i] - idx.pos[i]);
         const t = Math.max(0, Math.min(idx.largo, w[0] * idx.dir[0] + w[1] * idx.dir[1] + w[2] * idx.dir[2]));
         const abajo = [0, 1, 2].map((i) => idx.pos[i] + idx.dir[i] * t - p.C[i]);
-        expect(abajo[0] * p.n[0] + abajo[1] * p.n[1] + abajo[2] * p.n[2], `${p.dedo ?? 'palma'} ${p.falange ?? ''}: índice abajo`).toBeLessThan(-0.008);
+        expect(abajo[0] * p.n[0] + abajo[1] * p.n[1] + abajo[2] * p.n[2], `${nombre}: índice abajo`).toBeLessThan(-0.008);
+        // Realismo: la mano que masajea no atraviesa los otros dedos de la masajeada (tolerancia 4 mm).
+        const pt = masajeada === 'I' ? esq.palmaI : esq.palmaD;
+        const mt = masajeada === 'I' ? esq.munecaI : esq.munecaD;
+        const pose = poseMasaje(masajeada, p, m);
+        const cierreT = masajeada === 'I' ? pose.cierreI : pose.cierreD;
+        const [aislado, aislar] = masajeada === 'I' ? [pose.aisladoI, pose.aislarI] : [pose.aisladoD, pose.aislarD];
+        const objetivo = segmentosMano(mt, pt.dedos, pt.normal, -s, cierreT, 0, 0, aislado, aislar);
+        for (let a = 1; a < 16; a++)
+          for (let b = 1; b < 16; b++) {
+            const B = objetivo[b];
+            const tomada = Math.hypot(B.pos[0] + (B.dir[0] * B.largo) / 2 - p.C[0], B.pos[1] + (B.dir[1] * B.largo) / 2 - p.C[1], B.pos[2] + (B.dir[2] * B.largo) / 2 - p.C[2]) < 0.002;
+            if (tomada) continue;
+            expect(holgura(segs[a], B), `${nombre}: pieza ${a} contra pieza ${b}`).toBeGreaterThan(-0.004);
+          }
       }
     });
   }
 
-  it('recorre los dedos del pulgar al meñique, falange por falange', () => {
+  it('recorre los dedos desde el meñique hasta el índice y al final el pulgar, falange por falange', () => {
     const dedos = RECORRIDO.I.filter((p) => p.tipo === 'falange').map((p) => `${p.dedo}${p.falange}`);
-    expect(dedos).toEqual(['pulgar1', 'pulgar2', 'índice1', 'índice2', 'índice3', 'medio1', 'medio2', 'medio3', 'anular1', 'anular2', 'anular3', 'meñique1', 'meñique2', 'meñique3']);
+    expect(dedos).toEqual(['meñique1', 'meñique2', 'meñique3', 'anular1', 'anular2', 'anular3', 'medio1', 'medio2', 'medio3', 'índice1', 'índice2', 'índice3', 'pulgar1', 'pulgar2']);
     const sec = SECUENCIAS['masaje-manos'];
     // Primero masajea la derecha (paso 2) y después la izquierda (paso 4).
     expect(evaluar(sec, 1, 0.5, OPCIONES_INICIALES).figuras[0].pose.pinzaD).toBe(1);

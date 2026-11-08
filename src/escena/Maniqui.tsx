@@ -65,6 +65,20 @@ function amortiguarPose(act: Pose, obj: Pose, l: number, dt: number) {
   act.cierreI = amortiguar(act.cierreI, obj.cierreI, l, dt);
   act.pinzaD = amortiguar(act.pinzaD, obj.pinzaD, l, dt);
   act.pinzaI = amortiguar(act.pinzaI, obj.pinzaI, l, dt);
+  act.tipoPinzaD = amortiguar(act.tipoPinzaD, obj.tipoPinzaD, l, dt);
+  act.tipoPinzaI = amortiguar(act.tipoPinzaI, obj.tipoPinzaI, l, dt);
+  // Si cambia el dedo aislado, primero se abre la mano y recién ahí se aísla el otro (sin saltos).
+  for (const [ais, cant] of [
+    ['aisladoD', 'aislarD'],
+    ['aisladoI', 'aislarI'],
+  ] as const) {
+    if (act[ais] !== obj[ais]) {
+      act[cant] = amortiguar(act[cant], 0, l, dt);
+      if (act[cant] < 0.04) act[ais] = obj[ais];
+    } else {
+      act[cant] = amortiguar(act[cant], obj[cant], l, dt);
+    }
+  }
   act.agachar = amortiguar(act.agachar, obj.agachar, l, dt);
   act.inclinar = amortiguar(act.inclinar, obj.inclinar, l, dt);
   act.cabezaPitch = amortiguar(act.cabezaPitch, obj.cabezaPitch, l, dt);
@@ -209,7 +223,7 @@ export function Maniqui({ indice }: { indice: 0 | 1 }) {
     art.instanceMatrix.needsUpdate = true;
 
     // Manos con dedos articulados
-    manos.actualizar(e, p.cierreD, p.cierreI, p.pinzaD, p.pinzaI);
+    manos.actualizar(e, p);
 
     // Pies (fijos en el piso)
     const pie = refs.pie.current!;

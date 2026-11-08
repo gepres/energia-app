@@ -115,6 +115,17 @@ export interface Pose {
   /** Pinza de masaje (0–1): el pulgar se arquea sobre la falange proximal del índice. */
   pinzaD: number;
   pinzaI: number;
+  /** Tipo de pinza: 0 sostiene la palma de la otra mano, 1 toma un dedo de canto. */
+  tipoPinzaD: number;
+  tipoPinzaI: number;
+  /**
+   * Dedo aislado (0 índice … 3 meñique; −1 ninguno) y cuánto (0–1): ese dedo
+   * queda estirado y los demás se recogen hacia la palma (para masajearlo).
+   */
+  aisladoD: number;
+  aisladoI: number;
+  aislarD: number;
+  aislarI: number;
   /** Descenso de la pelvis (m): 0 de pie, ~0,6 en cuclillas. */
   agachar: number;
   /** Inclinación del torso hacia delante (rad). */
@@ -136,6 +147,12 @@ export const NEUTRA: Pose = {
   cierreI: 0.3,
   pinzaD: 0,
   pinzaI: 0,
+  tipoPinzaD: 0,
+  tipoPinzaI: 0,
+  aisladoD: -1,
+  aisladoI: -1,
+  aislarD: 0,
+  aislarI: 0,
   agachar: 0,
   inclinar: 0,
   cabezaPitch: 0,
@@ -177,6 +194,13 @@ export function mezclarPose(a: Pose, b: Pose, k: number, arcoManos = 0.06): Pose
     cierreI: lerp(a.cierreI, b.cierreI, k),
     pinzaD: lerp(a.pinzaD, b.pinzaD, k),
     pinzaI: lerp(a.pinzaI, b.pinzaI, k),
+    tipoPinzaD: lerp(a.tipoPinzaD, b.tipoPinzaD, k),
+    tipoPinzaI: lerp(a.tipoPinzaI, b.tipoPinzaI, k),
+    // El dedo aislado cambia a mitad de camino; la cantidad se mezcla.
+    aisladoD: k < 0.5 ? a.aisladoD : b.aisladoD,
+    aisladoI: k < 0.5 ? a.aisladoI : b.aisladoI,
+    aislarD: lerp(a.aislarD, b.aislarD, k),
+    aislarI: lerp(a.aislarI, b.aislarI, k),
     agachar: lerp(a.agachar, b.agachar, k),
     inclinar: lerp(a.inclinar, b.inclinar, k),
     cabezaPitch: lerp(a.cabezaPitch, b.cabezaPitch, k),

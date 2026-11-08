@@ -143,7 +143,7 @@ export const EJERCICIOS: Ejercicio[] = [
     subtitulo: 'palma y falange por falange',
     origen: 'revision',
     resumen:
-      'Con una mano se masajea la otra: primero la palma, con el pulgar en círculos, y después dedo por dedo, cada falange entre el pulgar y el índice, del pulgar al meñique. Después se cambia de mano.',
+      'Con una mano se masajea la otra: primero la palma, con el pulgar en círculos, y después dedo por dedo, cada falange entre el pulgar y el índice, empezando por el meñique y terminando en el pulgar. Después se cambia de mano.',
     acento: 'rosa',
     pasos: [
       {
@@ -156,9 +156,11 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'dedos-izquierda',
         titulo: 'Dedo por dedo · mano izquierda',
         texto:
-          'Masajear la mano izquierda dedo por dedo, del pulgar al meñique: cada falange se toma entre el pulgar (arriba) y el índice (abajo) y se hacen 3 círculos.',
+          'Masajear la mano izquierda dedo por dedo, empezando por el meñique (meñique, anular, medio, índice y al final el pulgar): cada falange se toma entre el pulgar (arriba) y el índice (abajo) y se hacen 3 círculos.',
         cantidad: { valor: 3, unidad: 'círculos por falange', pregunta: '¿Cuántos círculos se hacen en cada falange?' },
-        aclaracion: 'Descrito en el taller: dedo por dedo, por cada falange, con pulgar e índice en círculos; del pulgar al meñique.',
+        aclaracion: 'Descrito en el taller: dedo por dedo, por cada falange, con pulgar e índice en círculos; empezando por el meñique.',
+        lectura:
+          'Mientras se masajea un dedo, los otros se recogen un poco y ese queda estirado. Para el pulgar, la mano gira la palma hacia abajo y el pulgar apunta a la otra mano.',
       },
       {
         id: 'palma-derecha',
@@ -169,7 +171,7 @@ export const EJERCICIOS: Ejercicio[] = [
       {
         id: 'dedos-derecha',
         titulo: 'Dedo por dedo · mano derecha',
-        texto: 'Masajear la mano derecha dedo por dedo, del pulgar al meñique, con 3 círculos en cada falange.',
+        texto: 'Masajear la mano derecha dedo por dedo, empezando por el meñique y terminando en el pulgar, con 3 círculos en cada falange.',
         aclaracion: 'Descrito en el taller.',
         lectura: 'Al terminar, las manos se sueltan a los costados.',
       },
