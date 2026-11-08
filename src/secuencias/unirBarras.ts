@@ -224,6 +224,8 @@ function cicloCentro(e: Estado, t: number, n: number) {
       color2: 'blanco',
       mezcla: 0.3,
       opacidad: 1,
+      // Las tres cargas se ven iguales: ninguna se lleva la luz que alumbra el cuerpo.
+      ilumina: false,
     });
   }
 

@@ -59,6 +59,12 @@ export interface Esfera {
   /** Abertura del agujero inferior (0–1). */
   agujero: number;
   opacidad: number;
+  /**
+   * Si puede llevarse la luz que ilumina el cuerpo (una sola, para la esfera más
+   * brillante). Las cargas que quedan quietas en los centros no la llevan: si no,
+   * la que gane el empate alumbra el cuerpo más que las demás.
+   */
+  ilumina: boolean;
 }
 
 export interface Flujo {
@@ -293,6 +299,7 @@ const esfera = (): Esfera => ({
   estirar: 1,
   agujero: 0,
   opacidad: 1,
+  ilumina: true,
 });
 
 const flujo = (): Flujo => ({

@@ -77,7 +77,7 @@ function LuzEnergia() {
     let mejor = -1;
     let valor = 0;
     escena.estado.esferas.forEach((s, i) => {
-      const v = s.activa ? s.brillo * s.opacidad * s.radio : 0;
+      const v = s.activa && s.ilumina ? s.brillo * s.opacidad * s.radio : 0;
       if (v > valor) {
         valor = v;
         mejor = i;

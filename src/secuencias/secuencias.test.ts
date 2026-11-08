@@ -384,6 +384,14 @@ describe('Unir la energía de las barras (descrito en el taller)', () => {
   it('termina con los tres centros encendidos y las manos sueltas a los costados', () => {
     const e = evaluar(sec, 3, 1, OPCIONES_INICIALES);
     for (const id of centros) expect(e.centros[id]).toBeGreaterThan(0.9);
+    // Las tres cargas son iguales y ninguna se lleva la luz que alumbra el cuerpo.
+    const cargas = [4, 5, 6].map((i) => e.esferas[i]);
+    for (const c of cargas) {
+      expect(c.activa).toBe(true);
+      expect(c.ilumina).toBe(false);
+      expect(c.radio).toBeCloseTo(cargas[0].radio, 6);
+      expect(c.brillo).toBe(cargas[0].brillo);
+    }
     const esq = resolverEsqueleto(e.figuras[0].pose);
     expect(esq.munecaD[1]).toBeLessThan(1.0);
   });
