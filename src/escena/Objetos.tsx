@@ -741,8 +741,11 @@ function BarrasEnergia() {
     if (!visible) return;
     izq.current!.position.set(b.izq[0], b.izq[1] + b.alto / 2, b.izq[2]);
     der.current!.position.set(b.der[0], b.der[1] + b.alto / 2, b.der[2]);
-    izq.current!.scale.set(1 + 0.6 * b.resalte, b.alto, 1 + 0.6 * b.resalte);
-    der.current!.scale.set(1 + 0.6 * b.resalteDer, b.alto, 1 + 0.6 * b.resalteDer);
+    // La geometría mide 0,035 de radio; `radio` y `crece` la ajustan.
+    const ri = (b.radio / 0.035) * (1 + b.crece * b.resalte);
+    const rd = (b.radio / 0.035) * (1 + b.crece * b.resalteDer);
+    izq.current!.scale.set(ri, b.alto, ri);
+    der.current!.scale.set(rd, b.alto, rd);
     matI.uniforms.uIntensidad.value = b.opacidad * (0.5 + 0.7 * b.resalte);
     matD.uniforms.uIntensidad.value = b.opacidad * (0.5 + 0.7 * b.resalteDer);
     matI.uniforms.uTiempo.value = matD.uniforms.uTiempo.value = reloj.valor;

@@ -64,6 +64,37 @@ const LADOS = [
   { s: -1, h0: HUESOS_MANO },
 ] as const;
 
+// ── Agarre de una barra ─────────────────────────────────────────────────
+
+/** Radio aproximado del eje de un dedo (escalado), para rodear una barra sin atravesarla. */
+const RADIO_DEDO = 0.0085;
+/** Dónde arrancan las falanges proximales (sin escala): b del nudillo hundido y c del eje del dedo. */
+const AGARRE_B = 0.09;
+const AGARRE_C = -0.002;
+
+/**
+ * Eje de una barra vertical sostenida en el puño: queda sobre las falanges
+ * proximales, del lado de la palma, a (radio de la barra + radio del dedo) del
+ * eje de los dedos. `F` y `N` son los del marco de la palma.
+ */
+export function centroAgarre(muneca: V3, F: V3, N: V3, radio: number): V3 {
+  const b = AGARRE_B * K;
+  const c = AGARRE_C * K + radio + RADIO_DEDO;
+  return [muneca[0] + F[0] * b + N[0] * c, muneca[1] + F[1] * b + N[1] * c, muneca[2] + F[2] * b + N[2] * c];
+}
+
+/**
+ * Cierre que hace que el dedo medio rodee una barra de ese radio: cada falange
+ * es una cuerda del círculo que recorre el eje del dedo (radio barra + dedo).
+ * Se promedian las tres articulaciones (MCP, PIP y DIP) del modelo de cierre.
+ */
+export function cierreParaBarra(radio: number): number {
+  const rho = radio + RADIO_DEDO;
+  const [l1, l2, l3] = DEDOS[1].largos.map((l) => Math.asin(Math.min(1, (l * K) / (2 * rho))));
+  const estimados = [l1 / 1.2, (l1 + l2) / 1.55, (l2 + l3) / 1.05];
+  return clamp((estimados[0] + estimados[1] + estimados[2]) / 3);
+}
+
 // ── Geometría ───────────────────────────────────────────────────────────
 
 /** Falange: segmento ahusado a lo largo de +Y con puntas redondas, algo más ancho que alto. */

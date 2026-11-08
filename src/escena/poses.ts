@@ -1,4 +1,5 @@
 import { type Pose, NEUTRA, POS_ORGANOS, PUNTOS, type PuntoCuerpo, pose } from './cuerpo';
+import { cierreParaBarra } from './manos';
 import { type V3, entraSaleSeno, normV, sumaV } from './mate';
 
 /**
@@ -413,8 +414,12 @@ export function atraerCampo(dir: V3, k: number): Pose {
 
 // ── Cargar el ombligo desde las barras (descrito en el taller) ──────────
 
-/** Barras verticales de energía donde quedan las manos con los brazos bien estirados. */
-export const BARRA_CARGA = { x: 0.182, z: 0.62 };
+/** Muñeca con el brazo bien estirado al frente, a la altura del hombro (alcance máximo 0,545). */
+export const MUNECA_BARRA = { x: 0.182, y: 1.41, z: 0.525 };
+/** Radio de cada barra de energía: lo justo para que el puño la rodee. */
+export const RADIO_BARRA = 0.022;
+/** Cierre de los dedos que rodea la barra (≈ 0,6). */
+const CIERRE_BARRA = cierreParaBarra(RADIO_BARRA);
 
 type Lado = 'D' | 'I';
 interface Mano {
@@ -426,17 +431,20 @@ interface Mano {
   cierre: number;
 }
 
-/** Mano agarrando su barra: brazo estirado al frente a la altura del hombro, palma hacia dentro. */
+/**
+ * Mano agarrando su barra: brazo estirado al frente a la altura del hombro,
+ * pulgar arriba y palma hacia dentro; los dedos rodean la barra vertical, que
+ * pasa por el puño (ver `centroAgarre`).
+ */
 function agarre(lado: Lado): Mano {
   const s = lado === 'D' ? -1 : 1;
   return {
-    // Muñeca a ~0,53 m del hombro: el brazo queda casi recto (alcance máximo 0,545).
-    mano: [s * BARRA_CARGA.x, 1.41, 0.525],
+    mano: [s * MUNECA_BARRA.x, MUNECA_BARRA.y, MUNECA_BARRA.z],
     codo: [s * 1, -0.4, 0],
     palma: [-s, 0, 0],
-    dedos: normV([-s * 0.1, 0.06, 1]),
-    // Toma la barra con la mano suelta, sin apretar.
-    cierre: 0.52,
+    // Dedos horizontales: así el eje del puño queda vertical, como la barra.
+    dedos: normV([-s * 0.1, 0, 1]),
+    cierre: CIERRE_BARRA,
   };
 }
 
@@ -472,18 +480,20 @@ function cicloMano(lado: Lado, u: number): Mano {
   const a = agarre(lado);
   const b = entrega(lado);
   const s = lado === 'D' ? -1 : 1;
-  const control: V3 = [s * 0.14, 1.3, 0.46];
+  // El arco pasa por afuera de la barra: la mano se suelta hacia el costado y vuelve a tomarla desde ahí.
+  const control: V3 = [s * 0.235, 1.3, 0.44];
   const arriba: V3 = [0, 1, 0];
   if (u < 0.18) {
     const apriete = Math.sin((u / 0.18) * Math.PI);
-    return { ...a, mano: [a.mano[0] - s * apriete * 0.018, a.mano[1], a.mano[2]], cierre: a.cierre + 0.16 * apriete };
+    // Aprieta la barra un instante para tomar la energía.
+    return { ...a, cierre: a.cierre + 0.07 * apriete };
   }
   if (u < 0.78) {
     const k = entraSaleSeno((u - 0.18) / 0.6);
     // A mitad de camino la palma mira hacia arriba: lleva la esfera.
     const palma = k < 0.5 ? normV(mezclaV(a.palma, arriba, k * 2)) : normV(mezclaV(arriba, b.palma, (k - 0.5) * 2));
-    // La mano se ahueca para llevar la esfera y se abre al llegar.
-    const cierre = k < 0.5 ? a.cierre + (0.34 - a.cierre) * k * 2 : 0.34 + (b.cierre - 0.34) * (k - 0.5) * 2;
+    // Suelta la barra (se abre rápido), se ahueca para llevar la esfera y se abre al llegar.
+    const cierre = k < 0.12 ? a.cierre + (0.2 - a.cierre) * (k / 0.12) : k < 0.5 ? 0.2 + 0.14 * ((k - 0.12) / 0.38) : 0.34 + (b.cierre - 0.34) * (k - 0.5) * 2;
     return { mano: bezier(a.mano, control, b.mano, k), codo: normV(mezclaV(a.codo, b.codo, k)), palma, dedos: normV(mezclaV(a.dedos, b.dedos, k)), cierre };
   }
   if (u < 0.86) {
@@ -496,7 +506,8 @@ function cicloMano(lado: Lado, u: number): Mano {
     codo: normV(mezclaV(b.codo, a.codo, k)),
     palma: normV(mezclaV(b.palma, a.palma, k)),
     dedos: normV(mezclaV(b.dedos, a.dedos, k)),
-    cierre: b.cierre + (a.cierre - b.cierre) * k,
+    // Llega abierta y cierra los dedos alrededor de la barra al final del camino.
+    cierre: b.cierre + (a.cierre - b.cierre) * entraSaleSeno(Math.max(0, (k - 0.72) / 0.28)),
   };
 }
 

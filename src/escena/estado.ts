@@ -127,6 +127,10 @@ export interface Barras {
   resalte: number;
   /** Brillo extra de la barra derecha. */
   resalteDer: number;
+  /** Radio de la barra (m). */
+  radio: number;
+  /** Cuánto se ensancha con el resalte (0,6 = 60 %). Si una mano la agarra, conviene poco. */
+  crece: number;
 }
 
 export interface Cubo {
@@ -310,7 +314,7 @@ export function crearEstado(): Estado {
       resalte: 0,
       opacidad: 1,
     },
-    barras: { activa: false, izq: [0, 0, 0], der: [0, 0, 0], alto: 1.75, opacidad: 0, resalte: 0, resalteDer: 0 },
+    barras: { activa: false, izq: [0, 0, 0], der: [0, 0, 0], alto: 1.75, opacidad: 0, resalte: 0, resalteDer: 0, radio: 0.035, crece: 0.6 },
     pulsos: [],
     marcas: [],
     cotas: [],

@@ -1,6 +1,8 @@
+import { resolverEsqueleto } from '../escena/cuerpo';
 import { type Estado, ref } from '../escena/estado';
+import { centroAgarre } from '../escena/manos';
 import { type V3, campana, clamp, saleAtras, tramo } from '../escena/mate';
-import { BARRA_CARGA, SERENA, poseCargaBarras } from '../escena/poses';
+import { RADIO_BARRA, SERENA, poseCargaBarras } from '../escena/poses';
 import { TOMAS, esfera, flujo, pulso } from './comunes';
 import { type Secuencia, encuadre, fijarPose, posar, puntoMundo, toma } from './motor';
 
@@ -23,8 +25,14 @@ const SEG_ANTES = 0.6;
 const SEG_DESPUES = 3.5;
 const DUR_CARGAS = SEG_ANTES + SEG_CARGAS + SEG_DESPUES;
 
-const BARRA_DER: V3 = [-BARRA_CARGA.x, 0, BARRA_CARGA.z];
-const BARRA_IZQ: V3 = [BARRA_CARGA.x, 0, BARRA_CARGA.z];
+// Cada barra pasa justo por el puño de la mano que la agarra (con los brazos estirados).
+const AGARRE = resolverEsqueleto(poseCargaBarras(null, null));
+function barraEnElPuno(p: { dedos: V3; normal: V3 }, muneca: V3): V3 {
+  const c = centroAgarre(muneca, p.dedos, p.normal, RADIO_BARRA);
+  return [c[0], 0, c[2]];
+}
+const BARRA_DER = barraEnElPuno(AGARRE.palmaD, AGARRE.munecaD);
+const BARRA_IZQ = barraEnElPuno(AGARRE.palmaI, AGARRE.munecaI);
 /** Punto de la carga, justo delante del ombligo. */
 const OMBLIGO: V3 = [0, 1.04, 0.14];
 
@@ -40,6 +48,9 @@ function barras(e: Estado, opacidad: number, resalteDer = 0, resalteIzq = 0) {
     opacidad,
     resalte: resalteIzq,
     resalteDer,
+    radio: RADIO_BARRA,
+    // Brilla más al tomar energía, pero casi no se ensancha: si no, se tragaría la mano.
+    crece: 0.12,
   });
 }
 
@@ -155,11 +166,12 @@ export const cargarOmbligo: Secuencia = {
             remolino: 0.025,
             ancho: 0.9,
           });
-          // La esfera que viaja en la palma y se entrega en el ombligo.
-          const forma = u === null ? 0 : tramo(u, 0.04, 0.2);
+          // La esfera que viaja en la palma y se entrega en el ombligo: nace cuando la mano
+          // suelta la barra (antes taparía el puño que la agarra).
+          const forma = u === null ? 0 : tramo(u, 0.13, 0.28);
           const entrega = u === null ? 0 : tramo(u, 0.78, 0.86);
           esfera(e, lado === 'D' ? 1 : 2, {
-            activa: u !== null && u > 0.04 && u < 0.86,
+            activa: u !== null && u > 0.13 && u < 0.86,
             ref: ref(ancla, 0, [0, 0.035, 0.015]),
             pegado: 1 - entrega,
             pos: puntoMundo(e, 0, OMBLIGO),
