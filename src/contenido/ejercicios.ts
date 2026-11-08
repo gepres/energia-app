@@ -50,30 +50,24 @@ export const EJERCICIOS: Ejercicio[] = [
     subtitulo: '15 por cada mano',
     origen: 'revision',
     resumen:
-      'Brazos al frente a la altura de los hombros, tomando la energía de dos barras verticales; cada mano lleva lentamente 15 esferas de energía al ombligo.',
+      'Brazos bien estirados al frente, a la altura de los hombros, tomando la energía de dos barras verticales; las manos, intercaladas, llevan lentamente 15 esferas cada una al ombligo.',
     acento: 'oro',
     pasos: [
       {
         id: 'brazos-barras',
         titulo: 'Brazos al frente',
         texto:
-          'Estirar los brazos al frente, a la altura de los hombros (90°), y agarrar la energía que está a la altura de las manos, como barras de energía verticales.',
+          'Estirar bien los brazos al frente, a la altura de los hombros (90°), y agarrar la energía que está a la altura de las manos, como barras de energía verticales.',
         aclaracion: 'Descrito en el taller.',
       },
       {
-        id: 'mano-derecha',
-        titulo: 'Mano derecha · 15',
-        texto: 'Después de un momento, la mano derecha se dirige lentamente al ombligo llevando una bola o esfera de energía. 15 veces.',
-        cantidad: { valor: 15, unidad: 'cargas por cada mano', pregunta: '¿Cuántas cargas al ombligo se hacen con cada mano?' },
-        aclaracion: 'Descrito en el taller: 15 por cada mano, de forma lenta.',
-        lectura: 'Mientras una mano carga, la otra se queda estirada en su barra. La esfera viaja en la palma y se entrega con la palma hacia el ombligo.',
-      },
-      {
-        id: 'mano-izquierda',
-        titulo: 'Mano izquierda · 15',
-        texto: 'Luego la mano izquierda hace lo mismo: toma la energía de su barra y la lleva lentamente al ombligo. 15 veces.',
-        cantidad: { valor: 30, unidad: 'cargas en total', pregunta: '¿Cuántas cargas al ombligo se hacen en total?' },
-        aclaracion: 'Descrito en el taller: 15 por cada mano, de forma lenta.',
+        id: 'cargas-intercaladas',
+        titulo: 'Cargas intercaladas · 15 por mano',
+        texto:
+          'Después de un momento, las manos se dirigen lentamente al ombligo llevando una bola o esfera de energía, intercaladas: derecha, izquierda, derecha… 15 por cada mano.',
+        cantidad: { valor: 15, unidad: 'por cada mano (30 en total)', pregunta: '¿Cuántas cargas al ombligo se hacen con cada mano?' },
+        aclaracion: 'Descrito en el taller: manos intercaladas y bien estiradas, 15 por cada mano, de forma lenta.',
+        lectura: 'Empieza la derecha. Mientras una mano vuelve a su barra, la otra ya toma energía de la suya.',
       },
     ],
   },

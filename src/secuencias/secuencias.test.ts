@@ -122,3 +122,34 @@ describe('maniquí', () => {
     expect(largoV(restaV(r.fin, [0, 1.4, 0]))).toBeCloseTo(0.545, 3);
   });
 });
+
+describe('Cargar el ombligo (descrito en el taller)', () => {
+  const sec = SECUENCIAS['cargar-ombligo'];
+  const cuenta = (t: number) => {
+    const c = evaluar(sec, 1, t, OPCIONES_INICIALES).hud.contador;
+    const m = c?.etiqueta.match(/derecha (\d+) · izquierda (\d+)/);
+    return m ? { d: Number(m[1]), i: Number(m[2]), total: c!.valor } : null;
+  };
+
+  it('alterna las manos: nunca hay más de una carga de diferencia entre derecha e izquierda', () => {
+    let previa = { d: 0, i: 0 };
+    for (let k = 0; k <= 400; k++) {
+      const c = cuenta(k / 400);
+      if (!c) continue;
+      expect(Math.abs(c.d - c.i), `t=${k / 400}`).toBeLessThanOrEqual(1);
+      expect(c.d).toBeGreaterThanOrEqual(c.i); // empieza la derecha
+      expect(c.d + c.i).toBe(c.total);
+      expect(c.d).toBeGreaterThanOrEqual(previa.d);
+      expect(c.i).toBeGreaterThanOrEqual(previa.i);
+      previa = c;
+    }
+    expect(previa).toMatchObject({ d: 15, i: 15 });
+  });
+
+  it('mantiene los brazos estirados al agarrar las barras (muñeca a más de 0,5 m del hombro)', () => {
+    const e = evaluar(sec, 0, 1, OPCIONES_INICIALES);
+    const esq = resolverEsqueleto(e.figuras[0].pose);
+    expect(largoV(restaV(esq.munecaD, esq.hombroD))).toBeGreaterThan(0.5);
+    expect(largoV(restaV(esq.munecaI, esq.hombroI))).toBeGreaterThan(0.5);
+  });
+});

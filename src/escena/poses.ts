@@ -407,24 +407,31 @@ export function atraerCampo(dir: V3, k: number): Pose {
 
 // ── Cargar el ombligo desde las barras (descrito en el taller) ──────────
 
-/** Barras verticales de energía a la altura de las manos estiradas (espacio del cuerpo). */
-export const BARRA_CARGA = { x: 0.18, z: 0.57 };
+/** Barras verticales de energía donde quedan las manos con los brazos bien estirados. */
+export const BARRA_CARGA = { x: 0.182, z: 0.62 };
 
 type Lado = 'D' | 'I';
+interface Mano {
+  mano: V3;
+  codo: V3;
+  palma: V3;
+  dedos: V3;
+}
 
-/** Mano agarrando su barra: brazo al frente a la altura del hombro, palma hacia dentro. */
-function agarre(lado: Lado): { mano: V3; codo: V3; palma: V3; dedos: V3 } {
+/** Mano agarrando su barra: brazo estirado al frente a la altura del hombro, palma hacia dentro. */
+function agarre(lado: Lado): Mano {
   const s = lado === 'D' ? -1 : 1;
   return {
-    mano: [s * BARRA_CARGA.x, 1.4, BARRA_CARGA.z - 0.1],
-    codo: [s * 1, -0.6, -0.1],
+    // Muñeca a ~0,53 m del hombro: el brazo queda casi recto (alcance máximo 0,545).
+    mano: [s * BARRA_CARGA.x, 1.41, 0.525],
+    codo: [s * 1, -0.4, 0],
     palma: [-s, 0, 0],
-    dedos: normV([-s * 0.15, 0.1, 1]),
+    dedos: normV([-s * 0.1, 0.06, 1]),
   };
 }
 
 /** Mano frente al ombligo entregando la esfera (palma hacia el cuerpo). */
-function entrega(lado: Lado): { mano: V3; codo: V3; palma: V3; dedos: V3 } {
+function entrega(lado: Lado): Mano {
   const s = lado === 'D' ? -1 : 1;
   return {
     mano: [s * 0.065, 0.995, 0.215],
@@ -438,55 +445,57 @@ function mezclaV(a: V3, b: V3, k: number): V3 {
   return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
 }
 
-/** Curva cuadrática de Bézier (para que la mano baje en arco y no en línea recta). */
+/** Curva cuadrática de Bézier (la mano baja en arco y no en línea recta). */
 function bezier(a: V3, c: V3, b: V3, k: number): V3 {
   const u = 1 - k;
   return [u * u * a[0] + 2 * u * k * c[0] + k * k * b[0], u * u * a[1] + 2 * u * k * c[1] + k * k * b[1], u * u * a[2] + 2 * u * k * c[2] + k * k * b[2]];
 }
 
 /**
- * Pose del gesto de carga. `activa` es la mano que está cargando (o null si
- * las dos agarran su barra). `u` es la fase del ciclo de esa mano:
+ * Posición de una mano en su ciclo de carga, `u` ∈ [0, 1]:
  *   0–0,18 agarra energía en la barra · 0,18–0,78 la lleva despacio al ombligo
  *   0,78–0,86 la entrega · 0,86–1 vuelve a su barra.
  */
-export function poseCargaBarras(activa: Lado | null, u: number): Pose {
-  const manos: Record<Lado, { mano: V3; codo: V3; palma: V3; dedos: V3 }> = { D: agarre('D'), I: agarre('I') };
-  if (activa) {
-    const a = agarre(activa);
-    const b = entrega(activa);
-    const s = activa === 'D' ? -1 : 1;
-    const control: V3 = [s * 0.13, 1.28, 0.42];
-    // Palma hacia arriba a mitad de camino: lleva la esfera.
-    const arriba: V3 = [0, 1, 0];
-    let m: typeof a;
-    if (u < 0.18) {
-      // Agarra: un leve cierre hacia dentro y vuelta.
-      const apriete = Math.sin((u / 0.18) * Math.PI) * 0.018;
-      m = { ...a, mano: [a.mano[0] - s * apriete, a.mano[1], a.mano[2]] };
-    } else if (u < 0.78) {
-      const k = entraSaleSeno((u - 0.18) / 0.6);
-      const palma = k < 0.5 ? normV(mezclaV(a.palma, arriba, k * 2)) : normV(mezclaV(arriba, b.palma, (k - 0.5) * 2));
-      m = { mano: bezier(a.mano, control, b.mano, k), codo: normV(mezclaV(a.codo, b.codo, k)), palma, dedos: normV(mezclaV(a.dedos, b.dedos, k)) };
-    } else if (u < 0.86) {
-      // Entrega: un pequeño empuje hacia el ombligo.
-      const empuje = Math.sin(((u - 0.78) / 0.08) * Math.PI) * 0.025;
-      m = { ...b, mano: [b.mano[0], b.mano[1], b.mano[2] - empuje] };
-    } else {
-      const k = entraSaleSeno((u - 0.86) / 0.14);
-      m = { mano: bezier(b.mano, control, a.mano, k), codo: normV(mezclaV(b.codo, a.codo, k)), palma: normV(mezclaV(b.palma, a.palma, k)), dedos: normV(mezclaV(b.dedos, a.dedos, k)) };
-    }
-    manos[activa] = m;
+function cicloMano(lado: Lado, u: number): Mano {
+  const a = agarre(lado);
+  const b = entrega(lado);
+  const s = lado === 'D' ? -1 : 1;
+  const control: V3 = [s * 0.14, 1.3, 0.46];
+  const arriba: V3 = [0, 1, 0];
+  if (u < 0.18) {
+    const apriete = Math.sin((u / 0.18) * Math.PI) * 0.018;
+    return { ...a, mano: [a.mano[0] - s * apriete, a.mano[1], a.mano[2]] };
   }
+  if (u < 0.78) {
+    const k = entraSaleSeno((u - 0.18) / 0.6);
+    // A mitad de camino la palma mira hacia arriba: lleva la esfera.
+    const palma = k < 0.5 ? normV(mezclaV(a.palma, arriba, k * 2)) : normV(mezclaV(arriba, b.palma, (k - 0.5) * 2));
+    return { mano: bezier(a.mano, control, b.mano, k), codo: normV(mezclaV(a.codo, b.codo, k)), palma, dedos: normV(mezclaV(a.dedos, b.dedos, k)) };
+  }
+  if (u < 0.86) {
+    const empuje = Math.sin(((u - 0.78) / 0.08) * Math.PI) * 0.025;
+    return { ...b, mano: [b.mano[0], b.mano[1], b.mano[2] - empuje] };
+  }
+  const k = entraSaleSeno((u - 0.86) / 0.14);
+  return { mano: bezier(b.mano, control, a.mano, k), codo: normV(mezclaV(b.codo, a.codo, k)), palma: normV(mezclaV(b.palma, a.palma, k)), dedos: normV(mezclaV(b.dedos, a.dedos, k)) };
+}
+
+/**
+ * Pose del gesto de carga. `uD` / `uI` son las fases del ciclo de cada mano;
+ * `null` deja esa mano agarrando su barra con el brazo estirado.
+ */
+export function poseCargaBarras(uD: number | null, uI: number | null): Pose {
+  const D = uD === null ? agarre('D') : cicloMano('D', uD);
+  const I = uI === null ? agarre('I') : cicloMano('I', uI);
   return pose({
-    manoD: manos.D.mano,
-    codoD: manos.D.codo,
-    palmaD: manos.D.palma,
-    dedosD: manos.D.dedos,
-    manoI: manos.I.mano,
-    codoI: manos.I.codo,
-    palmaI: manos.I.palma,
-    dedosI: manos.I.dedos,
-    cabezaPitch: activa ? 0.12 : 0.02,
+    manoD: D.mano,
+    codoD: D.codo,
+    palmaD: D.palma,
+    dedosD: D.dedos,
+    manoI: I.mano,
+    codoI: I.codo,
+    palmaI: I.palma,
+    dedosI: I.dedos,
+    cabezaPitch: uD !== null || uI !== null ? 0.1 : 0.02,
   });
 }
