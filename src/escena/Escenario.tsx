@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Bloom, EffectComposer, SMAA, ToneMapping, Vignette } from '@react-three/postprocessing';
 import { ToneMappingMode } from 'postprocessing';
 import { type ReactNode, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { type Mesh, type PerspectiveCamera, PlaneGeometry, ShaderMaterial, Color, type HemisphereLight, type DirectionalLight, Vector2, Vector3 } from 'three';
+import { type Mesh, Object3D, type PerspectiveCamera, PlaneGeometry, ShaderMaterial, Color, type HemisphereLight, type DirectionalLight, Vector2, Vector3 } from 'three';
 import { useReproductor } from '../reproductor';
 import { evaluar } from '../secuencias/motor';
 import { evaluarPortada } from '../secuencias/portada';
@@ -60,6 +60,8 @@ function Camara() {
     if (!c) return;
     const alEmpezar = () => setLibre(true);
     c.addEventListener('controlstart', alEmpezar);
+    // Gancho de pruebas: las capturas de cerca mueven la cámara libre.
+    if (import.meta.env.DEV) Object.assign((window as unknown as { __repaso: object }).__repaso ?? {}, { controles: c });
     return () => c.removeEventListener('controlstart', alEmpezar);
   }, [setLibre]);
 
@@ -235,19 +237,29 @@ function SombraFigura({ i }: { i: 0 | 1 }) {
 function Luces() {
   const hemi = useRef<HemisphereLight>(null);
   const clave = useRef<DirectionalLight>(null);
+  const relleno = useRef<DirectionalLight>(null);
   const contra = useRef<DirectionalLight>(null);
+  // Todas apuntan al centro de la figura (por defecto apuntarían al origen, en el piso).
+  const objetivo = useMemo(() => {
+    const o = new Object3D();
+    o.position.set(0, 1.05, 0);
+    return o;
+  }, []);
   useFrame(() => {
     const p = 1 - 0.55 * escena.estado.penumbra;
-    if (hemi.current) hemi.current.intensity = 0.55 * p;
-    if (clave.current) clave.current.intensity = 1.5 * p;
-    if (contra.current) contra.current.intensity = 1.25 * (0.6 + 0.4 * p);
+    if (hemi.current) hemi.current.intensity = 0.22 * p;
+    if (clave.current) clave.current.intensity = 2.0 * p;
+    if (relleno.current) relleno.current.intensity = 0.28 * p;
+    if (contra.current) contra.current.intensity = 0.95 * (0.6 + 0.4 * p);
   });
+  // Luz de estudio: clave lateral-frontal cálida, relleno frío muy suave y contraluz que recorta la silueta.
   return (
     <>
-      <hemisphereLight ref={hemi} args={['#b9c6ff', '#1a120c', 0.55]} />
-      <directionalLight ref={clave} position={[2.2, 3.6, 3.2]} intensity={1.5} color="#ffe8cf" />
-      <directionalLight ref={contra} position={[-2.5, 2.4, -3.2]} intensity={1.25} color="#8fb6ff" />
-      <directionalLight position={[3, 0.6, -1]} intensity={0.35} color="#ffb98a" />
+      <primitive object={objetivo} />
+      <hemisphereLight ref={hemi} args={['#c6d1e0', '#201912', 0.22]} />
+      <directionalLight ref={clave} target={objetivo} position={[-2.4, 3.4, 2.2]} intensity={2.0} color="#fff0df" />
+      <directionalLight ref={relleno} target={objetivo} position={[2.8, 1.8, 1.4]} intensity={0.28} color="#c7d9f0" />
+      <directionalLight ref={contra} target={objetivo} position={[1.5, 2.7, -2.4]} intensity={0.95} color="#b4cced" />
     </>
   );
 }
@@ -345,10 +357,11 @@ export function Escenario({ children }: { children?: ReactNode }) {
       <ProyectarMarcas />
       <Luces />
       <Suspense fallback={null}>
+        {/* Tres reflejos amplios que acompañan a las luces: clave, relleno y contraluz. */}
         <Environment resolution={64} frames={1}>
-          <Lightformer form="rect" intensity={1.6} color="#ffe2c4" position={[2, 3, 3]} scale={[3, 2, 1]} />
-          <Lightformer form="rect" intensity={1.2} color="#8fb6ff" position={[-3, 2, -3]} scale={[3, 2, 1]} />
-          <Lightformer form="ring" intensity={0.6} color="#ffffff" position={[0, 5, 0]} scale={2} />
+          <Lightformer form="rect" target={[0, 1.1, 0]} intensity={1.1} color="#fff0df" position={[-3, 3, 2.5]} scale={[2.5, 4, 1]} />
+          <Lightformer form="rect" target={[0, 1.1, 0]} intensity={0.25} color="#c7d9f0" position={[3, 2, 2]} scale={[2, 3, 1]} />
+          <Lightformer form="rect" target={[0, 1.1, 0]} intensity={1.4} color="#b4cced" position={[1.5, 2.2, -3]} scale={[1, 3, 1]} />
         </Environment>
       </Suspense>
       <Piso />

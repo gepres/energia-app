@@ -34,6 +34,8 @@ function cargarEn(y: number, z: number): Pose {
     palmaI: ATRAS,
     dedosD: normV([0.85, 0.5, 0]),
     dedosI: normV([-0.85, 0.5, 0]),
+    cierreD: 0.14,
+    cierreI: 0.14,
   });
 }
 export const CARGA_OMBLIGO = cargarEn(1.04, 0.25);
@@ -68,10 +70,12 @@ export function palmasAbajo(y: number, z = 0.34, ancho = 0.2): Pose {
 
 /** Mano derecha sobre el corazón. */
 export const MANO_CORAZON = pose({
-  manoD: [-0.03, 1.225, 0.138],
+  // La palma apoyada sobre el pecho (superficie a z ≈ 0,10).
+  manoD: [-0.03, 1.225, 0.12],
   codoD: [-0.45, -1, 0.1],
   palmaD: ATRAS,
   dedosD: normV([0.45, 0.88, 0]),
+  cierreD: 0.06,
   manoI: [0.2, 0.885, 0.05],
   cabezaPitch: 0.12,
 });
@@ -373,15 +377,17 @@ export const TOMAR_BARRA_IZQUIERDA = pose({
 /** Sellado final: la derecha tapa el ombligo y la izquierda va encima de ella. */
 export const CUBRIR_OMBLIGO = pose({
   // Palma derecha sobre el ombligo, dedos hacia la izquierda del cuerpo.
-  manoD: [-0.072, 1.035, 0.14],
+  manoD: [-0.072, 1.035, 0.1],
   codoD: [-1, -0.7, -0.2],
   palmaD: ATRAS,
   dedosD: [1, 0, 0],
+  cierreD: 0.05,
   // Palma izquierda encima de la derecha, dedos hacia la derecha del cuerpo.
-  manoI: [0.072, 1.05, 0.165],
+  manoI: [0.072, 1.05, 0.127],
   codoI: [1, -0.6, -0.2],
   palmaI: ATRAS,
   dedosI: [-1, 0, 0],
+  cierreI: 0.05,
   cabezaPitch: 0.18,
 });
 
@@ -416,6 +422,8 @@ interface Mano {
   codo: V3;
   palma: V3;
   dedos: V3;
+  /** Cierre de los dedos (0 plana, 1 puño). */
+  cierre: number;
 }
 
 /** Mano agarrando su barra: brazo estirado al frente a la altura del hombro, palma hacia dentro. */
@@ -427,6 +435,8 @@ function agarre(lado: Lado): Mano {
     codo: [s * 1, -0.4, 0],
     palma: [-s, 0, 0],
     dedos: normV([-s * 0.1, 0.06, 1]),
+    // Toma la barra con la mano suelta, sin apretar.
+    cierre: 0.52,
   };
 }
 
@@ -438,6 +448,8 @@ function entrega(lado: Lado): Mano {
     codo: [s * 1, -0.8, -0.2],
     palma: ATRAS,
     dedos: normV([-s * 0.6, 0.55, 0]),
+    // Palma abierta apoyando la esfera en el ombligo.
+    cierre: 0.1,
   };
 }
 
@@ -463,21 +475,29 @@ function cicloMano(lado: Lado, u: number): Mano {
   const control: V3 = [s * 0.14, 1.3, 0.46];
   const arriba: V3 = [0, 1, 0];
   if (u < 0.18) {
-    const apriete = Math.sin((u / 0.18) * Math.PI) * 0.018;
-    return { ...a, mano: [a.mano[0] - s * apriete, a.mano[1], a.mano[2]] };
+    const apriete = Math.sin((u / 0.18) * Math.PI);
+    return { ...a, mano: [a.mano[0] - s * apriete * 0.018, a.mano[1], a.mano[2]], cierre: a.cierre + 0.16 * apriete };
   }
   if (u < 0.78) {
     const k = entraSaleSeno((u - 0.18) / 0.6);
     // A mitad de camino la palma mira hacia arriba: lleva la esfera.
     const palma = k < 0.5 ? normV(mezclaV(a.palma, arriba, k * 2)) : normV(mezclaV(arriba, b.palma, (k - 0.5) * 2));
-    return { mano: bezier(a.mano, control, b.mano, k), codo: normV(mezclaV(a.codo, b.codo, k)), palma, dedos: normV(mezclaV(a.dedos, b.dedos, k)) };
+    // La mano se ahueca para llevar la esfera y se abre al llegar.
+    const cierre = k < 0.5 ? a.cierre + (0.34 - a.cierre) * k * 2 : 0.34 + (b.cierre - 0.34) * (k - 0.5) * 2;
+    return { mano: bezier(a.mano, control, b.mano, k), codo: normV(mezclaV(a.codo, b.codo, k)), palma, dedos: normV(mezclaV(a.dedos, b.dedos, k)), cierre };
   }
   if (u < 0.86) {
     const empuje = Math.sin(((u - 0.78) / 0.08) * Math.PI) * 0.025;
     return { ...b, mano: [b.mano[0], b.mano[1], b.mano[2] - empuje] };
   }
   const k = entraSaleSeno((u - 0.86) / 0.14);
-  return { mano: bezier(b.mano, control, a.mano, k), codo: normV(mezclaV(b.codo, a.codo, k)), palma: normV(mezclaV(b.palma, a.palma, k)), dedos: normV(mezclaV(b.dedos, a.dedos, k)) };
+  return {
+    mano: bezier(b.mano, control, a.mano, k),
+    codo: normV(mezclaV(b.codo, a.codo, k)),
+    palma: normV(mezclaV(b.palma, a.palma, k)),
+    dedos: normV(mezclaV(b.dedos, a.dedos, k)),
+    cierre: b.cierre + (a.cierre - b.cierre) * k,
+  };
 }
 
 /**
@@ -492,10 +512,12 @@ export function poseCargaBarras(uD: number | null, uI: number | null): Pose {
     codoD: D.codo,
     palmaD: D.palma,
     dedosD: D.dedos,
+    cierreD: D.cierre,
     manoI: I.mano,
     codoI: I.codo,
     palmaI: I.palma,
     dedosI: I.dedos,
+    cierreI: I.cierre,
     cabezaPitch: uD !== null || uI !== null ? 0.1 : 0.02,
   });
 }

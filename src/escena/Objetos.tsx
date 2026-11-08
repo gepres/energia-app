@@ -278,7 +278,7 @@ function Bolsa() {
     [],
   );
   const mat = useMemo(() => {
-    const m = crearMaterialCuerpo({ color: '#121019', rimColor: '#9a86e0', rim: 1.1, translucido: true });
+    const m = crearMaterialCuerpo({ color: '#121019', rimColor: '#9a86e0', rim: 1.1, translucido: true, rimPotencia: 2.6 });
     m.roughness = 0.34;
     m.metalness = 0.1;
     m.side = DoubleSide;
@@ -318,7 +318,7 @@ function Bolsa() {
 function Tacho() {
   const grupo = useRef<Group>(null);
   const mat = useMemo(() => {
-    const m = crearMaterialCuerpo({ color: '#2b2f3a', rimColor: '#8fb6ff', rim: 0.9, translucido: true });
+    const m = crearMaterialCuerpo({ color: '#2b2f3a', rimColor: '#8fb6ff', rim: 0.9, translucido: true, rimPotencia: 2.6 });
     m.roughness = 0.4;
     m.metalness = 0.6;
     m.side = DoubleSide;

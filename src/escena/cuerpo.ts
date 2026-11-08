@@ -106,6 +106,9 @@ export interface Pose {
   /** Dirección de los dedos; si es nula se sigue el antebrazo. */
   dedosD: V3 | null;
   dedosI: V3 | null;
+  /** Cierre de los dedos: 0 mano plana, ~0,3 relajada, 1 puño. */
+  cierreD: number;
+  cierreI: number;
   /** Descenso de la pelvis (m): 0 de pie, ~0,6 en cuclillas. */
   agachar: number;
   /** Inclinación del torso hacia delante (rad). */
@@ -123,6 +126,8 @@ export const NEUTRA: Pose = {
   palmaI: [-0.9, 0, 0.1],
   dedosD: [-0.05, -1, 0.02],
   dedosI: [0.05, -1, 0.02],
+  cierreD: 0.3,
+  cierreI: 0.3,
   agachar: 0,
   inclinar: 0,
   cabezaPitch: 0,
@@ -160,6 +165,8 @@ export function mezclarPose(a: Pose, b: Pose, k: number, arcoManos = 0.06): Pose
     palmaI: normV(lerpV(a.palmaI, b.palmaI, k)),
     dedosD: mezclarDir(a.dedosD, b.dedosD, k),
     dedosI: mezclarDir(a.dedosI, b.dedosI, k),
+    cierreD: lerp(a.cierreD, b.cierreD, k),
+    cierreI: lerp(a.cierreI, b.cierreI, k),
     agachar: lerp(a.agachar, b.agachar, k),
     inclinar: lerp(a.inclinar, b.inclinar, k),
     cabezaPitch: lerp(a.cabezaPitch, b.cabezaPitch, k),

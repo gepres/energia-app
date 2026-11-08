@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { DUDAS, EJERCICIOS, ORGANOS, fraseOrgano } from '../contenido/ejercicios';
-import { ik2, resolverEsqueleto } from '../escena/cuerpo';
+import { MeshBasicMaterial } from 'three';
+import { NEUTRA, ik2, resolverEsqueleto } from '../escena/cuerpo';
+import { crearManos } from '../escena/manos';
 import type { Estado } from '../escena/estado';
 import { largoV, restaV } from '../escena/mate';
 import { SECUENCIAS } from './index';
@@ -120,6 +122,48 @@ describe('maniquí', () => {
   it('estira el brazo hacia objetivos fuera de alcance sin romperlo', () => {
     const r = ik2([0, 1.4, 0], [0, 1.4, 2], 0.29, 0.255, [0, -1, 0]);
     expect(largoV(restaV(r.fin, [0, 1.4, 0]))).toBeCloseTo(0.545, 3);
+  });
+});
+
+describe('manos articuladas', () => {
+  const e = resolverEsqueleto(NEUTRA);
+  const manos = crearManos(new MeshBasicMaterial());
+  const puntas = (cierre: number) => {
+    manos.actualizar(e, cierre, cierre);
+    manos.raiz.updateMatrixWorld(true);
+    // Hueso 3 = base de la falange distal del índice de la mano derecha.
+    return manos.raiz.children.map((h) => h.position.toArray() as [number, number, number]);
+  };
+
+  it('arma una sola malla con un hueso por pieza y posiciones finitas', () => {
+    expect(manos.malla.skeleton.bones).toHaveLength(32);
+    for (const p of puntas(0.3)) expect(p.every(Number.isFinite)).toBe(true);
+  });
+
+  it('pone el pulgar del lado de afuera en la posición anatómica (palmas al frente)', () => {
+    const anatomica = resolverEsqueleto({
+      ...NEUTRA,
+      palmaD: [0, 0, 1],
+      palmaI: [0, 0, 1],
+      dedosD: [0, -1, 0],
+      dedosI: [0, -1, 0],
+    });
+    manos.actualizar(anatomica, 0, 0);
+    const h = manos.raiz.children;
+    // Hueso 15 = punta del pulgar derecho; 31 = del izquierdo. El derecho está en −X.
+    expect(h[15].position.x).toBeLessThan(anatomica.munecaD[0] - 0.02);
+    expect(h[31].position.x).toBeGreaterThan(anatomica.munecaI[0] + 0.02);
+  });
+
+  it('cerrar la mano acerca los dedos a la muñeca', () => {
+    const dist = (c: number) => {
+      const p = puntas(c)[3];
+      return Math.hypot(p[0] - e.munecaD[0], p[1] - e.munecaD[1], p[2] - e.munecaD[2]);
+    };
+    const abierta = dist(0);
+    expect(abierta).toBeGreaterThan(0.12);
+    expect(abierta).toBeLessThan(0.18);
+    expect(dist(1)).toBeLessThan(abierta - 0.03);
   });
 });
 
