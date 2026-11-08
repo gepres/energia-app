@@ -564,11 +564,31 @@ export function manosALaNube(cierre = 0.22): Pose {
  * siga mirando abajo, como apoyando el velo.
  */
 export function bajarPorLosCostados(theta: number, cierre: number): Pose {
+  return brazosEnArco(theta, cierre, 'bajan');
+}
+
+/**
+ * Subida por los costados (entre una vez y la siguiente): el mismo arco al
+ * revés, con las manos abiertas. Las palmas miran al frente abajo, hacia arriba
+ * al pasar por la cruz y otra vez al frente (hacia la nube) al llegar arriba.
+ */
+export function subirPorLosCostados(theta: number, cierre: number): Pose {
+  return brazosEnArco(theta, cierre, 'suben');
+}
+
+function brazosEnArco(theta: number, cierre: number, sentido: 'bajan' | 'suben'): Pose {
   const brazo = (s: number) => {
     const z = HOMBRO.z + 0.087 * Math.pow(Math.max(0, 1 - theta / Math.PI), 2);
     const mano: V3 = [s * (HOMBRO.x + BRAZO_RECTO * Math.sin(theta)), HOMBRO.y + BRAZO_RECTO * Math.cos(theta), z];
     const aLoLargo: V3 = [s * Math.sin(theta), Math.cos(theta), 0.06 * Math.cos(theta)];
     const palmaArriba = normV([-s * 0.15 * Math.cos(theta), 0.3 * Math.max(0, Math.cos(theta)), 1]);
+    if (sentido === 'suben') {
+      // Al frente abajo → hacia arriba desde la cruz → al frente arriba (como al tocar la nube).
+      const alCielo = suave(clamp((2.6 - theta) / 1.0));
+      const llega = suave(clamp((0.9 - theta) / 0.9));
+      const palma = normV(lerpV(lerpV([0, 0, 1], [0, 1, 0], alCielo), palmaArriba, llega));
+      return { mano, palma, dedos: normV(aLoLargo) };
+    }
     const gira = suave(clamp(theta / 2.0));
     const palma = normV(lerpV(palmaArriba, [0, -1, 0], gira));
     // Dedos hacia afuera con la muñeca doblada ≈ 55° al final (no más: sería forzado).

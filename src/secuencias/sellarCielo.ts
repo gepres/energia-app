@@ -1,9 +1,9 @@
 import { mezclarPose } from '../escena/cuerpo';
 import { type Estado, enPalma, ref } from '../escena/estado';
 import { type V3, campana, clamp, entraSaleSeno, lerp, suave, tramo } from '../escena/mate';
-import { NUBE_CIELO, SERENA, THETA_ABAJO, bajarPorLosCostados, manosALaNube } from '../escena/poses';
+import { NUBE_CIELO, SERENA, THETA_ABAJO, bajarPorLosCostados, manosALaNube, subirPorLosCostados } from '../escena/poses';
 import { TOMAS, esfera, pulso, pulsoRef } from './comunes';
-import { type Secuencia, encuadre, fijarPose, posar, puntoMundo, toma } from './motor';
+import { type Secuencia, encuadre, fijarPose, puntoMundo, toma } from './motor';
 
 /**
  * «Sellar desde el cielo», tal como lo describió el taller: las dos manos
@@ -14,9 +14,9 @@ import { type Secuencia, encuadre, fijarPose, posar, puntoMundo, toma } from './
 
 const VECES = 3;
 /** Tiempos de cada vez (s): agarrar la nube, bajar abriendo, asentar el velo y volver a subir. */
-const SEG = { agarrar: 1.4, bajar: 5.2, asentar: 1.6, subir: 2.8 };
+const SEG = { agarrar: 1.4, bajar: 5.2, asentar: 1.6, subir: 3.2 };
 const SEG_VEZ = SEG.agarrar + SEG.bajar + SEG.asentar;
-/** Entre una vez y la siguiente las manos vuelven a subir a la nube. */
+/** Entre una vez y la siguiente las manos vuelven a subir a la nube por los costados. */
 const SEG_CICLO = SEG_VEZ + SEG.subir;
 const SEG_FIN = 3.5;
 const DUR_SELLAR = VECES * SEG_VEZ + (VECES - 1) * SEG.subir + SEG_FIN;
@@ -140,8 +140,12 @@ export const sellarCielo: Secuencia = {
         toma(e, ENCUADRE, t, 0, 0.4);
         // La nube aparece y se enciende más cuando las manos la tocan.
         nube(e, 0.9 * tramo(t, 0.05, 0.45) + 0.4 * campana(t, 0.64, 1));
-        // Suben por delante (arco hacia el frente) hasta quedar estiradas arriba.
-        posar(e, 0, manosALaNube(CIERRE.toca), t, 0.15, 0.68, 0.3);
+        // Suben por los costados, abiertas, hasta quedar estiradas arriba (igual que entre una vez y otra).
+        const k = tramo(t, 0.15, 0.68, (x) => x);
+        if (k > 0) {
+          const sube = subirPorLosCostados(lerp(THETA_ABAJO, THETA_ARRIBA, entraSaleSeno(k)), CIERRE.toca);
+          e.figuras[0].pose = mezclarPose(SERENA, sube, suave(clamp(k / 0.18)), 0);
+        }
         const toque = tramo(t, 0.64, 0.92);
         pulsoRef(e, ref('manoD'), toque, 0.14, 'blanco');
         pulsoRef(e, ref('manoI'), toque, 0.14, 'blanco');
@@ -176,8 +180,9 @@ export const sellarCielo: Secuencia = {
           e.figuras[0].pose = mezclarPose(bajarPorLosCostados(THETA_ABAJO, CIERRE.abierta), SERENA, s, 0);
           nube(e, NUBE_TRANQUILA);
         } else if (fase === 'subir') {
-          // Vuelven a subir por delante hasta la nube, que se enciende de nuevo.
-          e.figuras[0].pose = mezclarPose(SERENA, manosALaNube(CIERRE.toca), s, 0.3);
+          // Vuelven a subir por los costados, abiertas, hasta la nube, que se enciende de nuevo.
+          const sube = subirPorLosCostados(lerp(THETA_ABAJO, THETA_ARRIBA, s), CIERRE.toca);
+          e.figuras[0].pose = mezclarPose(SERENA, sube, suave(clamp(k / 0.18)), 0);
           nube(e, lerp(NUBE_TRANQUILA, 0.9, s) + 0.35 * campana(k, 0.8, 1));
           const toque = tramo(k, 0.8, 1);
           pulsoRef(e, ref('manoD'), toque, 0.14, 'blanco');

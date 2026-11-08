@@ -272,6 +272,13 @@ describe('Sellar desde el cielo (descrito en el taller)', () => {
     expect(fin.ancho).toBeGreaterThan(0.4);
   });
 
+  it('entre una vez y otra, las manos vuelven a subir por los costados (en cruz a mitad de camino)', () => {
+    const e = esqEn(1, instante(0, 'subir', 0.55));
+    expect(e.munecaD[0]).toBeLessThan(-0.5);
+    expect(e.munecaI[0]).toBeGreaterThan(0.5);
+    expect(Math.abs(e.munecaD[2])).toBeLessThan(0.12); // no van por delante
+  });
+
   it('cuenta 3 veces, sin saltos, y termina con las manos sueltas a los costados', () => {
     let previo = 0;
     for (let i = 0; i <= 300; i++) {
