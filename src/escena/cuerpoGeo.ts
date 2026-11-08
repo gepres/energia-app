@@ -167,13 +167,14 @@ export function crearTorso() {
   return {
     geometry,
     deformar(e: Esqueleto): void {
-      const clave = [...e.pelvis, e.inclinar, ...e.codoD, ...e.codoI].join(',');
+      const clave = [...e.pelvis, e.inclinar, e.girar, ...e.codoD, ...e.codoI].join(',');
       if (clave === claveAnterior) return;
       claveAnterior = clave;
 
       const ci = Math.cos(e.inclinar);
       const si = Math.sin(e.inclinar);
-      base.set(0, -ci, -si);
+      // Brazo en reposo según la inclinación y el giro del torso.
+      base.set(-si * Math.sin(e.girar), -ci, -si * Math.cos(e.girar));
       direccion.set(e.codoD[0] - e.hombroD[0], e.codoD[1] - e.hombroD[1], e.codoD[2] - e.hombroD[2]).normalize();
       qD.setFromUnitVectors(base, direccion);
       direccion.set(e.codoI[0] - e.hombroI[0], e.codoI[1] - e.hombroI[1], e.codoI[2] - e.hombroI[2]).normalize();
@@ -189,6 +190,16 @@ export function crearTorso() {
         const dy = y - PROP.pivoteY;
         // e.pivote ya trae el descenso y el retroceso de `agachar`.
         v.set(x + e.pivote[0], e.pivote[1] + c * dy - s * z, e.pivote[2] + s * dy + c * z);
+        if (e.girar) {
+          // El giro del torso, alrededor de la vertical de la cintura (con la misma mezcla suave).
+          const g = e.girar * pasoSuave(PROP.pivoteY - 0.04, PROP.pivoteY + 0.04, y);
+          const cg = Math.cos(g);
+          const sg = Math.sin(g);
+          const gx = v.x - e.pivote[0];
+          const gz = v.z - e.pivote[2];
+          v.x = e.pivote[0] + gx * cg + gz * sg;
+          v.z = e.pivote[2] - gx * sg + gz * cg;
+        }
         if (pesos[i] > 0) {
           const h = x < 0 ? e.hombroD : e.hombroI;
           // Solo acompaña en parte: girarlo entero con el brazo levantado arruga el hombro.

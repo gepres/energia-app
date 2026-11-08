@@ -3,6 +3,7 @@ import type { Ejercicio } from '../contenido/tipos';
 import { SERENA } from '../escena/poses';
 import { TOMAS } from './comunes';
 import { cargarOmbligo } from './cargarOmbligo';
+import { cargarIngles } from './cargarIngles';
 import { sellarCielo } from './sellarCielo';
 import { unirBarras } from './unirBarras';
 import { masajeManos } from './masajeManos';
@@ -37,6 +38,7 @@ const PROPIAS: Record<string, Secuencia> = {
   'masaje-manos': masajeManos,
   'recorrido-por-chakras': recorridoPorChakras,
   'sensibilizacion-manos': sensibilizacionManos,
+  'cargar-ingles': cargarIngles,
   'liberar-creencias': liberarCreencias,
   'equilibrar-organos': equilibrarOrganos,
   'sanar-otra-persona': sanarOtraPersona,

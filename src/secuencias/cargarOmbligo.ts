@@ -12,17 +12,17 @@ import { type Secuencia, encuadre, fijarPose, posar, puntoMundo, toma } from './
  * 15 por cada mano (30 en total). Empieza la derecha.
  */
 
-const POR_MANO = 15;
-const TOTAL = POR_MANO * 2;
+export const POR_MANO = 15;
+export const TOTAL = POR_MANO * 2;
 /** Segundos de un ciclo completo de una mano (tomar, llevar, entregar, volver): es lento. */
-const SEG_CICLO = 3.4;
+export const SEG_CICLO = 3.4;
 /** La mano siguiente empieza cuando la anterior comienza a volver a su barra. */
-const DESFASE = 0.86;
-const CICLOS = (TOTAL - 1) * DESFASE + 1;
-const SEG_CARGAS = CICLOS * SEG_CICLO;
-const SEG_ANTES = 0.6;
-const SEG_DESPUES = 3.5;
-const DUR_CARGAS = SEG_ANTES + SEG_CARGAS + SEG_DESPUES;
+export const DESFASE = 0.86;
+export const CICLOS = (TOTAL - 1) * DESFASE + 1;
+export const SEG_CARGAS = CICLOS * SEG_CICLO;
+export const SEG_ANTES = 0.6;
+export const SEG_DESPUES = 3.5;
+export const DUR_CARGAS = SEG_ANTES + SEG_CARGAS + SEG_DESPUES;
 
 /** Punto de la carga, justo delante del ombligo. */
 const OMBLIGO: V3 = [0, 1.04, 0.14];
@@ -52,7 +52,7 @@ function cargaOmbligo(e: Estado, cargas: number) {
  * carga). Los ciclos pares son de la derecha y los impares de la izquierda.
  * Devuelve null si esa mano está quieta en su barra.
  */
-function faseMano(x: number, lado: Lado): number | null {
+export function faseMano(x: number, lado: Lado): number | null {
   const primero = lado === 'D' ? 0 : 1;
   if (x < primero * DESFASE) return null;
   // Último ciclo de esa mano que ya empezó.
@@ -64,7 +64,7 @@ function faseMano(x: number, lado: Lado): number | null {
 }
 
 /** Cargas ya entregadas en `x` (en total y por mano). */
-function entregas(x: number) {
+export function entregas(x: number) {
   let d = 0;
   let iz = 0;
   for (let i = 0; i < TOTAL; i++) {

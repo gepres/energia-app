@@ -476,12 +476,11 @@ function bezier(a: V3, c: V3, b: V3, k: number): V3 {
  *   0–0,18 agarra energía en la barra · 0,18–0,78 la lleva despacio al ombligo
  *   0,78–0,86 la entrega · 0,86–1 vuelve a su barra.
  */
-function cicloMano(lado: Lado, u: number): Mano {
+function cicloMano(lado: Lado, u: number, b: Mano = entrega(lado), arco?: V3): Mano {
   const a = agarre(lado);
-  const b = entrega(lado);
   const s = lado === 'D' ? -1 : 1;
   // El arco pasa por afuera de la barra: la mano se suelta hacia el costado y vuelve a tomarla desde ahí.
-  const control: V3 = [s * 0.235, 1.3, 0.44];
+  const control: V3 = arco ?? [s * 0.235, 1.3, 0.44];
   const arriba: V3 = [0, 1, 0];
   if (u < 0.18) {
     const apriete = Math.sin((u / 0.18) * Math.PI);
@@ -530,6 +529,86 @@ export function poseCargaBarras(uD: number | null, uI: number | null): Pose {
     dedosI: I.dedos,
     cierreI: I.cierre,
     cabezaPitch: uD !== null || uI !== null ? 0.1 : 0.02,
+  });
+}
+
+// ── Cargar las ingles desde las barras (descrito en el taller) ──────────
+
+/**
+ * Donde se acumula la carga de cada ingle: delante de la piel del pliegue entre el
+ * vientre y el muslo (medido sobre la malla: la piel queda a z ≈ 0,07).
+ */
+export const INGLE_DER: V3 = [-0.075, 0.9, 0.125];
+export const INGLE_IZQ: V3 = [0.075, 0.9, 0.125];
+/**
+ * Inclinación del torso hacia adelante mientras se cargan las ingles (rad, ≈ 11°): con el
+ * cuerpo derecho, la mano no llega a la ingle del otro lado (el hombro queda a 0,55 y el
+ * brazo alcanza 0,545), y el brazo, casi estirado, cruzaría por el pecho.
+ */
+export const INCLINAR_INGLES = 0.2;
+
+/**
+ * Mano frente a la ingle del otro lado entregando la esfera: palma hacia el cuerpo, dedos
+ * hacia abajo y hacia afuera (la muñeca queda arriba, del lado de su hombro).
+ */
+function entregaIngle(lado: Lado): Mano {
+  const s = lado === 'D' ? -1 : 1;
+  const destino = lado === 'D' ? INGLE_IZQ : INGLE_DER;
+  const palma = ATRAS;
+  const dedos = normV([-s * 0.45, -0.85, 0]);
+  // El hueco de la palma, 4,5 cm delante de donde se acumula la carga: la esfera queda entre la palma y la ingle.
+  const hueco: V3 = [destino[0], destino[1], destino[2] + 0.045];
+  return {
+    mano: [hueco[0] - dedos[0] * HUECO.dedos - palma[0] * HUECO.piel, hueco[1] - dedos[1] * HUECO.dedos - palma[1] * HUECO.piel, hueco[2] - dedos[2] * HUECO.dedos - palma[2] * HUECO.piel],
+    // El codo afuera, abajo y adelante: el brazo cruza por delante del vientre.
+    codo: normV([s * 0.6, -0.7, 0.4]),
+    palma,
+    dedos,
+    cierre: 0.1,
+  };
+}
+
+/** Arco de la mano hacia la ingle del otro lado: baja por delante y después cruza. */
+const arcoIngle = (lado: Lado): V3 => [(lado === 'D' ? -1 : 1) * 0.1, 1.05, 0.5];
+
+/**
+ * Giro del torso hacia la ingle del otro lado mientras una mano lleva su esfera (rad, ≈ 23°):
+ * con la inclinación, el brazo llega por delante del cuerpo sin meterse en el pecho, y la
+ * otra mano sigue en su barra.
+ */
+export const GIRAR_INGLES = 0.4;
+
+/** Cuánto acompaña el torso a la mano que lleva su esfera: gira mientras la lleva y vuelve al regresar. */
+function giroDeMano(u: number | null): number {
+  if (u === null) return 0;
+  return entraSaleSeno(Math.min(1, Math.max(0, (u - 0.15) / 0.4))) * (1 - entraSaleSeno(Math.min(1, Math.max(0, (u - 0.86) / 0.14))));
+}
+
+/**
+ * Pose del gesto de cargar las ingles: como `poseCargaBarras`, pero cada mano lleva su
+ * esfera a la ingle del otro lado. El torso se inclina (`inclinar`) y gira un poco hacia
+ * la ingle a la que va la mano: así el brazo llega por delante del cuerpo, sin cruzarse
+ * por el pecho.
+ */
+export function poseCargaIngles(uD: number | null, uI: number | null, inclinar = 0): Pose {
+  const D = uD === null ? agarre('D') : cicloMano('D', uD, entregaIngle('D'), arcoIngle('D'));
+  const I = uI === null ? agarre('I') : cicloMano('I', uI, entregaIngle('I'), arcoIngle('I'));
+  return pose({
+    manoD: D.mano,
+    codoD: D.codo,
+    palmaD: D.palma,
+    dedosD: D.dedos,
+    cierreD: D.cierre,
+    manoI: I.mano,
+    codoI: I.codo,
+    palmaI: I.palma,
+    dedosI: I.dedos,
+    cierreI: I.cierre,
+    // Mira hacia las ingles.
+    cabezaPitch: uD !== null || uI !== null ? 0.3 : 0.02,
+    inclinar,
+    // La derecha va a la ingle izquierda: el torso gira hacia la izquierda (+); la izquierda, al revés.
+    girar: GIRAR_INGLES * (giroDeMano(uD) - giroDeMano(uI)),
   });
 }
 

@@ -11,6 +11,7 @@ import {
   restaV,
   rotarX,
   sumaV,
+  rotarY,
 } from './mate';
 
 /**
@@ -55,6 +56,8 @@ export type PuntoCuerpo =
   | 'trasIngle'
   | 'perineo'
   | 'ingle'
+  | 'ingleD'
+  | 'ingleI'
   | 'pelvis'
   | 'pies';
 
@@ -82,6 +85,9 @@ export const PUNTOS: Record<PuntoCuerpo, V3> = {
   perineo: [0, 0.835, 0],
   /** Ingle: delante, en el centro, a la altura del pubis. */
   ingle: [0, 0.885, 0.08],
+  /** Cada ingle, sobre la piel del pliegue entre el vientre y el muslo (derecha en −X). */
+  ingleD: [-0.075, 0.9, 0.07],
+  ingleI: [0.075, 0.9, 0.07],
   pelvis: [0, 0.88, 0],
   pies: [0, 0, 0],
 };
@@ -153,6 +159,11 @@ export interface Pose {
   agachar: number;
   /** Inclinación del torso hacia delante (rad). */
   inclinar: number;
+  /**
+   * Giro del torso desde la cintura alrededor de la vertical (rad): + hacia la izquierda
+   * de la figura (+X). Lo usa una mano que va al otro lado del cuerpo.
+   */
+  girar: number;
   cabezaPitch: number;
   cabezaYaw: number;
 }
@@ -180,6 +191,7 @@ export const NEUTRA: Pose = {
   separarI: 0,
   agachar: 0,
   inclinar: 0,
+  girar: 0,
   cabezaPitch: 0,
   cabezaYaw: 0,
 };
@@ -230,6 +242,7 @@ export function mezclarPose(a: Pose, b: Pose, k: number, arcoManos = 0.06): Pose
     separarI: lerp(a.separarI, b.separarI, k),
     agachar: lerp(a.agachar, b.agachar, k),
     inclinar: lerp(a.inclinar, b.inclinar, k),
+    girar: lerp(a.girar, b.girar, k),
     cabezaPitch: lerp(a.cabezaPitch, b.cabezaPitch, k),
     cabezaYaw: lerp(a.cabezaYaw, b.cabezaYaw, k),
   };
@@ -281,6 +294,7 @@ export interface Esqueleto {
   pelvis: V3;
   pivote: V3;
   inclinar: number;
+  girar: number;
   cuello: V3;
   cabeza: V3;
   cabezaPitch: number;
@@ -309,16 +323,23 @@ function desplazamientoPelvis(agachar: number): V3 {
 
 /**
  * Lleva un punto del cuerpo erguido a la postura actual: baja con la pelvis y,
- * si está por encima de la cintura, rota con la inclinación del torso.
+ * si está por encima de la cintura, rota con la inclinación y el giro del torso.
  */
-export function transformarPunto(p: V3, agachar: number, inclinar: number): V3 {
+export function transformarPunto(p: V3, agachar: number, inclinar: number, girar = 0): V3 {
   const off = desplazamientoPelvis(agachar);
   const pivote: V3 = [0, PROP.pivoteY + off[1], off[2]];
   const q = sumaV(p, off);
   if (p[1] < PROP.pivoteY - 0.04) return q;
   // Mezcla suave cerca de la cintura para que no haya un salto.
   const k = clamp((p[1] - (PROP.pivoteY - 0.04)) / 0.08);
-  return rotarX(q, inclinar * k, pivote);
+  const r = rotarX(q, inclinar * k, pivote);
+  return girar ? girarEn(r, girar * k, pivote) : r;
+}
+
+/** Gira un punto alrededor de la vertical que pasa por `pivote` (+ hacia +X). */
+function girarEn(p: V3, ang: number, pivote: V3): V3 {
+  const r = rotarY(restaV(p, pivote), ang);
+  return sumaV(r, pivote);
 }
 
 function marcoPalma(muneca: V3, antebrazo: V3, dedos: V3 | null, palma: V3) {
@@ -333,8 +354,8 @@ function marcoPalma(muneca: V3, antebrazo: V3, dedos: V3 | null, palma: V3) {
 
 export function resolverEsqueleto(p: Pose): Esqueleto {
   const off = desplazamientoPelvis(p.agachar);
-  const T = (q: V3) => transformarPunto(q, p.agachar, p.inclinar);
-  const rotarDir = (d: V3) => rotarX(d, p.inclinar, [0, 0, 0]);
+  const T = (q: V3) => transformarPunto(q, p.agachar, p.inclinar, p.girar);
+  const rotarDir = (d: V3) => rotarY(rotarX(d, p.inclinar, [0, 0, 0]), p.girar);
 
   const pelvis = sumaV([0, PROP.caderaY, 0], off);
   const pivote: V3 = [0, PROP.pivoteY + off[1], off[2]];
@@ -360,10 +381,11 @@ export function resolverEsqueleto(p: Pose): Esqueleto {
     pelvis,
     pivote,
     inclinar: p.inclinar,
+    girar: p.girar,
     cuello,
     cabeza,
     cabezaPitch: p.cabezaPitch + p.inclinar,
-    cabezaYaw: p.cabezaYaw,
+    cabezaYaw: p.cabezaYaw + p.girar,
     hombroD,
     hombroI,
     codoD: bD.medio,

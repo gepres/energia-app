@@ -300,7 +300,7 @@ export function OrganosYCentros() {
     lista.forEach((p, k) => {
       const v = p.tipo === 'organo' ? (e.organos[p.id] ?? 0) : (e.centros[p.id as keyof typeof e.centros] ?? 0);
       if (v > 0.003) algo = true;
-      const w = aMundo(0, transformarPunto(p.local, r.pose.agachar, r.pose.inclinar));
+      const w = aMundo(0, transformarPunto(p.local, r.pose.agachar, r.pose.inclinar, r.pose.girar));
       pos.setXYZ(k, w[0], w[1], w[2]);
       const latido = escena.reducido ? 1 : 0.85 + 0.15 * Math.sin(reloj.valor * 3 + k);
       alfa.setX(k, Math.min(1, v) * latido);

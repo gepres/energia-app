@@ -9,6 +9,8 @@ import { SECUENCIAS } from './index';
 import { OPCIONES_INICIALES, duracionTotal, evaluar, ubicar } from './motor';
 import { faseSellado } from './sellarCielo';
 import { faseUnir } from './unirBarras';
+import { DUR_CARGAS, SEG_ANTES, SEG_CICLO, DESFASE } from './cargarOmbligo';
+import { GIRAR_INGLES, INCLINAR_INGLES, INGLE_DER, INGLE_IZQ } from '../escena/poses';
 import { masajeInterno } from './masajeManos';
 import { chakrasInterno } from './recorridoPorChakras';
 import { sensibilizarInterno } from './sensibilizarManos';
@@ -186,6 +188,51 @@ describe('manos articuladas', () => {
     expect(dist(1)).toBeLessThan(abierta - 0.03);
   });
 });
+
+/** Piel del torso, el cuello y la cabeza (vértices y normales) en una pose. */
+function pielDelCuerpo(e: Estado) {
+  const q = resolverEsqueleto(e.figuras[0].pose);
+  const torso = crearTorso();
+  torso.deformar(q);
+  const g = crearGeometrias();
+  const piezas: [BufferGeometry, Matrix4][] = [
+    [torso.geometry, new Matrix4()],
+    [g.cuello, new Matrix4().makeRotationFromEuler(new Euler(q.inclinar, q.girar, 0, 'YXZ')).setPosition(...q.cuello)],
+    [g.cabeza, new Matrix4().makeRotationFromEuler(new Euler(q.cabezaPitch, q.cabezaYaw, 0, 'YXZ')).setPosition(...q.cabeza)],
+  ];
+  const pts: number[][] = [];
+  const nor: number[][] = [];
+  const v = new Vector3();
+  for (const [geo0, m] of piezas) {
+    const geo = geo0;
+    if (!geo.getAttribute('normal')) geo.computeVertexNormals();
+    const pos = geo.getAttribute('position');
+    const nrm = geo.getAttribute('normal');
+    const rot = new Matrix4().extractRotation(m);
+    for (let i = 0; i < pos.count; i++) {
+      v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(m);
+      pts.push([v.x, v.y, v.z]);
+      v.set(nrm.getX(i), nrm.getY(i), nrm.getZ(i)).applyMatrix4(rot).normalize();
+      nor.push([v.x, v.y, v.z]);
+    }
+  }
+  return { pts, nor };
+}
+/** Distancia con signo de un punto a la piel (negativa si está adentro), según el vértice más cercano. */
+function distanciaConSigno(c: number[], s: { pts: number[][]; nor: number[][] }) {
+  let m = 1e9;
+  let k = 0;
+  s.pts.forEach((q, i) => {
+    const d = Math.hypot(c[0] - q[0], c[1] - q[1], c[2] - q[2]);
+    if (d < m) {
+      m = d;
+      k = i;
+    }
+  });
+  const n = s.nor[k];
+  const lado = [0, 1, 2].reduce((a, j) => a + (c[j] - s.pts[k][j]) * n[j], 0);
+  return lado < 0 ? -m : m;
+}
 
 describe('Cargar el ombligo (descrito en el taller)', () => {
   const sec = SECUENCIAS['cargar-ombligo'];
@@ -1058,50 +1105,8 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
   });
 
   it('el recorrido es de ida y vuelta (dedos → hombro → dedos) y la mano que recorre no atraviesa el cuerpo', () => {
-    /** Piel del torso, el cuello y la cabeza (vértices y normales) en una pose. */
-    const piel = (e: Estado) => {
-      const q = resolverEsqueleto(e.figuras[0].pose);
-      const torso = crearTorso();
-      torso.deformar(q);
-      const g = crearGeometrias();
-      const piezas: [BufferGeometry, Matrix4][] = [
-        [torso.geometry, new Matrix4()],
-        [g.cuello, new Matrix4().makeRotationFromEuler(new Euler(q.inclinar, 0, 0)).setPosition(...q.cuello)],
-        [g.cabeza, new Matrix4().makeRotationFromEuler(new Euler(q.cabezaPitch, q.cabezaYaw, 0, 'YXZ')).setPosition(...q.cabeza)],
-      ];
-      const pts: number[][] = [];
-      const nor: number[][] = [];
-      const v = new Vector3();
-      for (const [geo0, m] of piezas) {
-        const geo = geo0;
-        if (!geo.getAttribute('normal')) geo.computeVertexNormals();
-        const pos = geo.getAttribute('position');
-        const nrm = geo.getAttribute('normal');
-        const rot = new Matrix4().extractRotation(m);
-        for (let i = 0; i < pos.count; i++) {
-          v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(m);
-          pts.push([v.x, v.y, v.z]);
-          v.set(nrm.getX(i), nrm.getY(i), nrm.getZ(i)).applyMatrix4(rot).normalize();
-          nor.push([v.x, v.y, v.z]);
-        }
-      }
-      return { pts, nor };
-    };
-    /** Distancia con signo de un punto a la piel (negativa si está adentro), según el vértice más cercano. */
-    const conSigno = (c: number[], s: { pts: number[][]; nor: number[][] }) => {
-      let m = 1e9;
-      let k = 0;
-      s.pts.forEach((q, i) => {
-        const d = dist(c, q);
-        if (d < m) {
-          m = d;
-          k = i;
-        }
-      });
-      const n = s.nor[k];
-      const lado = [0, 1, 2].reduce((a, j) => a + (c[j] - s.pts[k][j]) * n[j], 0);
-      return lado < 0 ? -m : m;
-    };
+    const piel = pielDelCuerpo;
+    const conSigno = distanciaConSigno;
     for (const [paso, A] of [
       [3, PRIMERO],
       [7, SEGUNDO],
@@ -1140,6 +1145,136 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
         const donde = valores.indexOf(peor) >= muestrasBrazo.length - 7 ? (valores.indexOf(peor) >= muestrasBrazo.length - 3 ? 'el brazo' : 'el antebrazo') : 'la mano';
         expect(peor, `${A}: recorrido ${i}/16, ${donde} dentro del cuerpo`).toBeGreaterThan(-0.005);
       }
+    }
+  });
+});
+
+describe('Cargar las ingles (descrito en el taller)', () => {
+  const sec = SECUENCIAS['cargar-ingles'];
+  const dist = (a: number[], b: number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  /** Estado en `x` ciclos desde la primera carga del paso 2. */
+  const enCiclo = (x: number) => evaluar(sec, 1, (SEG_ANTES + x * SEG_CICLO) / DUR_CARGAS, OPCIONES_INICIALES);
+  const palmas = (e: Estado) => {
+    const q = resolverEsqueleto(e.figuras[0].pose);
+    return { D: huecoPalma(q.munecaD, q.palmaD.dedos, q.palmaD.normal, 0), I: huecoPalma(q.munecaI, q.palmaI.dedos, q.palmaI.normal, 0), q };
+  };
+  const cuenta = (t: number) => {
+    const c = evaluar(sec, 1, t, OPCIONES_INICIALES).hud.contador;
+    const m = c?.etiqueta.match(/derecha (\d+) · izquierda (\d+)/);
+    return m ? { d: Number(m[1]), i: Number(m[2]), total: c!.valor } : null;
+  };
+
+  it('alterna las manos, empezando por la derecha, hasta 15 por cada una', () => {
+    let previa = { d: 0, i: 0 };
+    for (let k = 0; k <= 400; k++) {
+      const c = cuenta(k / 400);
+      if (!c) continue;
+      expect(Math.abs(c.d - c.i), `t=${k / 400}`).toBeLessThanOrEqual(1);
+      expect(c.d).toBeGreaterThanOrEqual(c.i);
+      expect(c.d).toBeGreaterThanOrEqual(previa.d);
+      expect(c.i).toBeGreaterThanOrEqual(previa.i);
+      previa = c;
+    }
+    expect(previa).toMatchObject({ d: 15, i: 15 });
+  });
+
+  it('cada mano lleva su esfera a la ingle del otro lado: la derecha a la izquierda y la izquierda a la derecha', () => {
+    // Primera carga de la derecha (ciclo 0) y de la izquierda (ciclo 1), a mitad de la entrega.
+    const d = enCiclo(0.82);
+    const pd = palmas(d);
+    expect(pd.D[0], 'la derecha cruza al lado izquierdo').toBeGreaterThan(0.03);
+    expect(dist(pd.D, INGLE_IZQ)).toBeLessThan(0.07);
+    expect(dist(d.esferas[1].pos, INGLE_IZQ)).toBeLessThan(0.05);
+    // Mientras tanto, la izquierda espera agarrando su barra.
+    expect(pd.q.munecaI[1]).toBeGreaterThan(1.3);
+    const i = enCiclo(DESFASE + 0.82);
+    const pi = palmas(i);
+    expect(pi.I[0], 'la izquierda cruza al lado derecho').toBeLessThan(-0.03);
+    expect(dist(pi.I, INGLE_DER)).toBeLessThan(0.07);
+    expect(dist(i.esferas[2].pos, INGLE_DER)).toBeLessThan(0.05);
+    expect(pi.q.munecaD[1]).toBeGreaterThan(1.3);
+  });
+
+  it('las cargas se acumulan en cada ingle (15 en cada una) y las dos ingles se encienden', () => {
+    const fin = evaluar(sec, 1, 1, OPCIONES_INICIALES);
+    expect(dist(fin.esferas[0].pos, INGLE_IZQ)).toBeLessThan(1e-6);
+    expect(dist(fin.esferas[3].pos, INGLE_DER)).toBeLessThan(1e-6);
+    expect(fin.esferas[0].radio).toBeCloseTo(0.04, 5);
+    expect(fin.esferas[3].radio).toBeCloseTo(0.04, 5);
+    expect(fin.centros.ingleI).toBeCloseTo(1, 5);
+    expect(fin.centros.ingleD).toBeCloseTo(1, 5);
+    // Las ingles quedan a cada lado, a la misma altura.
+    expect(INGLE_IZQ[0]).toBeGreaterThan(0);
+    expect(INGLE_DER[0]).toBeLessThan(0);
+    expect(INGLE_IZQ[1]).toBe(INGLE_DER[1]);
+  });
+
+  it('para llegar, el torso se inclina un poco y gira hacia la ingle a la que va la mano; los brazos llegan siempre a donde se los pide', () => {
+    expect(enCiclo(0.82).figuras[0].pose.inclinar).toBeCloseTo(INCLINAR_INGLES, 5);
+    // Un poco: menos de 15° de inclinación y menos de 25° de giro.
+    expect(INCLINAR_INGLES).toBeLessThan(0.26);
+    expect(GIRAR_INGLES).toBeLessThan(0.44);
+    // La derecha va a la ingle izquierda: el torso gira hacia la izquierda (+); la izquierda, hacia la derecha (−).
+    expect(enCiclo(0.82).figuras[0].pose.girar).toBeCloseTo(GIRAR_INGLES, 2);
+    expect(enCiclo(DESFASE + 0.82).figuras[0].pose.girar).toBeCloseTo(-GIRAR_INGLES, 2);
+    expect(evaluar(sec, 1, 1, OPCIONES_INICIALES).figuras[0].pose.girar).toBeCloseTo(0, 5);
+    expect(evaluar(sec, 1, 1, OPCIONES_INICIALES).figuras[0].pose.inclinar).toBeCloseTo(0, 5);
+    for (let paso = 0; paso < sec.pasos.length; paso++) {
+      for (let k = 0; k <= 200; k++) {
+        const p = evaluar(sec, paso, k / 200, OPCIONES_INICIALES).figuras[0].pose;
+        const q = resolverEsqueleto(p);
+        expect(dist(q.munecaD, p.manoD), `paso ${paso + 1}, t ${k / 200}, derecha`).toBeLessThan(0.003);
+        expect(dist(q.munecaI, p.manoI), `paso ${paso + 1}, t ${k / 200}, izquierda`).toBeLessThan(0.003);
+      }
+    }
+  });
+
+  it('el brazo que cruza no se mete en el cuerpo ni en los muslos, ni choca con el otro brazo', () => {
+    for (let k = 0; k <= 40; k++) {
+      const x = (2 * DESFASE * k) / 40;
+      const e = enCiclo(x);
+      const p = e.figuras[0].pose;
+      const q = resolverEsqueleto(p);
+      const s = pielDelCuerpo(e);
+      for (const L of ['D', 'I'] as const) {
+        const W = L === 'D' ? q.munecaD : q.munecaI;
+        const E = L === 'D' ? q.codoD : q.codoI;
+        const H = L === 'D' ? q.hombroD : q.hombroI;
+        const pal = L === 'D' ? q.palmaD : q.palmaI;
+        const mano = segmentosMano(W, pal.dedos, pal.normal, L === 'D' ? 1 : -1, L === 'D' ? p.cierreD : p.cierreI);
+        const puntos: [number[], number][] = [];
+        for (const g of mano.slice(1)) for (const u of [0, 0.5, 1]) puntos.push([g.pos.map((v, i) => v + g.dir[i] * g.largo * u), g.radio]);
+        for (const u of [0, 0.25, 0.5, 0.75]) puntos.push([W.map((v, i) => v + (E[i] - v) * u), 0.03]);
+        for (const u of [0, 0.25, 0.5]) puntos.push([E.map((v, i) => v + (H[i] - v) * u), 0.04]);
+        // Torso, cuello y cabeza (malla real).
+        const peor = Math.min(...puntos.map(([c, r]) => distanciaConSigno(c, s) - r));
+        expect(peor, `x ${x.toFixed(2)}, brazo ${L} dentro del cuerpo`).toBeGreaterThan(-0.005);
+        // Muslos: cilindros de 7,2 cm de radio de la cadera a la rodilla.
+        for (const [C, Rd] of [
+          [q.caderaD, q.rodillaD],
+          [q.caderaI, q.rodillaI],
+        ]) {
+          for (const [c, r] of puntos) {
+            const ab = Rd.map((v, i) => v - C[i]);
+            const tt = Math.max(0, Math.min(1, ab.reduce((a, v, i) => a + (c[i] - C[i]) * v, 0) / ab.reduce((a, v) => a + v * v, 0)));
+            const d = dist(c, C.map((v, i) => v + ab[i] * tt)) - 0.072 - r;
+            expect(d, `x ${x.toFixed(2)}, brazo ${L} en el muslo`).toBeGreaterThan(-0.005);
+          }
+        }
+      }
+      // Las dos manos no se tocan.
+      const sD = segmentosMano(q.munecaD, q.palmaD.dedos, q.palmaD.normal, 1, p.cierreD);
+      const sI = segmentosMano(q.munecaI, q.palmaI.dedos, q.palmaI.normal, -1, p.cierreI);
+      let libre = 1e9;
+      for (const a of sD)
+        for (const b of sI)
+          for (let u = 0; u <= 4; u++)
+            for (let v = 0; v <= 4; v++) {
+              const pa = a.pos.map((w, i) => w + a.dir[i] * a.largo * (u / 4));
+              const pb = b.pos.map((w, i) => w + b.dir[i] * b.largo * (v / 4));
+              libre = Math.min(libre, dist(pa, pb) - a.radio - b.radio);
+            }
+      expect(libre, `x ${x.toFixed(2)}: las manos se tocan`).toBeGreaterThan(0);
     }
   });
 });

@@ -320,6 +320,36 @@ export const EJERCICIOS: Ejercicio[] = [
       },
     ],
   },
+  {
+    id: 'cargar-ingles',
+    numero: 7,
+    titulo: 'Cargar las ingles',
+    subtitulo: 'cruzadas, 15 por cada mano',
+    origen: 'revision',
+    resumen:
+      'Como «Cargar el ombligo»: brazos bien estirados al frente, tomando la energía de dos barras verticales; las manos, intercaladas, llevan lentamente una esfera cada vez, pero cruzadas: la mano derecha a la ingle izquierda y la izquierda a la ingle derecha. 15 por cada mano.',
+    acento: 'tierra',
+    pasos: [
+      {
+        id: 'brazos-barras',
+        titulo: 'Brazos al frente',
+        texto:
+          'Estirar bien los brazos al frente, a la altura de los hombros (90°), y agarrar la energía que está a la altura de las manos, como barras de energía verticales.',
+        aclaracion: 'Descrito en el taller: como en «Cargar el ombligo».',
+      },
+      {
+        id: 'cargas-cruzadas',
+        titulo: 'Cargas cruzadas · 15 por mano',
+        texto:
+          'Después de un momento, las manos se dirigen lentamente a las ingles llevando una esfera de energía, cruzadas: la mano derecha a la ingle izquierda y la izquierda a la ingle derecha, colocando la esfera en cada una. Intercaladas: derecha, izquierda, derecha… 15 por cada mano.',
+        cantidad: { valor: 15, unidad: 'por cada mano (30 en total)', pregunta: '¿Cuántas cargas a las ingles se hacen con cada mano?' },
+        aclaracion:
+          'Descrito en el taller: parecido a «Cargar el ombligo», pero la mano derecha va a la ingle izquierda y la izquierda a la ingle derecha, colocando las esferas en esas partes. Elegido en la revisión: intercaladas, 15 por mano.',
+        lectura:
+          'Empieza la derecha. Para llegar a la ingle del otro lado, el cuerpo se inclina un poco hacia adelante y gira hacia esa ingle mientras la mano lleva la esfera; cada esfera se acumula en su ingle.',
+      },
+    ],
+  },
 
   // ───────────────────────── VERSIÓN DE REFERENCIA ─────────────────────────
   // ───────────────────────── MANEJO DE ENERGÍA · SET 2026 ─────────────────────────

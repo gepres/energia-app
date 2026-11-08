@@ -83,6 +83,7 @@ function amortiguarPose(act: Pose, obj: Pose, l: number, dt: number) {
   }
   act.agachar = amortiguar(act.agachar, obj.agachar, l, dt);
   act.inclinar = amortiguar(act.inclinar, obj.inclinar, l, dt);
+  act.girar = amortiguar(act.girar, obj.girar, l, dt);
   act.cabezaPitch = amortiguar(act.cabezaPitch, obj.cabezaPitch, l, dt);
   act.cabezaYaw = amortiguar(act.cabezaYaw, obj.cabezaYaw, l, dt);
 }
@@ -187,7 +188,7 @@ export function Maniqui({ indice }: { indice: 0 | 1 }) {
     torso.deformar(e);
     const cuello = refs.cuello.current!;
     cuello.position.set(e.cuello[0], e.cuello[1], e.cuello[2]);
-    cuello.rotation.set(e.inclinar, 0, 0);
+    cuello.rotation.set(e.inclinar, e.girar, 0, 'YXZ');
     const cabeza = refs.cabeza.current!;
     cabeza.position.set(e.cabeza[0], e.cabeza[1], e.cabeza[2]);
     cabeza.rotation.set(e.cabezaPitch, e.cabezaYaw, 0, 'YXZ');
