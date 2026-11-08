@@ -136,6 +136,45 @@ export const EJERCICIOS: Ejercicio[] = [
       },
     ],
   },
+  {
+    id: 'masaje-manos',
+    numero: 4,
+    titulo: 'Masaje de manos y dedos',
+    subtitulo: 'palma y falange por falange',
+    origen: 'revision',
+    resumen:
+      'Con una mano se masajea la otra: primero la palma, con el pulgar en círculos, y después dedo por dedo, cada falange entre el pulgar y el índice, del pulgar al meñique. Después se cambia de mano.',
+    acento: 'rosa',
+    pasos: [
+      {
+        id: 'palma-izquierda',
+        titulo: 'La derecha masajea la palma izquierda',
+        texto: 'Con la mano derecha, sostener la izquierda por debajo y hacer círculos con el pulgar por toda la palma.',
+        aclaracion: 'Descrito en el taller: primero la derecha masajea la izquierda; el pulgar hace círculos por la palma.',
+      },
+      {
+        id: 'dedos-izquierda',
+        titulo: 'Dedo por dedo · mano izquierda',
+        texto:
+          'Masajear la mano izquierda dedo por dedo, del pulgar al meñique: cada falange se toma entre el pulgar (arriba) y el índice (abajo) y se hacen 3 círculos.',
+        cantidad: { valor: 3, unidad: 'círculos por falange', pregunta: '¿Cuántos círculos se hacen en cada falange?' },
+        aclaracion: 'Descrito en el taller: dedo por dedo, por cada falange, con pulgar e índice en círculos; del pulgar al meñique.',
+      },
+      {
+        id: 'palma-derecha',
+        titulo: 'La izquierda masajea la palma derecha',
+        texto: 'Cambiar de mano: con la izquierda, sostener la derecha por debajo y hacer círculos con el pulgar por toda la palma.',
+        aclaracion: 'Descrito en el taller.',
+      },
+      {
+        id: 'dedos-derecha',
+        titulo: 'Dedo por dedo · mano derecha',
+        texto: 'Masajear la mano derecha dedo por dedo, del pulgar al meñique, con 3 círculos en cada falange.',
+        aclaracion: 'Descrito en el taller.',
+        lectura: 'Al terminar, las manos se sueltan a los costados.',
+      },
+    ],
+  },
 
   // ───────────────────────── VERSIÓN DE REFERENCIA ─────────────────────────
   // ───────────────────────── MANEJO DE ENERGÍA · SET 2026 ─────────────────────────

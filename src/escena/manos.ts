@@ -14,7 +14,7 @@ import {
 } from 'three';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Esqueleto } from './cuerpo';
-import { type V3, clamp, cruzV, lerp, normV, puntoV, suave } from './mate';
+import { type V3, clamp, cruzV, lerp, lerpV, normV, puntoV, suave } from './mate';
 
 /**
  * Manos articuladas: palma esculpida y cinco dedos con falanges. Todas las
@@ -232,10 +232,137 @@ function colocar(h: Bone, pos: V3, y: V3, zRef: V3) {
   h.position.set(pos[0], pos[1], pos[2]);
 }
 
+/** Una pieza de la mano: dónde empieza, hacia dónde va, su eje Z (lado de la palma) y medidas (escaladas). */
+export interface Segmento {
+  pos: V3;
+  dir: V3;
+  z: V3;
+  largo: number;
+  radio: number;
+}
+
+/**
+ * Pinza de masaje (medidas sin escala, en el marco de la mano): la falange
+ * proximal del índice queda abajo y la yema del pulgar arriba; entre ellas,
+ * en `HUECO_PINZA`, cabe una falange (o el canto de la palma) de la otra mano.
+ */
+const HUECO_PINZA: V3 = [0.0265, 0.105, 0.0185];
+const PULGAR_PINZA: V3 = [0.0265, 0.106, 0.036];
+
+/**
+ * Cinemática de una mano: las 16 piezas (palma, 4 dedos × 3 falanges y las 3
+ * del pulgar) en el espacio de la figura. `s` = +1 derecha, −1 izquierda.
+ * `pinza` (0–1) lleva el pulgar a la pinza de masaje.
+ */
+export function segmentosMano(muneca: V3, F: V3, N: V3, s: number, cierre: number, pinza = 0): Segmento[] {
+  const X = normV(cruzV(F, N));
+  const T: V3 = [X[0] * s, X[1] * s, X[2] * s];
+  const local = (a: number, b: number, c: number): V3 => [
+    muneca[0] + (T[0] * a + F[0] * b + N[0] * c) * K,
+    muneca[1] + (T[1] * a + F[1] * b + N[1] * c) * K,
+    muneca[2] + (T[2] * a + F[2] * b + N[2] * c) * K,
+  ];
+  const dir = (a: number, b: number, c: number): V3 =>
+    normV([T[0] * a + F[0] * b + N[0] * c, T[1] * a + F[1] * b + N[1] * c, T[2] * a + F[2] * b + N[2] * c]);
+  const avanzar = (p: V3, d: V3, l: number): V3 => [p[0] + d[0] * l * K, p[1] + d[1] * l * K, p[2] + d[2] * l * K];
+  const out: Segmento[] = [{ pos: muneca, dir: F, z: N, largo: 0.1 * K, radio: 0.04 * K }];
+
+  DEDOS.forEach((d) => {
+    const c = clamp(cierre + d.cascada * (0.5 + 0.5 * cierre));
+    const phi = d.abre * (1.15 - 0.55 * cierre);
+    const d0: V3 = normV([
+      F[0] * Math.cos(phi) + T[0] * Math.sin(phi),
+      F[1] * Math.cos(phi) + T[1] * Math.sin(phi),
+      F[2] * Math.cos(phi) + T[2] * Math.sin(phi),
+    ]);
+    // Eje de flexión: los dedos se curvan hacia la palma (N).
+    const L = normV(cruzV(d0, N));
+    const angulos = [c * 1.2, c * 1.55, c * 1.05];
+    const radios = [d.radio, d.radio * 0.93, d.radio * 0.86];
+    let p = local(d.base[0], d.base[1] - 0.006, d.base[2]);
+    let th = 0;
+    for (let j = 0; j < 3; j++) {
+      th += angulos[j];
+      const dj: V3 = normV([
+        d0[0] * Math.cos(th) + N[0] * Math.sin(th),
+        d0[1] * Math.cos(th) + N[1] * Math.sin(th),
+        d0[2] * Math.cos(th) + N[2] * Math.sin(th),
+      ]);
+      out.push({ pos: p, dir: dj, z: cruzV(L, dj), largo: d.largos[j] * K, radio: radios[j] * K });
+      p = avanzar(p, dj, d.largos[j]);
+    }
+  });
+
+  // Pulgar: al cerrar la mano cruza por delante de la palma.
+  const k = clamp(cierre);
+  let metaD = dir(lerp(0.62, 0.36, k * 0.7), lerp(0.66, 0.62, k), lerp(0.42, 0.68, k * 0.7));
+  let proxD = dir(lerp(0.42, -0.25, k * 0.8), lerp(0.84, 0.6, k * 0.8), lerp(0.36, 0.75, k * 0.8));
+  const kd = 0.2 + 0.6 * k;
+  const haciaPalma = dir(-0.55, 0.35, 0.75);
+  let distD = normV(lerpV(proxD, haciaPalma, kd));
+  if (pinza > 0) {
+    // En pinza: el pulgar se arquea por encima y su yema baja sobre el hueco de la pinza.
+    const B = PULGAR.base;
+    const u = normV([PULGAR_PINZA[0] - B[0], PULGAR_PINZA[1] - B[1], PULGAR_PINZA[2] - B[2]]);
+    const [l1, l2, l3] = PULGAR.largos;
+    const d1 = normV([u[0] + 0.1, u[1], u[2] + 0.25]);
+    const d3 = normV([u[0], u[1], u[2] - 0.35]);
+    const resto: V3 = [
+      PULGAR_PINZA[0] - B[0] - d1[0] * l1 - d3[0] * l3,
+      PULGAR_PINZA[1] - B[1] - d1[1] * l1 - d3[1] * l3,
+      PULGAR_PINZA[2] - B[2] - d1[2] * l1 - d3[2] * l3,
+    ];
+    const d2 = normV(resto);
+    void l2;
+    const q = clamp(pinza);
+    metaD = normV(lerpV(metaD, dir(d1[0], d1[1], d1[2]), q));
+    proxD = normV(lerpV(proxD, dir(d2[0], d2[1], d2[2]), q));
+    distD = normV(lerpV(distD, dir(d3[0], d3[1], d3[2]), q));
+  }
+  let p = local(PULGAR.base[0], PULGAR.base[1], PULGAR.base[2]);
+  [metaD, proxD, distD].forEach((dj, j) => {
+    // La uña mira hacia afuera de la palma: Z de la pieza ≈ −N girado hacia el pulgar.
+    const zRef: V3 = puntoV(dj, N) > 0.9 ? T : N;
+    out.push({ pos: p, dir: dj, z: zRef, largo: PULGAR.largos[j] * K, radio: PULGAR.radios[j + 1] * K });
+    p = avanzar(p, dj, PULGAR.largos[j]);
+  });
+  return out;
+}
+
+/** Índices de las falanges en `segmentosMano`: pulgar (proximal, distal) e índice → meñique (3 cada uno). */
+export const FALANGES: { dedo: string; falange: number; i: number }[] = [
+  { dedo: 'pulgar', falange: 1, i: 14 },
+  { dedo: 'pulgar', falange: 2, i: 15 },
+  ...['índice', 'medio', 'anular', 'meñique'].flatMap((dedo, n) => [1, 2, 3].map((f) => ({ dedo, falange: f, i: 1 + n * 3 + (f - 1) }))),
+];
+
+/**
+ * Dónde poner la mano que masajea para que su pinza tome algo en `C`: `d` es
+ * el eje de lo que toma (la falange) y `n` su lado de arriba (el pulgar va de
+ * ese lado y el índice del otro). Devuelve la muñeca y el marco de la palma.
+ */
+export function manoEnPinza(C: V3, d: V3, n: V3, s: number): { muneca: V3; dedos: V3; palma: V3 } {
+  const N = normV(n);
+  const c = normV(cruzV(N, d));
+  const F: V3 = [c[0] * s, c[1] * s, c[2] * s];
+  const X = cruzV(F, N);
+  const T: V3 = [X[0] * s, X[1] * s, X[2] * s];
+  const [a, b, cc] = HUECO_PINZA;
+  return {
+    muneca: [
+      C[0] - (T[0] * a + F[0] * b + N[0] * cc) * K,
+      C[1] - (T[1] * a + F[1] * b + N[1] * cc) * K,
+      C[2] - (T[2] * a + F[2] * b + N[2] * cc) * K,
+    ],
+    dedos: F,
+    palma: N,
+  };
+}
+
 export interface Manos {
   malla: SkinnedMesh;
   raiz: Bone;
-  actualizar: (e: Esqueleto, cierreD: number, cierreI: number) => void;
+  actualizar: (e: Esqueleto, cierreD: number, cierreI: number, pinzaD?: number, pinzaI?: number) => void;
 }
 
 export function crearManos(material: Material): Manos {
@@ -252,71 +379,16 @@ export function crearManos(material: Material): Manos {
   malla.bind(esqueleto, new Matrix4());
   malla.frustumCulled = false;
 
-  function mano(h0: number, s: number, muneca: V3, F: V3, N: V3, cierre: number) {
-    const X = normV(cruzV(F, N));
-    const T: V3 = [X[0] * s, X[1] * s, X[2] * s];
-    const local = (a: number, b: number, c: number): V3 => [
-      muneca[0] + (T[0] * a + F[0] * b + N[0] * c) * K,
-      muneca[1] + (T[1] * a + F[1] * b + N[1] * c) * K,
-      muneca[2] + (T[2] * a + F[2] * b + N[2] * c) * K,
-    ];
-    const dir = (a: number, b: number, c: number): V3 =>
-      normV([T[0] * a + F[0] * b + N[0] * c, T[1] * a + F[1] * b + N[1] * c, T[2] * a + F[2] * b + N[2] * c]);
-    const avanzar = (p: V3, d: V3, l: number): V3 => [p[0] + d[0] * l * K, p[1] + d[1] * l * K, p[2] + d[2] * l * K];
-
-    colocar(huesos[h0], muneca, F, N);
-
-    DEDOS.forEach((d, i) => {
-      const c = clamp(cierre + d.cascada * (0.5 + 0.5 * cierre));
-      const phi = d.abre * (1.15 - 0.55 * cierre);
-      const d0: V3 = normV([
-        F[0] * Math.cos(phi) + T[0] * Math.sin(phi),
-        F[1] * Math.cos(phi) + T[1] * Math.sin(phi),
-        F[2] * Math.cos(phi) + T[2] * Math.sin(phi),
-      ]);
-      // Eje de flexión: los dedos se curvan hacia la palma (N).
-      const L = normV(cruzV(d0, N));
-      const angulos = [c * 1.2, c * 1.55, c * 1.05];
-      let p = local(d.base[0], d.base[1] - 0.006, d.base[2]);
-      let th = 0;
-      for (let j = 0; j < 3; j++) {
-        th += angulos[j];
-        const dj: V3 = normV([
-          d0[0] * Math.cos(th) + N[0] * Math.sin(th),
-          d0[1] * Math.cos(th) + N[1] * Math.sin(th),
-          d0[2] * Math.cos(th) + N[2] * Math.sin(th),
-        ]);
-        colocar(huesos[h0 + 1 + i * 3 + j], p, dj, cruzV(L, dj));
-        p = avanzar(p, dj, d.largos[j]);
-      }
-    });
-
-    // Pulgar: al cerrar la mano cruza por delante de la palma.
-    const k = clamp(cierre);
-    const metaD = dir(lerp(0.62, 0.36, k * 0.7), lerp(0.66, 0.62, k), lerp(0.42, 0.68, k * 0.7));
-    const proxD = dir(lerp(0.42, -0.25, k * 0.8), lerp(0.84, 0.6, k * 0.8), lerp(0.36, 0.75, k * 0.8));
-    const kd = 0.2 + 0.6 * k;
-    const distD = normV([
-      proxD[0] + (dir(-0.55, 0.35, 0.75)[0] - proxD[0]) * kd,
-      proxD[1] + (dir(-0.55, 0.35, 0.75)[1] - proxD[1]) * kd,
-      proxD[2] + (dir(-0.55, 0.35, 0.75)[2] - proxD[2]) * kd,
-    ]);
-    const hp = h0 + 1 + DEDOS.length * 3;
-    let p = local(PULGAR.base[0], PULGAR.base[1], PULGAR.base[2]);
-    [metaD, proxD, distD].forEach((dj, j) => {
-      // La uña mira hacia afuera de la palma: Z de la pieza ≈ −N girado hacia el pulgar.
-      const zRef: V3 = puntoV(dj, N) > 0.9 ? T : N;
-      colocar(huesos[hp + j], p, dj, zRef);
-      p = avanzar(p, dj, PULGAR.largos[j]);
-    });
+  function mano(h0: number, s: number, muneca: V3, F: V3, N: V3, cierre: number, pinza: number) {
+    segmentosMano(muneca, F, N, s, cierre, pinza).forEach((g, j) => colocar(huesos[h0 + j], g.pos, g.dir, g.z));
   }
 
   return {
     malla,
     raiz,
-    actualizar(e, cierreD, cierreI) {
-      mano(LADOS[0].h0, LADOS[0].s, e.munecaD, e.palmaD.dedos, e.palmaD.normal, cierreD);
-      mano(LADOS[1].h0, LADOS[1].s, e.munecaI, e.palmaI.dedos, e.palmaI.normal, cierreI);
+    actualizar(e, cierreD, cierreI, pinzaD = 0, pinzaI = 0) {
+      mano(LADOS[0].h0, LADOS[0].s, e.munecaD, e.palmaD.dedos, e.palmaD.normal, cierreD, pinzaD);
+      mano(LADOS[1].h0, LADOS[1].s, e.munecaI, e.palmaI.dedos, e.palmaI.normal, cierreI, pinzaI);
     },
   };
 }

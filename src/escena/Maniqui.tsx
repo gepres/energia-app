@@ -63,6 +63,8 @@ function amortiguarPose(act: Pose, obj: Pose, l: number, dt: number) {
   }
   act.cierreD = amortiguar(act.cierreD, obj.cierreD, l, dt);
   act.cierreI = amortiguar(act.cierreI, obj.cierreI, l, dt);
+  act.pinzaD = amortiguar(act.pinzaD, obj.pinzaD, l, dt);
+  act.pinzaI = amortiguar(act.pinzaI, obj.pinzaI, l, dt);
   act.agachar = amortiguar(act.agachar, obj.agachar, l, dt);
   act.inclinar = amortiguar(act.inclinar, obj.inclinar, l, dt);
   act.cabezaPitch = amortiguar(act.cabezaPitch, obj.cabezaPitch, l, dt);
@@ -207,7 +209,7 @@ export function Maniqui({ indice }: { indice: 0 | 1 }) {
     art.instanceMatrix.needsUpdate = true;
 
     // Manos con dedos articulados
-    manos.actualizar(e, p.cierreD, p.cierreI);
+    manos.actualizar(e, p.cierreD, p.cierreI, p.pinzaD, p.pinzaI);
 
     // Pies (fijos en el piso)
     const pie = refs.pie.current!;

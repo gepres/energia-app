@@ -112,6 +112,9 @@ export interface Pose {
   /** Cierre de los dedos: 0 mano plana, ~0,3 relajada, 1 puño. */
   cierreD: number;
   cierreI: number;
+  /** Pinza de masaje (0–1): el pulgar se arquea sobre la falange proximal del índice. */
+  pinzaD: number;
+  pinzaI: number;
   /** Descenso de la pelvis (m): 0 de pie, ~0,6 en cuclillas. */
   agachar: number;
   /** Inclinación del torso hacia delante (rad). */
@@ -131,6 +134,8 @@ export const NEUTRA: Pose = {
   dedosI: [0.05, -1, 0.02],
   cierreD: 0.3,
   cierreI: 0.3,
+  pinzaD: 0,
+  pinzaI: 0,
   agachar: 0,
   inclinar: 0,
   cabezaPitch: 0,
@@ -170,6 +175,8 @@ export function mezclarPose(a: Pose, b: Pose, k: number, arcoManos = 0.06): Pose
     dedosI: mezclarDir(a.dedosI, b.dedosI, k),
     cierreD: lerp(a.cierreD, b.cierreD, k),
     cierreI: lerp(a.cierreI, b.cierreI, k),
+    pinzaD: lerp(a.pinzaD, b.pinzaD, k),
+    pinzaI: lerp(a.pinzaI, b.pinzaI, k),
     agachar: lerp(a.agachar, b.agachar, k),
     inclinar: lerp(a.inclinar, b.inclinar, k),
     cabezaPitch: lerp(a.cabezaPitch, b.cabezaPitch, k),

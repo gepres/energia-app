@@ -5,6 +5,7 @@ import { TOMAS } from './comunes';
 import { cargarOmbligo } from './cargarOmbligo';
 import { sellarCielo } from './sellarCielo';
 import { unirBarras } from './unirBarras';
+import { masajeManos } from './masajeManos';
 import { enraizar } from './enraizar';
 import { liberarCreencias } from './liberar';
 import { activarCentros, cargaYSellado, recorridoChakras, selladoFinal, sensibilizarManos } from './notas';
@@ -31,6 +32,7 @@ const PROPIAS: Record<string, Secuencia> = {
   'cargar-ombligo': cargarOmbligo,
   'sellar-cielo': sellarCielo,
   'colocar-tres-puntos': unirBarras,
+  'masaje-manos': masajeManos,
   'liberar-creencias': liberarCreencias,
   'equilibrar-organos': equilibrarOrganos,
   'sanar-otra-persona': sanarOtraPersona,

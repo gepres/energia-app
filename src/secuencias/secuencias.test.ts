@@ -2,13 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { DUDAS, EJERCICIOS, ORGANOS, fraseOrgano } from '../contenido/ejercicios';
 import { MeshBasicMaterial } from 'three';
 import { NEUTRA, PUNTOS, ik2, resolverEsqueleto } from '../escena/cuerpo';
-import { crearManos, huecoPalma } from '../escena/manos';
+import { crearManos, huecoPalma, segmentosMano } from '../escena/manos';
 import type { Estado } from '../escena/estado';
 import { largoV, restaV } from '../escena/mate';
 import { SECUENCIAS } from './index';
 import { OPCIONES_INICIALES, duracionTotal, evaluar, ubicar } from './motor';
 import { faseSellado } from './sellarCielo';
 import { faseUnir } from './unirBarras';
+import { masajeInterno } from './masajeManos';
 
 const MUESTRAS = [0, 0.13, 0.37, 0.5, 0.71, 0.94, 1];
 
@@ -394,5 +395,58 @@ describe('Colocar energía en los 3 puntos (descrito en el taller)', () => {
     }
     const esq = resolverEsqueleto(e.figuras[0].pose);
     expect(esq.munecaD[1]).toBeLessThan(1.0);
+  });
+});
+
+describe('Masaje de manos y dedos (descrito en el taller)', () => {
+  const { RECORRIDO, tomar, poseMasajeada } = masajeInterno;
+
+  for (const [masajeada, masajea, s] of [
+    ['I', 'D', 1],
+    ['D', 'I', -1],
+  ] as const) {
+    it(`la mano ${masajea === 'D' ? 'derecha' : 'izquierda'} toma cada zona y cada falange con el pulgar arriba y el índice abajo`, () => {
+      const paradas = RECORRIDO[masajeada];
+      expect(paradas.filter((p) => p.tipo === 'palma')).toHaveLength(5);
+      expect(paradas.filter((p) => p.tipo === 'falange')).toHaveLength(14);
+      for (const p of paradas) {
+        const m = tomar(masajea, p);
+        const pose = poseMasajeada(masajeada);
+        if (masajea === 'D') Object.assign(pose, { manoD: m.muneca, dedosD: m.dedos, palmaD: m.palma, codoD: [-1, -0.8, -0.1] });
+        else Object.assign(pose, { manoI: m.muneca, dedosI: m.dedos, palmaI: m.palma, codoI: [1, -0.8, -0.1] });
+        const esq = resolverEsqueleto(pose);
+        const muneca = masajea === 'D' ? esq.munecaD : esq.munecaI;
+        // El brazo llega: la muñeca está donde la pide la pinza.
+        expect(Math.hypot(muneca[0] - m.muneca[0], muneca[1] - m.muneca[1], muneca[2] - m.muneca[2]), `${p.dedo ?? 'palma'} ${p.falange ?? ''}`).toBeLessThan(0.003);
+        const pm = masajea === 'D' ? esq.palmaD : esq.palmaI;
+        const segs = segmentosMano(muneca, pm.dedos, pm.normal, s, 0.12, 1);
+        const pul = segs[15];
+        const yema = [0, 1, 2].map((i) => pul.pos[i] + pul.dir[i] * pul.largo - p.C[i]);
+        const arriba = yema[0] * p.n[0] + yema[1] * p.n[1] + yema[2] * p.n[2];
+        expect(arriba, `${p.dedo ?? 'palma'} ${p.falange ?? ''}: pulgar arriba`).toBeGreaterThan(0.008);
+        expect(arriba).toBeLessThan(0.03);
+        const idx = segs[1];
+        const w = [0, 1, 2].map((i) => p.C[i] - idx.pos[i]);
+        const t = Math.max(0, Math.min(idx.largo, w[0] * idx.dir[0] + w[1] * idx.dir[1] + w[2] * idx.dir[2]));
+        const abajo = [0, 1, 2].map((i) => idx.pos[i] + idx.dir[i] * t - p.C[i]);
+        expect(abajo[0] * p.n[0] + abajo[1] * p.n[1] + abajo[2] * p.n[2], `${p.dedo ?? 'palma'} ${p.falange ?? ''}: índice abajo`).toBeLessThan(-0.008);
+      }
+    });
+  }
+
+  it('recorre los dedos del pulgar al meñique, falange por falange', () => {
+    const dedos = RECORRIDO.I.filter((p) => p.tipo === 'falange').map((p) => `${p.dedo}${p.falange}`);
+    expect(dedos).toEqual(['pulgar1', 'pulgar2', 'índice1', 'índice2', 'índice3', 'medio1', 'medio2', 'medio3', 'anular1', 'anular2', 'anular3', 'meñique1', 'meñique2', 'meñique3']);
+    const sec = SECUENCIAS['masaje-manos'];
+    // Primero masajea la derecha (paso 2) y después la izquierda (paso 4).
+    expect(evaluar(sec, 1, 0.5, OPCIONES_INICIALES).figuras[0].pose.pinzaD).toBe(1);
+    expect(evaluar(sec, 3, 0.5, OPCIONES_INICIALES).figuras[0].pose.pinzaI).toBe(1);
+    let previo = 0;
+    for (let i = 0; i <= 200; i++) {
+      const v = evaluar(sec, 1, i / 200, OPCIONES_INICIALES).hud.contador?.valor ?? 0;
+      expect(v).toBeGreaterThanOrEqual(previo);
+      previo = v;
+    }
+    expect(previo).toBe(5);
   });
 });
