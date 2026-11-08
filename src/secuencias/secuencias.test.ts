@@ -10,6 +10,11 @@ import { OPCIONES_INICIALES, duracionTotal, evaluar, ubicar } from './motor';
 import { faseSellado } from './sellarCielo';
 import { faseUnir } from './unirBarras';
 import { masajeInterno } from './masajeManos';
+import { chakrasInterno } from './recorridoPorChakras';
+import { R_UNIDA } from './unirBarras';
+import { SERENA } from '../escena/poses';
+import { crearGeometrias, crearTorso } from '../escena/cuerpoGeo';
+import { Euler, Matrix4, Vector3, type BufferGeometry } from 'three';
 
 const MUESTRAS = [0, 0.13, 0.37, 0.5, 0.71, 0.94, 1];
 
@@ -472,5 +477,102 @@ describe('Masaje de manos y dedos (descrito en el taller)', () => {
       previo = v;
     }
     expect(previo).toBe(5);
+  });
+});
+
+describe('Recorrido por chakras (descrito en el taller)', () => {
+  const { PARADAS, TRAMOS, PAUSA, ARRIBA, CURVA, puntoEnCurva, enRecorrido } = chakrasInterno;
+  const sec = SECUENCIAS['recorrido-por-chakras'];
+
+  it('baja por la espalda, pasa por la ingle y sube por el frente, en el orden del taller', () => {
+    expect(PARADAS.map((p) => p.nombre)).toEqual([
+      'nuca',
+      'detrás de la garganta',
+      'detrás del pecho',
+      'detrás del ombligo',
+      'ingle',
+      'ombligo',
+      'centro del pecho',
+      'garganta',
+      'centro de la frente',
+    ]);
+    // Las cuatro primeras por detrás (bajando) y las de adelante, subiendo.
+    const atras = PARADAS.slice(0, 4);
+    for (const p of atras) expect(p.pos[2]).toBeLessThan(0);
+    for (const p of PARADAS.slice(4)) expect(p.pos[2]).toBeGreaterThan(0);
+    for (let i = 1; i < 4; i++) expect(atras[i].pos[1]).toBeLessThan(atras[i - 1].pos[1]);
+    for (let i = 5; i < PARADAS.length; i++) expect(PARADAS[i].pos[1]).toBeGreaterThan(PARADAS[i - 1].pos[1]);
+    // Empieza y termina arriba de la coronilla.
+    expect(CURVA[0]).toEqual(ARRIBA);
+    expect(CURVA[CURVA.length - 1]).toEqual(ARRIBA);
+  });
+
+  it('se detiene 2 s en cada punto, quieta, y llega justo a cada uno', () => {
+    expect(PAUSA).toBe(2);
+    for (const tr of TRAMOS.filter((x) => x.i >= 0)) {
+      const llega = tr.inicio + tr.viaje;
+      const a = puntoEnCurva(enRecorrido(llega + 0.01).s);
+      const b = puntoEnCurva(enRecorrido(llega + PAUSA - 0.01).s);
+      expect(largoV(restaV(a, b)), PARADAS[tr.i].nombre).toBeLessThan(1e-9);
+      expect(largoV(restaV(a, PARADAS[tr.i].pos)), PARADAS[tr.i].nombre).toBeLessThan(1e-6);
+      expect(enRecorrido(llega + 1).pausa).not.toBeNull();
+    }
+  });
+
+  it('se desliza pegada al cuerpo sin atravesarlo (salvo al pasar entre las piernas)', () => {
+    const e = resolverEsqueleto(SERENA);
+    const torso = crearTorso();
+    torso.deformar(e);
+    const g = crearGeometrias();
+    const piezas: [BufferGeometry, Matrix4][] = [
+      [torso.geometry, new Matrix4()],
+      [g.cuello, new Matrix4().makeRotationFromEuler(new Euler(e.inclinar, 0, 0)).setPosition(...e.cuello)],
+      [g.cabeza, new Matrix4().makeRotationFromEuler(new Euler(e.cabezaPitch, e.cabezaYaw, 0, 'YXZ')).setPosition(...e.cabeza)],
+    ];
+    const piel: number[][] = [];
+    const v = new Vector3();
+    for (const [geo, m] of piezas) {
+      const pos = geo.getAttribute('position');
+      for (let i = 0; i < pos.count; i++) {
+        v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(m);
+        piel.push([v.x, v.y, v.z]);
+      }
+    }
+    const libre = (c: number[]) => Math.min(...piel.map((q) => Math.hypot(q[0] - c[0], q[1] - c[1], q[2] - c[2]))) - R_UNIDA;
+    for (const c of CURVA.filter((p) => p[1] > 0.87)) expect(libre(c), `esfera en ${c.map((x) => x.toFixed(3))}`).toBeGreaterThan(0);
+    // En cada parada queda pegada: a menos de 2,5 cm de la piel.
+    for (const p of PARADAS) expect(libre(p.pos), p.nombre).toBeLessThan(0.025);
+  });
+
+  it('las dos manos la introducen por la coronilla y al final se sueltan a los costados', () => {
+    const ultimo = sec.pasos.length - 1;
+    // Mientras entra, las dos muñecas están encima de la cabeza.
+    const entrando = evaluar(sec, ultimo, 0.5, OPCIONES_INICIALES);
+    const esq = resolverEsqueleto(entrando.figuras[0].pose);
+    for (const m of [esq.munecaD, esq.munecaI]) {
+      expect(m[1]).toBeGreaterThan(PUNTOS.coronilla[1]);
+      expect(Math.abs(m[0])).toBeLessThan(0.12);
+    }
+    const fin = evaluar(sec, ultimo, 1, OPCIONES_INICIALES);
+    expect(fin.esferas[1].activa).toBe(false);
+    expect(fin.centros.coronilla).toBeGreaterThan(0.9);
+    const f = resolverEsqueleto(fin.figuras[0].pose);
+    expect(f.munecaD[1]).toBeLessThan(1);
+    expect(f.munecaI[1]).toBeLessThan(1);
+  });
+
+  it('cuenta los 9 puntos en orden y la esfera se forma con las barras como en el ejercicio 03', () => {
+    let previo = 0;
+    for (const paso of [2, 3]) {
+      for (let i = 0; i <= 300; i++) {
+        const v = evaluar(sec, paso, i / 300, OPCIONES_INICIALES).hud.contador?.valor ?? 0;
+        expect(v).toBeGreaterThanOrEqual(previo);
+        previo = v;
+      }
+    }
+    expect(previo).toBe(9);
+    const formada = evaluar(sec, 0, 1, OPCIONES_INICIALES);
+    expect(formada.esferas[1].activa).toBe(true);
+    expect(formada.esferas[1].radio).toBeCloseTo(R_UNIDA, 6);
   });
 });

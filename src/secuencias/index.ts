@@ -6,6 +6,7 @@ import { cargarOmbligo } from './cargarOmbligo';
 import { sellarCielo } from './sellarCielo';
 import { unirBarras } from './unirBarras';
 import { masajeManos } from './masajeManos';
+import { recorridoPorChakras } from './recorridoPorChakras';
 import { enraizar } from './enraizar';
 import { liberarCreencias } from './liberar';
 import { activarCentros, cargaYSellado, recorridoChakras, selladoFinal, sensibilizarManos } from './notas';
@@ -33,6 +34,7 @@ const PROPIAS: Record<string, Secuencia> = {
   'sellar-cielo': sellarCielo,
   'colocar-tres-puntos': unirBarras,
   'masaje-manos': masajeManos,
+  'recorrido-por-chakras': recorridoPorChakras,
   'liberar-creencias': liberarCreencias,
   'equilibrar-organos': equilibrarOrganos,
   'sanar-otra-persona': sanarOtraPersona,

@@ -1,4 +1,4 @@
-import { PUNTOS, type PuntoCuerpo, mezclarPose } from '../escena/cuerpo';
+import { PUNTOS, type Pose, type PuntoCuerpo, mezclarPose } from '../escena/cuerpo';
 import { type Estado, enPalma, ref } from '../escena/estado';
 import { type V3, campana, clamp, entraSaleSeno, lerp, lerpV, saleAtras, tramo } from '../escena/mate';
 import { SERENA, esferaEntrePalmas, poseCargaBarras } from '../escena/poses';
@@ -30,7 +30,7 @@ const CENTROS: Centro[] = [
  * con los brazos estirados, unir las esferas, jugar con la esfera como si fuera
  * de goma, llevarla, rodearla, entrarla y volver a las barras.
  */
-const SEG = { tomar: 1.6, juntar: 2.2, unir: 0.9, jugar: 4, llevar: 2.4, rodear: 0.7, entrar: 1.2, volver: 2 };
+export const SEG = { tomar: 1.6, juntar: 2.2, unir: 0.9, jugar: 4, llevar: 2.4, rodear: 0.7, entrar: 1.2, volver: 2 };
 type Fase = keyof typeof SEG;
 const FASES = Object.keys(SEG) as Fase[];
 const SEG_CENTRO = FASES.reduce((a, f) => a + SEG[f], 0);
@@ -46,14 +46,14 @@ export function faseUnir(seg: number): { fase: Fase; k: number } {
 }
 
 /** Radio de la esfera de cada mano y de la esfera unida («más grande»). */
-const R_MANO = 0.035;
-const R_UNIDA = 0.065;
+export const R_MANO = 0.035;
+export const R_UNIDA = 0.065;
 /**
  * Donde se juntan las manos: entre las barras, a su misma altura y lo más
  * adelante que permiten los brazos estirados hacia el medio (las muñecas
  * quedan a ≈ 0,52 del cuerpo, como al agarrar las barras: no se retraen).
  */
-const JUNTAR: V3 = [0, 1.41, 0.575];
+export const JUNTAR: V3 = [0, 1.41, 0.575];
 /** Separación de cada palma al centro cuando cada una trae su esfera (antes de unirlas). */
 const SEP_ABIERTAS = 0.095;
 /** Juego de goma: 2 idas y vueltas; las palmas se alejan hasta +3 cm y se acercan hasta −1,5 cm. */
@@ -68,7 +68,7 @@ function separacionGoma(k: number) {
   return R_UNIDA + d * envolvente;
 }
 
-const ENCUADRE = encuadre([0, 1.32, 0.3], 1.8, 0.62, 0.12);
+export const ENCUADRE = encuadre([0, 1.32, 0.3], 1.8, 0.62, 0.12);
 
 /** Punto de cada centro, apenas delante de la piel. */
 function puntoCentro(id: PuntoCuerpo): V3 {
@@ -77,14 +77,14 @@ function puntoCentro(id: PuntoCuerpo): V3 {
 }
 
 /** Pose al agarrar las dos barras; `apriete` cierra un poco más los dedos. */
-function agarre(apriete = 0) {
+export function agarre(apriete = 0) {
   const p = poseCargaBarras(null, null);
   p.cierreD += 0.07 * apriete;
   p.cierreI += 0.07 * apriete;
   return p;
 }
 
-function flujosDeBarras(e: Estado, intensidad: number) {
+export function flujosDeBarras(e: Estado, intensidad: number) {
   for (const [i, ancla, barra] of [
     [1, 'manoD', BARRA_DER],
     [2, 'manoI', BARRA_IZQ],
@@ -101,7 +101,7 @@ function flujosDeBarras(e: Estado, intensidad: number) {
 }
 
 /** Esfera de cada mano, en el hueco de su palma. */
-function esferasEnManos(e: Estado, radio: number) {
+export function esferasEnManos(e: Estado, radio: number) {
   for (const [i, ancla] of [
     [2, 'manoD'],
     [3, 'manoI'],
@@ -120,7 +120,7 @@ function esferasEnManos(e: Estado, radio: number) {
   }
 }
 
-function esferaUnida(e: Estado, c: V3, radio: number, estirar = 1) {
+export function esferaUnida(e: Estado, c: V3, radio: number, estirar = 1) {
   esfera(e, 1, {
     estirar,
     activa: radio > 0.001,
@@ -134,6 +134,53 @@ function esferaUnida(e: Estado, c: V3, radio: number, estirar = 1) {
     mezcla: 0.35,
     opacidad: 1,
   });
+}
+
+/** Fases en que se forma la esfera unida (las comparten otros ejercicios). */
+export type FaseFormar = 'tomar' | 'juntar' | 'unir' | 'jugar';
+
+/** Lo que se ve en una fase de formar la esfera: pose, esfera unida, esferas de las manos y barras. */
+export interface Formada {
+  pose: Pose;
+  unida: { c: V3; r: number; estirar: number } | null;
+  rMano: number;
+  /** Resalte de las barras. */
+  resalte: number;
+  /** Intensidad de la energía que sube de las barras a las manos. */
+  flujos: number;
+}
+
+/**
+ * Formar la esfera con la energía de las dos barras: apretar y tomar, juntar
+ * las manos al frente con los brazos estirados (a la altura de las barras),
+ * unir las dos esferas en una más grande y jugar con ella como si fuera de goma.
+ */
+export function formarEsfera(fase: FaseFormar, k: number): Formada {
+  const s = entraSaleSeno(k);
+  if (fase === 'tomar') {
+    // Aprieta las barras y toma energía.
+    const c = campana(k, 0, 1);
+    return { pose: agarre(Math.sin(Math.PI * k)), unida: null, rMano: 0, resalte: 0.3 + 0.7 * c, flujos: c };
+  }
+  if (fase === 'juntar') {
+    // Suelta las barras y, con los brazos estirados, las manos se acercan al frente con su esfera.
+    const pose = mezclarPose(agarre(), esferaEntrePalmas(JUNTAR, SEP_ABIERTAS, 0, 0.3, 1), s, 0);
+    return { pose, unida: null, rMano: R_MANO * saleAtras(tramo(k, 0, 0.45)), resalte: 0.3, flujos: 0 };
+  }
+  if (fase === 'unir') {
+    // Las palmas se acercan hasta que las dos esferas se tocan y se unen en una más grande.
+    const crece = saleAtras(tramo(k, 0.5, 1));
+    return {
+      pose: esferaEntrePalmas(JUNTAR, lerp(SEP_ABIERTAS, R_UNIDA, s), 0, 0.3, 1),
+      unida: crece > 0 ? { c: JUNTAR, r: R_UNIDA * crece, estirar: 1 } : null,
+      rMano: R_MANO * (1 - tramo(k, 0.55, 1)),
+      resalte: 0.3,
+      flujos: 0,
+    };
+  }
+  // Juega con la esfera como si fuera de goma: se estira al alejar las manos y se aplasta al acercarlas.
+  const sep = separacionGoma(k);
+  return { pose: esferaEntrePalmas(JUNTAR, sep, 0, 0.3, 1), unida: { c: JUNTAR, r: R_UNIDA, estirar: sep / R_UNIDA }, rMano: 0, resalte: 0.3, flujos: 0 };
 }
 
 /**
@@ -157,26 +204,13 @@ function cicloCentro(e: Estado, t: number, n: number) {
   let unida: { c: V3; r: number; estirar: number } | null = null;
   let rMano = 0;
 
-  if (fase === 'tomar') {
-    // Aprieta las barras y toma energía.
-    pose = agarre(Math.sin(Math.PI * k));
-    flujosDeBarras(e, campana(k, 0, 1));
-    resalte = 0.3 + 0.7 * campana(k, 0, 1);
-  } else if (fase === 'juntar') {
-    // Suelta las barras y, con los brazos estirados, las manos se acercan al frente con su esfera.
-    pose = mezclarPose(agarre(), esferaEntrePalmas(JUNTAR, SEP_ABIERTAS, 0, 0.3, 1), s, 0);
-    rMano = R_MANO * saleAtras(tramo(k, 0, 0.45));
-  } else if (fase === 'unir') {
-    // Las palmas se acercan hasta que las dos esferas se tocan y se unen en una más grande.
-    pose = esferaEntrePalmas(JUNTAR, lerp(SEP_ABIERTAS, R_UNIDA, s), 0, 0.3, 1);
-    rMano = R_MANO * (1 - tramo(k, 0.55, 1));
-    const crece = saleAtras(tramo(k, 0.5, 1));
-    if (crece > 0) unida = { c: JUNTAR, r: R_UNIDA * crece, estirar: 1 };
-  } else if (fase === 'jugar') {
-    // Juega con la esfera como si fuera de goma: se estira al alejar las manos y se aplasta al acercarlas.
-    const sep = separacionGoma(k);
-    pose = esferaEntrePalmas(JUNTAR, sep, 0, 0.3, 1);
-    unida = { c: JUNTAR, r: R_UNIDA, estirar: sep / R_UNIDA };
+  if (fase === 'tomar' || fase === 'juntar' || fase === 'unir' || fase === 'jugar') {
+    const f = formarEsfera(fase, k);
+    pose = f.pose;
+    unida = f.unida;
+    rMano = f.rMano;
+    resalte = f.resalte;
+    if (fase === 'tomar') flujosDeBarras(e, f.flujos);
   } else if (fase === 'llevar') {
     // La llevan entre las palmas hasta delante del centro.
     const c = lerpV(JUNTAR, delante, s);
