@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DUDAS, EJERCICIOS, ORGANOS, fraseOrgano } from '../contenido/ejercicios';
 import { MeshBasicMaterial } from 'three';
 import { NEUTRA, ik2, resolverEsqueleto } from '../escena/cuerpo';
-import { crearManos } from '../escena/manos';
+import { crearManos, huecoPalma } from '../escena/manos';
 import type { Estado } from '../escena/estado';
 import { largoV, restaV } from '../escena/mate';
 import { SECUENCIAS } from './index';
@@ -153,6 +153,17 @@ describe('manos articuladas', () => {
     // Hueso 15 = punta del pulgar derecho; 31 = del izquierdo. El derecho está en −X.
     expect(h[15].position.x).toBeLessThan(anatomica.munecaD[0] - 0.02);
     expect(h[31].position.x).toBeGreaterThan(anatomica.munecaI[0] + 0.02);
+  });
+
+  it('el hueco de la palma queda del lado de la palma, no del dorso', () => {
+    const { munecaD: w, palmaD: pm } = e;
+    const p = huecoPalma(w, pm.dedos, pm.normal, 0.04);
+    const d: [number, number, number] = [p[0] - w[0], p[1] - w[1], p[2] - w[2]];
+    const enNormal = d[0] * pm.normal[0] + d[1] * pm.normal[1] + d[2] * pm.normal[2];
+    const enDedos = d[0] * pm.dedos[0] + d[1] * pm.dedos[1] + d[2] * pm.dedos[2];
+    expect(enNormal).toBeGreaterThan(0.045);
+    expect(enDedos).toBeGreaterThan(0.03);
+    expect(enDedos).toBeLessThan(0.09);
   });
 
   it('cerrar la mano acerca los dedos a la muñeca', () => {

@@ -17,6 +17,11 @@ export interface Ref {
   ancla: Ancla;
   figura: 0 | 1;
   off?: V3;
+  /**
+   * Solo con manoD / manoI: el punto va en el hueco de la palma, a esta
+   * distancia de la piel y siguiendo hacia dónde mira la palma (no el centro de la mano).
+   */
+  palma?: number;
 }
 
 export type Punto = V3 | Ref;
@@ -329,3 +334,5 @@ export function crearEstado(): Estado {
 
 /** Referencia a un ancla de un cuerpo. */
 export const ref = (ancla: Ancla, figura: 0 | 1 = 0, off?: V3): Ref => ({ ancla, figura, off });
+/** Punto en el hueco de la palma de una mano, a `separacion` de la piel (p. ej. el radio de una esfera). */
+export const enPalma = (ancla: 'manoD' | 'manoI', separacion: number, figura: 0 | 1 = 0): Ref => ({ ancla, figura, palma: separacion });

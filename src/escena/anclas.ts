@@ -1,6 +1,7 @@
 import { type Esqueleto, PUNTOS, type Pose, resolverEsqueleto, transformarPunto } from './cuerpo';
 import type { Punto, Ref } from './estado';
 import { esRef } from './estado';
+import { huecoPalma } from './manos';
 import { type V3, lerpV, rotarY, sumaV } from './mate';
 import { NEUTRA } from './poses';
 
@@ -39,11 +40,12 @@ export function anclaLocal(ref: Ref): V3 {
   let p: V3;
   switch (ref.ancla) {
     case 'manoD':
-      p = r.esq.palmaD.centro;
+    case 'manoI': {
+      const pm = ref.ancla === 'manoD' ? r.esq.palmaD : r.esq.palmaI;
+      const muneca = ref.ancla === 'manoD' ? r.esq.munecaD : r.esq.munecaI;
+      p = ref.palma === undefined ? pm.centro : huecoPalma(muneca, pm.dedos, pm.normal, ref.palma);
       break;
-    case 'manoI':
-      p = r.esq.palmaI.centro;
-      break;
+    }
     case 'manos':
       p = lerpV(r.esq.palmaD.centro, r.esq.palmaI.centro, 0.5);
       break;

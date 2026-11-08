@@ -95,6 +95,17 @@ export function cierreParaBarra(radio: number): number {
   return clamp((estimados[0] + estimados[1] + estimados[2]) / 3);
 }
 
+/**
+ * Hueco de la palma: punto frente a su superficie, en el centro de la palma y
+ * algo hacia los dedos, a `separacion` de la piel (se mueve con la normal de la
+ * palma). Una esfera sostenida en la mano va aquí con separacion ≈ su radio.
+ */
+export function huecoPalma(muneca: V3, F: V3, N: V3, separacion: number): V3 {
+  const b = 0.06 * K;
+  const c = 0.0105 * K + separacion;
+  return [muneca[0] + F[0] * b + N[0] * c, muneca[1] + F[1] * b + N[1] * c, muneca[2] + F[2] * b + N[2] * c];
+}
+
 // ── Geometría ───────────────────────────────────────────────────────────
 
 /** Falange: segmento ahusado a lo largo de +Y con puntas redondas, algo más ancho que alto. */

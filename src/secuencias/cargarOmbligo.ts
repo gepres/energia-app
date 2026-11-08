@@ -1,5 +1,5 @@
 import { resolverEsqueleto } from '../escena/cuerpo';
-import { type Estado, ref } from '../escena/estado';
+import { type Estado, enPalma, ref } from '../escena/estado';
 import { centroAgarre } from '../escena/manos';
 import { type V3, campana, clamp, saleAtras, tramo } from '../escena/mate';
 import { RADIO_BARRA, SERENA, poseCargaBarras } from '../escena/poses';
@@ -126,8 +126,9 @@ export const cargarOmbligo: Secuencia = {
             ancho: 0.9,
           });
         }
-        esfera(e, 2, { ref: ref('manoD', 0, [0.02, 0.0, 0.03]), pegado: 1, radio: 0.016 * junta, brillo: 1.2, color: 'oro', opacidad: 1 });
-        esfera(e, 3, { ref: ref('manoI', 0, [-0.02, 0.0, 0.03]), pegado: 1, radio: 0.016 * junta, brillo: 1.2, color: 'oro', opacidad: 1 });
+        // La energía se junta en la palma de cada mano, que agarra su barra.
+        esfera(e, 2, { ref: enPalma('manoD', 0.012), pegado: 1, radio: 0.016 * junta, brillo: 1.2, color: 'oro', opacidad: 1 });
+        esfera(e, 3, { ref: enPalma('manoI', 0.012), pegado: 1, radio: 0.016 * junta, brillo: 1.2, color: 'oro', opacidad: 1 });
         e.centros.ombligo = 0.25 * tramo(t, 0.6, 1);
         e.hud.aviso = t > 0.3 && t < 0.97 ? 'Brazos bien estirados, a la altura de los hombros' : null;
       },
@@ -166,16 +167,18 @@ export const cargarOmbligo: Secuencia = {
             remolino: 0.025,
             ancho: 0.9,
           });
-          // La esfera que viaja en la palma y se entrega en el ombligo: nace cuando la mano
-          // suelta la barra (antes taparía el puño que la agarra).
-          const forma = u === null ? 0 : tramo(u, 0.13, 0.28);
+          // La esfera que viaja en la palma y se entrega en el ombligo: nace en la palma
+          // cuando la mano suelta la barra y se abre (antes taparía el puño que la agarra).
+          const forma = u === null ? 0 : tramo(u, 0.17, 0.32);
           const entrega = u === null ? 0 : tramo(u, 0.78, 0.86);
+          const radio = 0.04 * saleAtras(forma) * (1 - 0.6 * entrega);
           esfera(e, lado === 'D' ? 1 : 2, {
-            activa: u !== null && u > 0.13 && u < 0.86,
-            ref: ref(ancla, 0, [0, 0.035, 0.015]),
+            activa: u !== null && u > 0.17 && u < 0.86,
+            // Apoyada en el hueco de la palma: sigue hacia dónde mira la palma mientras la mano gira.
+            ref: enPalma(ancla, radio * 0.92 + 0.002),
             pegado: 1 - entrega,
             pos: puntoMundo(e, 0, OMBLIGO),
-            radio: 0.04 * saleAtras(forma) * (1 - 0.6 * entrega),
+            radio,
             brillo: 1.25,
             color: 'oro',
             color2: 'blanco',
