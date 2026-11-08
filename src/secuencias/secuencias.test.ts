@@ -638,7 +638,7 @@ describe('Recorrido por chakras (descrito en el taller)', () => {
 
 describe('Sensibilización de manos (descrito en el taller)', () => {
   const sec = SECUENCIAS['sensibilizacion-manos'];
-  const { BRAZOS, R, DIST, FASES_DELANTE, FASES_ATRAS } = sensibilizarInterno;
+  const { BRAZOS, R, DIST, FASES_DELANTE, FASES_ATRAS, FASES_TOMAR, FASES_TRASPASO, SEG_TRASPASO, PAUSA_TRASPASO, ORDEN_TRASPASOS } = sensibilizarInterno;
   const muestras = (paso: number, n = 120) => Array.from({ length: n + 1 }, (_, i) => evaluar(sec, paso, i / n, OPCIONES_INICIALES));
   /** Punto del hueco de cada palma, según el esqueleto resuelto. */
   const palmas = (e: Estado) => {
@@ -658,7 +658,37 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     }
   });
 
+  it('primero carga de las barras, como los demás ejercicios: una esfera en cada mano, se unen y se juega como goma', () => {
+    const total = FASES_TOMAR.reduce((a, f) => a + f.dur, 0);
+    const inicio = (id: string) => FASES_TOMAR.slice(0, FASES_TOMAR.findIndex((f) => f.id === id)).reduce((a, f) => a + f.dur, 0);
+    const en = (id: string, k: number) => evaluar(sec, 0, (inicio(id) + FASES_TOMAR.find((f) => f.id === id)!.dur * k) / total, OPCIONES_INICIALES);
+    expect(FASES_TOMAR.map((f) => f.id)).toEqual(['agarrar', 'tomar', 'juntar', 'unir', 'jugar', 'bajar', 'quedarse']);
+    // Agarra las barras y la energía sube de las barras a las manos.
+    const tomando = en('tomar', 0.5);
+    expect(tomando.barras.activa).toBe(true);
+    expect(tomando.barras.opacidad).toBe(1);
+    expect(tomando.flujos.filter((f) => f.activo && f.intensidad > 0.5)).toHaveLength(2);
+    // Una esfera en cada mano al juntarlas; después una sola, que se estira y se aplasta como goma.
+    const juntando = en('juntar', 0.8);
+    expect(juntando.esferas[1].activa && juntando.esferas[2].activa).toBe(true);
+    const est = Array.from({ length: 41 }, (_, i) => en('jugar', i / 40).esferas[0].estirar);
+    expect(Math.max(...est)).toBeGreaterThan(1.4);
+    expect(Math.min(...est)).toBeLessThan(0.88);
+    // Al terminar el paso las barras se desvanecieron y la derecha tiene la esfera en la palma.
+    const fin = evaluar(sec, 0, 1, OPCIONES_INICIALES);
+    expect(fin.barras.opacidad).toBe(0);
+    expect(dist(fin.esferas[0].pos, palmas(fin).D)).toBeLessThan(R + 0.016);
+    // Desde que la bajan hasta que la derecha se queda con ella, siempre la sostiene alguna palma.
+    for (let i = 0; i <= 60; i++) {
+      const e = evaluar(sec, 0, (inicio('bajar') + ((total - inicio('bajar')) * i) / 60) / total, OPCIONES_INICIALES);
+      const { D, I } = palmas(e);
+      expect(Math.min(dist(e.esferas[0].pos, D), dist(e.esferas[0].pos, I))).toBeLessThan(R + 0.016);
+    }
+  });
+
   it('al pasarla de mano en mano nunca la sueltan: siempre hay una palma tocándola y, al pasarla, las dos', () => {
+    // Si la esfera se estira (goma), las palmas la tocan aunque estén más lejos de su centro.
+    const tocaEn = (e: Estado) => R * Math.max(1, e.esferas[0].estirar) + 0.016;
     const toca = R + 0.016;
     let ambas = 0;
     for (const e of muestras(1, 300)) {
@@ -666,8 +696,8 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
       const { D, I } = palmas(e);
       const dD = dist(c, D);
       const dI = dist(c, I);
-      expect(Math.min(dD, dI)).toBeLessThan(toca);
-      if (dD < toca && dI < toca) ambas++;
+      expect(Math.min(dD, dI)).toBeLessThan(tocaEn(e));
+      if (dD < tocaEn(e) && dI < tocaEn(e)) ambas++;
     }
     // Hay momentos en que la sostienen entre las dos (en cada traspaso).
     expect(ambas).toBeGreaterThan(20);
@@ -677,6 +707,30 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
       const e = evaluar(sec, 4, (FASES_DELANTE.D[0].dur * 0.6 * i) / 60 / total, OPCIONES_INICIALES);
       const { D, I } = palmas(e);
       expect(Math.min(dist(e.esferas[0].pos, D), dist(e.esferas[0].pos, I))).toBeLessThan(toca);
+    }
+  });
+
+  it('cada traspaso es lento y, mientras la sostienen entre las dos, juegan con ella como goma', () => {
+    expect(FASES_TRASPASO.map((f) => f.id)).toEqual(['toma', 'enfrentar', 'goma', 'quedarse']);
+    expect(SEG_TRASPASO).toBeGreaterThanOrEqual(8);
+    const total = sec.pasos[1].dur;
+    const ini = FASES_TRASPASO.slice(0, 2).reduce((a, f) => a + f.dur, 0);
+    const dur = FASES_TRASPASO[2].dur;
+    for (let n = 0; n < ORDEN_TRASPASOS.length; n++) {
+      const est: number[] = [];
+      for (let i = 0; i <= 40; i++) {
+        const seg = n * (SEG_TRASPASO + PAUSA_TRASPASO) + ini + (dur * i) / 40;
+        const e = evaluar(sec, 1, seg / total, OPCIONES_INICIALES);
+        const { D, I } = palmas(e);
+        const toca = R * Math.max(1, e.esferas[0].estirar) + 0.016;
+        // Las dos palmas la sostienen todo el juego.
+        expect(dist(e.esferas[0].pos, D), `traspaso ${n + 1}`).toBeLessThan(toca);
+        expect(dist(e.esferas[0].pos, I), `traspaso ${n + 1}`).toBeLessThan(toca);
+        est.push(e.esferas[0].estirar);
+      }
+      // Se estira al alejar las manos y se aplasta al acercarlas.
+      expect(Math.max(...est), `traspaso ${n + 1}`).toBeGreaterThan(1.4);
+      expect(Math.min(...est), `traspaso ${n + 1}`).toBeLessThan(0.88);
     }
   });
 
@@ -714,7 +768,7 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     }
   });
 
-  it('las manos no se atraviesan al palpar (tolerancia 4 mm)', () => {
+  it('las manos no se atraviesan al formar la esfera, al pasarla ni al palpar (tolerancia 4 mm)', () => {
     const holgura = (A: { pos: number[]; dir: number[]; largo: number; radio: number }, B: typeof A) => {
       let m = 1e9;
       for (let i = 0; i <= 6; i++)
@@ -725,8 +779,8 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
         }
       return m - A.radio - B.radio;
     };
-    for (const paso of [2, 3, 4, 5]) {
-      for (const e of muestras(paso, 60)) {
+    for (const paso of [0, 1, 2, 3, 4, 5]) {
+      for (const e of muestras(paso, paso < 2 ? 200 : 60)) {
         const p = e.figuras[0].pose;
         const q = resolverEsqueleto(p);
         const sD = segmentosMano(q.munecaD, q.palmaD.dedos, q.palmaD.normal, 1, p.cierreD, p.pinzaD, p.tipoPinzaD);

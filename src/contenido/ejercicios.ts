@@ -241,24 +241,28 @@ export const EJERCICIOS: Ejercicio[] = [
     subtitulo: 'sin soltar la esfera, palpando dedos y brazos',
     origen: 'revision',
     resumen:
-      'Se toman dos esferas y se juntan. La esfera pasa de mano en mano sin soltarla nunca. Después la otra mano palpa la energía de los dedos y acompaña a la esfera por el brazo, haciendo de goma en la muñeca, el antebrazo y el codo, por delante y por atrás; y recorre el brazo sin tocarlo, a 5–10 cm, hasta el hombro. Luego, lo mismo con el otro brazo.',
+      'Primero se carga de las barras: una esfera en cada mano, se juntan en una y se juega con ella como goma. La esfera pasa de mano en mano, lentamente y jugando como goma, sin soltarla nunca. Después la otra mano palpa la energía de los dedos y acompaña a la esfera por el brazo, haciendo de goma en la muñeca, el antebrazo y el codo, por delante y por atrás; y recorre el brazo sin tocarlo, a 5–10 cm, hasta el hombro. Luego, lo mismo con el otro brazo.',
     acento: 'oro',
     bloques: [{ titulo: 'Sensaciones reportadas', items: ['Calor', 'Presión', 'Hormigueo', 'Electricidad'] }],
     pasos: [
       {
         id: 'tomar-esferas',
-        titulo: 'Tomar dos esferas y juntarlas',
-        texto: 'Con las palmas hacia arriba, tomar una esfera en cada mano; acercar las manos y juntar las dos esferas en una.',
-        aclaracion: 'Del apunte (enseñado por Víctor): tomar dos esferas y juntarlas.',
-        lectura: 'Las esferas aparecen en las palmas y se juntan entre las manos enfrentadas; después la derecha se queda con ella.',
+        titulo: 'Cargar de las barras y juntar las dos esferas',
+        texto:
+          'Cada mano agarra su barra, con los brazos estirados, y toma energía: se forma una esfera en cada mano. Las manos se juntan al frente, las dos esferas se unen en una y se juega con ella como si fuera de goma. Después se baja al frente, entre las dos manos, y la derecha se queda con ella.',
+        aclaracion:
+          'Descrito en el taller: primero se carga desde las barras de energía, como en los demás ejercicios. Del apunte (enseñado por Víctor): tomar dos esferas y juntarlas.',
+        lectura:
+          'La esfera es más chica que en «Colocar energía en los 3 puntos», para que al palpar la mano quede a 7,5 cm del brazo; por eso las manos la acunan, con las palmas un poco hacia arriba.',
       },
       {
         id: 'mano-a-mano',
-        titulo: 'De mano en mano, sin soltarla',
+        titulo: 'De mano en mano, lentamente y como goma',
         texto:
-          'Pasar la esfera de una mano a la otra sin soltarla nunca: la otra mano se acerca y la toma, la sostienen entre las dos, y recién entonces la primera la suelta.',
-        aclaracion: 'Descrito en el taller: en ningún momento la mano suelta la esfera mientras se la pasa a la otra.',
-        lectura: 'Tres traspasos: derecha → izquierda → derecha → izquierda.',
+          'Pasar la esfera de una mano a la otra lentamente, sin soltarla nunca: la otra mano se acerca y la toma, la sostienen entre las dos y juegan con ella como si fuera de goma (alejan y acercan las manos: se estira y se aplasta); recién entonces la primera la suelta.',
+        aclaracion:
+          'Descrito en el taller: en ningún momento la mano suelta la esfera mientras se la pasa a la otra; se la pasa lentamente, jugando con ella como si fuera de goma.',
+        lectura: 'Tres traspasos (derecha → izquierda → derecha → izquierda), de unos 9 s cada uno; en cada uno, dos idas y vueltas de goma.',
       },
       {
         id: 'izquierdo-delante',

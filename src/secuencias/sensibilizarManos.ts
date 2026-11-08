@@ -11,20 +11,34 @@ import {
   normV,
   puntoV,
   restaV,
-  saleAtras,
   sumaV,
   tramo,
   ventana,
 } from '../escena/mate';
-import { HUECO, SERENA } from '../escena/poses';
+import { HUECO, SERENA, apoyoAcunado, esferaEntrePalmas } from '../escena/poses';
+import { barrasEnPuno } from './barras';
 import { TOMAS, esfera, pulso } from './comunes';
-import { type Secuencia, encuadre, fijarPose, puntoMundo, toma } from './motor';
+import { type Secuencia, encuadre, fijarPose, posar, puntoMundo, toma } from './motor';
+import {
+  type FaseFormar,
+  type MedidasFormar,
+  ENCUADRE as ENCUADRE_BARRAS,
+  JUNTAR,
+  SEG as SEG_FORMAR,
+  agarre,
+  flujosDeBarras,
+  formarEsfera,
+  separacionGoma,
+} from './unirBarras';
 
 /**
  * «Sensibilización de manos» (enseñado por Víctor), pulida con el taller:
- *  - se toman dos esferas y se juntan;
- *  - la esfera pasa de mano en mano **sin soltarla nunca**: la otra mano la
- *    toma y la sostienen entre las dos; recién entonces la primera la suelta;
+ *  - primero se carga de las barras, como en los demás ejercicios: cada mano
+ *    toma energía de su barra, las dos esferas se juntan en una y se juega con
+ *    ella como goma;
+ *  - la esfera pasa de mano en mano, lentamente y **sin soltarla nunca**: la
+ *    otra mano la toma, la sostienen entre las dos y juegan con ella como si
+ *    fuera de goma; recién entonces la primera la suelta;
  *  - la otra mano palpa la energía de los dedos, como quien toca la tela de un
  *    poncho, y la estira como goma;
  *  - la esfera se desliza por el brazo y la mano la acompaña, haciendo de goma
@@ -124,31 +138,47 @@ function sostener(c: V3, r: number, palma: V3, dedos: V3, cierre: number, codo: 
   return { mano: restaV(restaV(c, escalaV(palma, HUECO.piel + r)), escalaV(dedos, HUECO.dedos)), palma, dedos, cierre, codo };
 }
 
-/** Las dos palmas enfrentadas a los costados de `c`, con los dedos al frente. */
-function frenteAFrente(c: V3, sep: number): Manos {
+/**
+ * Al sostener la esfera entre las dos manos: dedos al frente y casi estirados, y
+ * las palmas inclinadas 22° hacia arriba, acunándola. Con una esfera de 7 cm, las
+ * palmas verticales juntarían las puntas de los pulgares; más inclinadas, los meñiques.
+ */
+const DEDOS_FRENTE = normV([0, 0.06, 1]);
+const CIERRE_SOSTENER = 0.08;
+const CUNA = (22 * Math.PI) / 180;
+
+/** Las dos palmas acunando la esfera de centro `c`, a los costados; `estirar` > 1 la alarga a lo ancho (goma). */
+function frenteAFrente(c: V3, estirar = 1): Manos {
+  const apoyo = apoyoAcunado(R * estirar, CUNA, estirar);
   const m = (l: Lado): Mano => {
     const s = SIGNO[l];
-    const dedos = normV([0, 0.06, 1]);
-    return sostener(c, sep, [-s, 0, 0], dedos, 0.25, normV([s, -0.6, -0.35]));
+    const palma: V3 = [-s * Math.cos(CUNA), Math.sin(CUNA), 0];
+    return sostener(c, apoyo, palma, DEDOS_FRENTE, CIERRE_SOSTENER, normV([s, -0.6, -0.35]));
   };
   return { D: m('D'), I: m('I') };
 }
 
+/** Mano que gira sosteniendo la esfera de centro `c`, sin despegarse, de la postura `a` a la `b`. */
+function girarSosteniendo(c: V3, a: Mano, b: Mano, s: number): Mano {
+  const palma = mezclarDir(a.palma, b.palma, s);
+  return sostener(c, R, palma, ortogonal(mezclarDir(a.dedos, b.dedos, s), palma), lerp(a.cierre, b.cierre, s), mezclarDir(a.codo, b.codo, s));
+}
+
 /**
- * La mano `rec` termina de recibir la esfera: la tiene tomada de costado (palma
- * hacia `hacia`, inclinada `theta0` desde arriba) y gira por debajo de ella hasta
+ * La mano `rec` termina de recibir la esfera: la tiene acunada de costado (palma
+ * hacia `hacia`, inclinada CUNA hacia arriba) y gira por debajo de ella hasta
  * sostenerla en la palma, ya en su lugar de reposo. Nunca la suelta.
  */
-function recibir(rec: Lado, c0: V3, hacia: number, theta0: number, k: number): { mano: Mano; c: V3 } {
+function recibir(rec: Lado, c0: V3, hacia: number, k: number): { mano: Mano; c: V3 } {
   const fin = reposo(rec);
   const c1 = enPalma(fin, R);
   const s = entraSaleSeno(k);
   const c = sumaV(lerpV(c0, c1, s), [0, 0.015 * Math.sin(Math.PI * s), 0]);
-  const th = theta0 * (1 - s);
+  const th = (Math.PI / 2 - CUNA) * (1 - s);
   const palma: V3 = [hacia * Math.sin(th), Math.cos(th), 0];
-  const dedos = ortogonal(normV(lerpV(normV([0, 0.06, 1]), fin.dedos, s)), palma);
-  const codo = mezclarDir(normV([SIGNO[rec], -0.5, -0.3]), fin.codo, s);
-  return { mano: sostener(c, R, palma, dedos, lerp(0.28, fin.cierre, s), codo), c };
+  const dedos = ortogonal(normV(lerpV(DEDOS_FRENTE, fin.dedos, s)), palma);
+  const codo = mezclarDir(normV([SIGNO[rec], -0.6, -0.35]), fin.codo, s);
+  return { mano: sostener(c, R, palma, dedos, lerp(CIERRE_SOSTENER, fin.cierre, s), codo), c };
 }
 
 // ── El brazo que se palpa ───────────────────────────────────────────────
@@ -262,8 +292,9 @@ function esferaGoma(e: Estado, pp: PuntoPiel, alza: number, brillo = 1.25) {
   });
 }
 
-function esferaEn(e: Estado, c: V3, r = R, brillo = 1.25) {
-  esfera(e, 0, { ref: null, pegado: 0, pos: puntoMundo(e, 0, c), radio: r, estirar: 1, eje: null, brillo, color: 'oro', color2: 'blanco', mezcla: 0.3, opacidad: 1 });
+/** La esfera en `c`; `estirar` la alarga entre las palmas enfrentadas (a lo ancho), como goma. */
+function esferaEn(e: Estado, c: V3, r = R, brillo = 1.25, estirar = 1) {
+  esfera(e, 0, { ref: null, pegado: 0, pos: puntoMundo(e, 0, c), radio: r, estirar, eje: null, brillo, color: 'oro', color2: 'blanco', mezcla: 0.3, opacidad: 1 });
 }
 
 /** Dos idas y vueltas de goma en `k` ∈ [0, 1]. */
@@ -282,18 +313,45 @@ function enFase<T extends string>(fases: Fase<T>[], seg: number): { id: T; k: nu
 }
 const duracion = (fases: Fase<string>[]) => fases.reduce((a, f) => a + f.dur, 0);
 
-// ── Paso 1 · Tomar dos esferas y juntarlas ──────────────────────────────
+// ── Paso 1 · Cargar de las barras y formar la esfera ────────────────────
 
-const C0: V3 = [0, 1.21, 0.33];
-const SEP_ABIERTA = 0.075;
-const FASES_TOMAR: Fase<'aparecen' | 'acercan' | 'unen' | 'recibe'>[] = [
-  { id: 'aparecen', dur: 2.2 },
-  { id: 'acercan', dur: 2 },
-  { id: 'unen', dur: 1.1 },
-  { id: 'recibe', dur: 1.8 },
+/**
+ * La esfera se forma como en los demás ejercicios (barras, una esfera en cada
+ * mano, se unen y se juega con ella como goma), pero del tamaño con que después
+ * se palpan los brazos: así la mano que palpa queda a 7,5 cm de la piel. Como es
+ * más chica, las palmas quedan más cerca y se juntan 1,5 cm más atrás (los
+ * brazos llegan estirados).
+ */
+const MEDIDAS: MedidasFormar = {
+  centro: sumaV(JUNTAR, [0, 0, -0.015]),
+  rMano: R_MANO,
+  rUnida: R,
+  sepAbiertas: 0.075,
+  gomaAfuera: 0.022,
+  gomaAdentro: 0.006,
+  cierre: CIERRE_SOSTENER,
+  cuna: CUNA,
+};
+/** Donde la sostienen entre las dos manos para pasarla: al frente, a la altura de la cintura. */
+const CM: V3 = [0, 1.22, 0.34];
+
+type IdTomar = 'agarrar' | FaseFormar | 'bajar' | 'quedarse';
+const FASES_TOMAR: Fase<IdTomar>[] = [
+  { id: 'agarrar', dur: 3.5 },
+  { id: 'tomar', dur: SEG_FORMAR.tomar },
+  { id: 'juntar', dur: SEG_FORMAR.juntar },
+  { id: 'unir', dur: SEG_FORMAR.unir },
+  { id: 'jugar', dur: SEG_FORMAR.jugar },
+  { id: 'bajar', dur: 2.4 },
+  { id: 'quedarse', dur: 2.4 },
 ];
 const DUR_TOMAR = duracion(FASES_TOMAR);
-const REPOSO: Manos = { D: reposo('D'), I: reposo('I') };
+/** Fracción del paso 1 en que empieza cada fase (para las tomas de cámara). */
+const inicioTomar = (id: IdTomar) => duracion(FASES_TOMAR.slice(0, FASES_TOMAR.findIndex((f) => f.id === id))) / DUR_TOMAR;
+const T_JUNTAR = inicioTomar('juntar');
+const T_BAJAR = inicioTomar('bajar');
+/** Al juntar las manos, la cámara se acerca: la esfera es chica y así se ve el juego de goma. */
+const CAM_JUNTAR = encuadre([0, 1.38, 0.45], 0.75, 0.15, 0.35);
 
 function esferasDePalmas(e: Estado, r: number) {
   for (const [i, ancla] of [
@@ -304,74 +362,122 @@ function esferasDePalmas(e: Estado, r: number) {
   }
 }
 
+/**
+ * La mano `rec` se queda con la esfera que sostenían entre las dos (palmas
+ * enfrentadas en CM): gira por debajo y la lleva a su palma. Recién entonces la
+ * otra la suelta y vuelve a su lugar con la palma vacía.
+ */
+function quedarse(da: Lado, k: number): { manos: Manos; c: V3; ambas: boolean } {
+  const rec = OTRO[da];
+  const ini = frenteAFrente(CM);
+  const r = recibir(rec, CM, SIGNO[da], k);
+  const mDa = mezclarMano(ini[da], reposo(da), entraSaleSeno(clamp(k / 0.5)));
+  return { manos: manos(da, mDa, r.mano), c: r.c, ambas: k < 0.08 };
+}
+
 function tomarEsferas(e: Estado, seg: number) {
   const { id, k } = enFase(FASES_TOMAR, seg);
   const s = entraSaleSeno(k);
-  if (id === 'aparecen') {
-    e.figuras[0].pose = mezclarPose(SERENA, armar(REPOSO), tramo(k, 0, 0.6), 0.04);
-    esferasDePalmas(e, R_MANO * saleAtras(tramo(k, 0.45, 0.9)));
-    e.hud.aviso = 'Una esfera en cada palma';
-  } else if (id === 'acercan') {
-    e.figuras[0].pose = mezclarPose(armar(REPOSO), armar(frenteAFrente(C0, SEP_ABIERTA)), s, 0);
-    esferasDePalmas(e, R_MANO);
-    e.hud.aviso = 'Acercar las manos con las esferas';
-  } else if (id === 'unen') {
-    e.figuras[0].pose = armar(frenteAFrente(C0, lerp(SEP_ABIERTA, R, s)));
-    esferasDePalmas(e, R_MANO * (1 - tramo(k, 0.55, 1)));
-    const crece = saleAtras(tramo(k, 0.5, 1));
-    if (crece > 0) esferaEn(e, C0, R * crece);
-    pulso(e, puntoMundo(e, 0, C0), tramo(k, 0.45, 1), 0.1, 'oro');
-    e.hud.aviso = 'Las dos esferas se juntan en una';
-  } else {
-    // La derecha gira por debajo y se queda con la esfera; la izquierda la suelta recién entonces.
-    esferasDePalmas(e, 0);
-    const r = recibir('D', C0, 1, Math.PI / 2, k);
-    const ini = frenteAFrente(C0, R).I;
-    e.figuras[0].pose = armar({ D: r.mano, I: mezclarMano(ini, reposo('I'), tramo(k, 0.35, 1)) });
-    esferaEn(e, r.c);
-    e.hud.aviso = 'La derecha se queda con la esfera';
+  if (id === 'agarrar') {
+    barrasEnPuno(e, tramo(k, 0.05, 0.45), 0.3, 0.3);
+    posar(e, 0, agarre(), k, 0.2, 0.75, 0.02);
+    e.hud.aviso = k > 0.2 ? 'Cada mano agarra su barra, con los brazos estirados' : null;
+    return;
   }
+  if (id === 'bajar') {
+    // La bajan entre las dos palmas hasta el frente de la cintura; las barras se desvanecen.
+    const c = lerpV(MEDIDAS.centro, CM, s);
+    e.figuras[0].pose = mezclarPose(esferaEntrePalmas(c, R, 0, CIERRE_SOSTENER, 1, CUNA), armar(frenteAFrente(c)), s, 0);
+    esferaEn(e, c);
+    barrasEnPuno(e, 1 - tramo(k, 0, 0.7), 0.3, 0.3);
+    e.hud.aviso = 'Bajar la esfera al frente, entre las dos manos';
+    return;
+  }
+  if (id === 'quedarse') {
+    const q = quedarse('I', k);
+    e.figuras[0].pose = armar(q.manos);
+    esferaEn(e, q.c);
+    barrasEnPuno(e, 0, 0.3, 0.3);
+    e.hud.aviso = 'La derecha se queda con la esfera';
+    return;
+  }
+  // Tomar energía de las barras, juntar las manos al frente, unir las esferas y jugar con ella.
+  const f = formarEsfera(id, k, MEDIDAS);
+  e.figuras[0].pose = f.pose;
+  esferasDePalmas(e, f.rMano);
+  if (f.unida) esferaEn(e, f.unida.c, f.unida.r, 1.25, f.unida.estirar);
+  if (id === 'tomar') flujosDeBarras(e, f.flujos);
+  if (id === 'unir') pulso(e, puntoMundo(e, 0, MEDIDAS.centro), tramo(k, 0.45, 1), 0.12, 'oro');
+  barrasEnPuno(e, 1, f.resalte, f.resalte);
+  e.hud.aviso = id === 'jugar' ? 'Alejar y acercar las manos, como una esfera de goma' : 'Tomar energía de las dos barras y unirla en una esfera';
 }
 
-// ── Paso 2 · Pasar de mano en mano, sin soltarla ────────────────────────
+// ── Paso 2 · De mano en mano, lentamente y jugando como goma ────────────
 
-const SEG_TRASPASO = 2.6;
-/** Dar → tomarla de costado, sostenerla entre las dos y recién entonces soltarla. */
+/** Tiempos (s) de cada traspaso: tomarla, enfrentar las palmas, jugar como goma y quedarse con ella. */
+const TRASPASO = { toma: 1.8, enfrentar: 1.3, goma: 4, quedarse: 2.4 };
+type IdTraspaso = keyof typeof TRASPASO;
+const FASES_TRASPASO: Fase<IdTraspaso>[] = (Object.keys(TRASPASO) as IdTraspaso[]).map((id) => ({ id, dur: TRASPASO[id] }));
+const SEG_TRASPASO = duracion(FASES_TRASPASO);
+/** Quién la da en cada traspaso: derecha → izquierda → derecha → izquierda. */
 const ORDEN_TRASPASOS: Lado[] = ['D', 'I', 'D'];
 /** Inclinación de la mano que recibe al tomarla de costado y por arriba (desde la vertical). */
 const THETA_TOMA = (127 * Math.PI) / 180;
-const PAUSA_TRASPASO = 0.3;
+const PAUSA_TRASPASO = 0.4;
 const DUR_PASAR = ORDEN_TRASPASOS.length * SEG_TRASPASO + (ORDEN_TRASPASOS.length - 1) * PAUSA_TRASPASO;
 
-/** Un traspaso: la mano `da` tiene la esfera en la palma y la otra la recibe. */
-function traspaso(da: Lado, k: number): { manos: Manos; c: V3; ambas: boolean } {
+interface Traspaso {
+  manos: Manos;
+  c: V3;
+  /** Estiramiento de la esfera a lo ancho (goma). */
+  estirar: number;
+  fase: IdTraspaso;
+  ambas: boolean;
+}
+
+/** Un traspaso a los `seg` segundos: la mano `da` tiene la esfera en la palma y la otra se queda con ella. */
+function traspaso(da: Lado, seg: number): Traspaso {
+  const { id: fase, k } = enFase(FASES_TRASPASO, seg);
   const rec = OTRO[da];
   const sg = SIGNO[da];
   const cDa = enPalma(reposo(da), R);
   const nToma: V3 = [sg * Math.sin(THETA_TOMA), Math.cos(THETA_TOMA), 0];
-  const toma = sostener(cDa, R, nToma, ortogonal(normV([0, 0.06, 1]), nToma), 0.28, normV([SIGNO[rec], -0.4, -0.3]));
-  if (k < 0.35) {
-    // La otra mano se acerca y la toma de costado, desde arriba.
-    return { manos: manos(da, reposo(da), mezclarMano(reposo(rec), toma, entraSaleSeno(k / 0.35))), c: cDa, ambas: k > 0.3 };
+  const tomada = sostener(cDa, R, nToma, ortogonal(DEDOS_FRENTE, nToma), CIERRE_SOSTENER, normV([SIGNO[rec], -0.4, -0.3]));
+  const ff = frenteAFrente(CM);
+  if (fase === 'toma') {
+    // La otra mano se acerca despacio y la toma de costado, desde arriba.
+    return { manos: manos(da, reposo(da), mezclarMano(reposo(rec), tomada, entraSaleSeno(k))), c: cDa, estirar: 1, fase, ambas: k > 0.85 };
   }
-  if (k < 0.5) return { manos: manos(da, reposo(da), toma), c: cDa, ambas: true };
-  // Recién ahora la primera la suelta: la otra gira por debajo y se la lleva a su palma.
-  const kk = (k - 0.5) / 0.5;
-  const r = recibir(rec, cDa, sg, THETA_TOMA, kk);
-  const baja = 0.025 * Math.sin(Math.PI * clamp(kk / 0.6));
-  const da2 = { ...reposo(da), mano: sumaV(reposo(da).mano, [sg * 0.01 * baja, -baja, 0]) };
-  return { manos: manos(da, da2, r.mano), c: r.c, ambas: kk < 0.15 };
+  if (fase === 'enfrentar') {
+    // Sostenida entre las dos, la llevan al medio y las palmas quedan enfrentadas.
+    const s = entraSaleSeno(k);
+    const c = lerpV(cDa, CM, s);
+    return { manos: manos(da, girarSosteniendo(c, reposo(da), ff[da], s), girarSosteniendo(c, tomada, ff[rec], s)), c, estirar: 1, fase, ambas: true };
+  }
+  if (fase === 'goma') {
+    // Juegan con ella como si fuera de goma: alejan y acercan las manos, despacio; se estira y se aplasta.
+    const estirar = separacionGoma(k, MEDIDAS) / R;
+    return { manos: frenteAFrente(CM, estirar), c: CM, estirar, fase, ambas: true };
+  }
+  return { ...quedarse(da, k), estirar: 1, fase };
 }
+
+const AVISO_TRASPASO: Record<IdTraspaso, string> = {
+  toma: 'La otra mano se acerca despacio y la toma',
+  enfrentar: 'La sostienen entre las dos manos',
+  goma: 'Juegan con ella como si fuera de goma',
+  quedarse: 'Recién entonces la primera la suelta',
+};
 
 function pasar(e: Estado, seg: number) {
   const ciclo = SEG_TRASPASO + PAUSA_TRASPASO;
   const n = Math.min(ORDEN_TRASPASOS.length - 1, Math.floor(seg / ciclo));
-  const k = clamp((seg - n * ciclo) / SEG_TRASPASO);
-  const t = traspaso(ORDEN_TRASPASOS[n], k);
+  const x = Math.min(seg - n * ciclo, SEG_TRASPASO);
+  const t = traspaso(ORDEN_TRASPASOS[n], x);
   e.figuras[0].pose = armar(t.manos);
-  esferaEn(e, t.c);
-  e.hud.contador = { valor: n + (k >= 1 ? 1 : 0), total: ORDEN_TRASPASOS.length, etiqueta: 'traspasos' };
-  e.hud.aviso = t.ambas ? 'La sostienen entre las dos manos' : k < 0.5 ? 'La otra mano se acerca y la toma' : 'Recién entonces la primera la suelta';
+  esferaEn(e, t.c, R, 1.25 + 0.4 * Math.abs(t.estirar - 1), t.estirar);
+  e.hud.contador = { valor: n + (x >= SEG_TRASPASO ? 1 : 0), total: ORDEN_TRASPASOS.length, etiqueta: 'traspasos' };
+  e.hud.aviso = AVISO_TRASPASO[t.fase];
 }
 
 // ── Pasos 3–6 · Cada brazo ──────────────────────────────────────────────
@@ -641,15 +747,17 @@ export const sensibilizacionManos: Secuencia = {
     e.camara = { ...TOMAS.general };
   },
   pasos: [
-    // 1 · Tomar dos esferas y juntarlas
+    // 1 · Cargar de las barras y formar la esfera
     {
       dur: DUR_TOMAR,
       aplicar: (e, t) => {
-        toma(e, CAM_MANOS, t, 0, 0.3);
+        toma(e, ENCUADRE_BARRAS, t, 0, 0.15);
+        toma(e, CAM_JUNTAR, t, T_JUNTAR, T_JUNTAR + 0.12);
+        toma(e, CAM_MANOS, t, T_BAJAR, T_BAJAR + 0.12);
         tomarEsferas(e, t * DUR_TOMAR);
       },
     },
-    // 2 · Pasar de mano en mano, sin soltarla
+    // 2 · Pasar de mano en mano, lentamente, jugando como goma y sin soltarla
     {
       dur: DUR_PASAR,
       aplicar: (e, t) => {
@@ -681,4 +789,20 @@ export const sensibilizacionManos: Secuencia = {
   ],
 };
 
-export const sensibilizarInterno = { BRAZOS, R, DIST, GOMA, traspaso, enPalma, reposo, ORDEN_TRASPASOS, FASES_DELANTE, FASES_ATRAS, aLoLargo };
+export const sensibilizarInterno = {
+  BRAZOS,
+  R,
+  DIST,
+  GOMA,
+  traspaso,
+  enPalma,
+  reposo,
+  ORDEN_TRASPASOS,
+  FASES_TOMAR,
+  FASES_TRASPASO,
+  SEG_TRASPASO,
+  PAUSA_TRASPASO,
+  FASES_DELANTE,
+  FASES_ATRAS,
+  aLoLargo,
+};

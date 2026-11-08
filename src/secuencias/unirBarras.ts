@@ -59,13 +59,42 @@ const SEP_ABIERTAS = 0.095;
 /** Juego de goma: 2 idas y vueltas; las palmas se alejan hasta +3 cm y se acercan hasta −1,5 cm. */
 const GOMA = { vueltas: 2, afuera: 0.03, adentro: 0.015 };
 
-/** Separación de las palmas durante el juego (vuelve a R_UNIDA al principio y al final). */
-function separacionGoma(k: number) {
+/**
+ * Medidas con que se forma la esfera: dónde se juntan las manos, radios de las
+ * esferas de cada mano y de la unida, separación de las palmas antes de unirlas
+ * y cuánto se alejan y se acercan al jugar con ella como goma. Otros ejercicios
+ * forman una esfera más chica con los mismos movimientos.
+ */
+export interface MedidasFormar {
+  centro: V3;
+  rMano: number;
+  rUnida: number;
+  sepAbiertas: number;
+  gomaAfuera: number;
+  gomaAdentro: number;
+  /** Cierre de los dedos al sostener la esfera entre las palmas. */
+  cierre: number;
+  /** Inclinación de las palmas hacia arriba, acunando la esfera (radianes; 0 = palmas verticales). */
+  cuna: number;
+}
+const MEDIDAS: MedidasFormar = {
+  centro: JUNTAR,
+  rMano: R_MANO,
+  rUnida: R_UNIDA,
+  sepAbiertas: SEP_ABIERTAS,
+  gomaAfuera: GOMA.afuera,
+  gomaAdentro: GOMA.adentro,
+  cierre: 0.3,
+  cuna: 0,
+};
+
+/** Separación de las palmas durante el juego (vuelve a rUnida al principio y al final). */
+export function separacionGoma(k: number, m: MedidasFormar = MEDIDAS) {
   // Empieza alejándose: la onda arranca en 0 y sube.
   const onda = Math.sin(2 * Math.PI * GOMA.vueltas * k);
   const envolvente = Math.sin(Math.PI * k);
-  const d = onda > 0 ? onda * GOMA.afuera : onda * GOMA.adentro;
-  return R_UNIDA + d * envolvente;
+  const d = onda > 0 ? onda * m.gomaAfuera : onda * m.gomaAdentro;
+  return m.rUnida + d * envolvente;
 }
 
 export const ENCUADRE = encuadre([0, 1.32, 0.3], 1.8, 0.62, 0.12);
@@ -169,7 +198,7 @@ export interface Formada {
  * las manos al frente con los brazos estirados (a la altura de las barras),
  * unir las dos esferas en una más grande y jugar con ella como si fuera de goma.
  */
-export function formarEsfera(fase: FaseFormar, k: number): Formada {
+export function formarEsfera(fase: FaseFormar, k: number, m: MedidasFormar = MEDIDAS): Formada {
   const s = entraSaleSeno(k);
   if (fase === 'tomar') {
     // Aprieta las barras y toma energía.
@@ -178,23 +207,23 @@ export function formarEsfera(fase: FaseFormar, k: number): Formada {
   }
   if (fase === 'juntar') {
     // Suelta las barras y, con los brazos estirados, las manos se acercan al frente con su esfera.
-    const pose = mezclarPose(agarre(), esferaEntrePalmas(JUNTAR, SEP_ABIERTAS, 0, 0.3, 1), s, 0);
-    return { pose, unida: null, rMano: R_MANO * saleAtras(tramo(k, 0, 0.45)), resalte: 0.3, flujos: 0 };
+    const pose = mezclarPose(agarre(), esferaEntrePalmas(m.centro, m.sepAbiertas, 0, m.cierre, 1, m.cuna), s, 0);
+    return { pose, unida: null, rMano: m.rMano * saleAtras(tramo(k, 0, 0.45)), resalte: 0.3, flujos: 0 };
   }
   if (fase === 'unir') {
     // Las palmas se acercan hasta que las dos esferas se tocan y se unen en una más grande.
     const crece = saleAtras(tramo(k, 0.5, 1));
     return {
-      pose: esferaEntrePalmas(JUNTAR, lerp(SEP_ABIERTAS, R_UNIDA, s), 0, 0.3, 1),
-      unida: crece > 0 ? { c: JUNTAR, r: R_UNIDA * crece, estirar: 1 } : null,
-      rMano: R_MANO * (1 - tramo(k, 0.55, 1)),
+      pose: esferaEntrePalmas(m.centro, lerp(m.sepAbiertas, m.rUnida, s), 0, m.cierre, 1, m.cuna),
+      unida: crece > 0 ? { c: m.centro, r: m.rUnida * crece, estirar: 1 } : null,
+      rMano: m.rMano * (1 - tramo(k, 0.55, 1)),
       resalte: 0.3,
       flujos: 0,
     };
   }
   // Juega con la esfera como si fuera de goma: se estira al alejar las manos y se aplasta al acercarlas.
-  const sep = separacionGoma(k);
-  return { pose: esferaEntrePalmas(JUNTAR, sep, 0, 0.3, 1), unida: { c: JUNTAR, r: R_UNIDA, estirar: sep / R_UNIDA }, rMano: 0, resalte: 0.3, flujos: 0 };
+  const sep = separacionGoma(k, m);
+  return { pose: esferaEntrePalmas(m.centro, sep, 0, m.cierre, 1, m.cuna, sep / m.rUnida), unida: { c: m.centro, r: m.rUnida, estirar: sep / m.rUnida }, rMano: 0, resalte: 0.3, flujos: 0 };
 }
 
 /**

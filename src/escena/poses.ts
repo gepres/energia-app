@@ -617,6 +617,17 @@ function brazosEnArco(theta: number, cierre: number, sentido: 'bajan' | 'suben')
 
 // ── Unir la energía de las barras (descrito en el taller) ───────────────
 
+/**
+ * Distancia del centro de la esfera a la palma que la acuna (inclinada `cuna`
+ * hacia arriba): `r` es la mitad del largo de la esfera a lo ancho y `estirar`
+ * cuánto se estiró (a lo alto se adelgaza, r / estirar^1,5).
+ */
+export function apoyoAcunado(r: number, cuna: number, estirar = 1): number {
+  if (!cuna) return r;
+  const alto = r / Math.pow(estirar, 1.5);
+  return Math.hypot(r * Math.cos(cuna), alto * Math.sin(cuna));
+}
+
 /** Distancias del hueco de la palma (ver `huecoPalma` en manos.ts): a lo largo de los dedos y piel. */
 export const HUECO = { dedos: 0.0564, piel: 0.0099 };
 
@@ -626,15 +637,22 @@ export const HUECO = { dedos: 0.0564, piel: 0.0099 };
  * costados de la esfera, palmas enfrentadas; con 1 la rodearon y quedaron
  * delante de ella, lado a lado, con las palmas hacia el cuerpo, para entrarla.
  * `dedosAlFrente` = 1 apunta los dedos al frente (brazos estirados); 0, arriba.
+ *
+ * `cuna` (radianes) inclina las palmas hacia arriba, como acunando la esfera:
+ * con una esfera chica, las palmas verticales juntarían las puntas de los
+ * pulgares; acunada, los pulgares se abren. Si la esfera está estirada a lo
+ * ancho (`estirar`, como goma, con `r` = la mitad de su largo), cada palma
+ * queda apoyada en su superficie.
  */
-export function esferaEntrePalmas(c: V3, r: number, alFrente = 0, cierre = 0.28, dedosAlFrente = 0): Pose {
+export function esferaEntrePalmas(c: V3, r: number, alFrente = 0, cierre = 0.28, dedosAlFrente = 0, cuna = 0, estirar = 1): Pose {
   const phi = (clamp(alFrente) * Math.PI) / 2;
+  const apoyo = apoyoAcunado(r, cuna, estirar);
   const mano = (s: number) => {
-    // De la esfera hacia la mano: del costado (s) hacia el frente (+Z).
-    const dir: V3 = [s * Math.cos(phi), 0, Math.sin(phi)];
+    // De la esfera hacia la mano: del costado (s) hacia el frente (+Z), y hacia abajo si se acuna.
+    const dir: V3 = [s * Math.cos(phi) * Math.cos(cuna), -Math.sin(cuna), Math.sin(phi) * Math.cos(cuna)];
     const dedos = normV(lerpV([0, 1, 0.25 * (1 - clamp(alFrente))], [0, 0.06, 1], clamp(dedosAlFrente)));
     const palma: V3 = [-dir[0], -dir[1], -dir[2]];
-    const a = HUECO.piel + r;
+    const a = HUECO.piel + apoyo;
     const lado = s * 0.045 * Math.sin(phi);
     return {
       mano: [
