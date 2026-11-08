@@ -573,7 +573,7 @@ const arcoIngle = (lado: Lado): V3 => [(lado === 'D' ? -1 : 1) * 0.1, 1.05, 0.5]
  */
 export const GIRAR_INGLES = 0.2;
 /** Cuánto se adelanta el hombro de la mano que espera en su barra mientras el torso gira (0–1): así no se aleja de la barra. */
-export const ADELANTAR_ESPERA = 0.7;
+export const ADELANTAR_ESPERA = 0.4;
 
 /** Cuánto acompaña el torso a la mano que lleva su esfera: gira mientras la lleva y vuelve al regresar. */
 function giroDeMano(u: number | null): number {

@@ -166,7 +166,7 @@ export interface Pose {
   girar: number;
   /**
    * Cuánto se adelanta cada hombro (0–1): la escápula se desliza hacia adelante, como al
-   * estirar el brazo hacia el otro lado del cuerpo, sin doblar la espalda. Ver `ADELANTAR_HOMBRO`.
+   * estirar el brazo hacia el otro lado del cuerpo, sin doblar la espalda. Ver `CLAVICULA`.
    */
   adelantarD: number;
   adelantarI: number;
@@ -349,15 +349,25 @@ export function transformarPunto(p: V3, agachar: number, inclinar: number, girar
 }
 
 /**
- * Cuánto se mueve el hombro adelantado al máximo (en el cuerpo erguido): 9 cm hacia
- * adelante, 2 cm hacia el centro y 1 cm hacia abajo, como cuando la escápula se desliza
- * al estirar el brazo hacia el otro lado.
+ * El hombro adelantado (escápula): la clavícula gira hacia adelante alrededor de su unión con
+ * el esternón, en un eje vertical (`x` hacia el lado de ese hombro, `z` delante), hasta `giro`
+ * rad. El hombro avanza en arco, como al estirar el brazo hacia el otro lado del cuerpo.
  */
-export const ADELANTAR_HOMBRO = { adelante: 0.09, adentro: 0.02, abajo: 0.01 };
+export const CLAVICULA = { x: 0.02, z: 0.05, giro: 0.55 };
 
-/** Desplazamiento del hombro del lado `s` (−1 derecha, +1 izquierda) adelantado `a` (0–1). */
-export function adelantoHombro(s: number, a: number): V3 {
-  return [-s * ADELANTAR_HOMBRO.adentro * a, -ADELANTAR_HOMBRO.abajo * a, ADELANTAR_HOMBRO.adelante * a];
+/**
+ * Lleva un punto del lado `s` (−1 derecha, +1 izquierda) con ese hombro adelantado `a` (0–1):
+ * lo gira con la clavícula alrededor del esternón (el extremo de afuera va hacia adelante).
+ */
+export function adelantarHombro(q: V3, s: number, a: number): V3 {
+  if (!a) return q;
+  const ang = -s * CLAVICULA.giro * a;
+  const cx = s * CLAVICULA.x;
+  const dx = q[0] - cx;
+  const dz = q[2] - CLAVICULA.z;
+  const c = Math.cos(ang);
+  const sn = Math.sin(ang);
+  return [cx + dx * c + dz * sn, q[1], CLAVICULA.z - dx * sn + dz * c];
 }
 
 /** Gira un punto alrededor de la vertical que pasa por `pivote` (+ hacia +X). */
@@ -385,8 +395,8 @@ export function resolverEsqueleto(p: Pose): Esqueleto {
   const pivote: V3 = [0, PROP.pivoteY + off[1], off[2]];
   const cuello = T([0, PROP.cuelloY, -0.005]);
   const cabeza = T([0, PROP.cabezaY, 0.005]);
-  const hombroD = T(sumaV([-PROP.hombroX, PROP.hombroY, -0.01], adelantoHombro(-1, p.adelantarD)));
-  const hombroI = T(sumaV([PROP.hombroX, PROP.hombroY, -0.01], adelantoHombro(1, p.adelantarI)));
+  const hombroD = T(adelantarHombro([-PROP.hombroX, PROP.hombroY, -0.01], -1, p.adelantarD));
+  const hombroI = T(adelantarHombro([PROP.hombroX, PROP.hombroY, -0.01], 1, p.adelantarI));
 
   const bD = ik2(hombroD, p.manoD, PROP.brazo, PROP.antebrazo, rotarDir(p.codoD));
   const bI = ik2(hombroI, p.manoI, PROP.brazo, PROP.antebrazo, rotarDir(p.codoI));

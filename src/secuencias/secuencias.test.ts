@@ -1237,6 +1237,53 @@ describe('Cargar las ingles (descrito en el taller)', () => {
     }
   });
 
+  it('el hombro se adelanta en arco con la clavícula, sin arrugar el pecho ni la espalda', () => {
+    // El hombro avanza (más de 7 cm) sin irse hacia el centro ni subir o bajar.
+    const reposo = resolverEsqueleto(NEUTRA);
+    for (const [L, s] of [
+      ['D', -1],
+      ['I', 1],
+    ] as const) {
+      const q = resolverEsqueleto({ ...NEUTRA, adelantarD: L === 'D' ? 1 : 0, adelantarI: L === 'I' ? 1 : 0 });
+      const h = L === 'D' ? q.hombroD : q.hombroI;
+      const h0 = L === 'D' ? reposo.hombroD : reposo.hombroI;
+      expect(h[2] - h0[2], `hombro ${L} adelante`).toBeGreaterThan(0.07);
+      expect(s * (h[0] - h0[0]), `hombro ${L} no va hacia el centro`).toBeGreaterThan(-0.005);
+      expect(h[1]).toBeCloseTo(h0[1], 6);
+    }
+    // La piel acompaña sin pliegues: entre vértices vecinos de la parte alta del torso, el ángulo
+    // entre normales no crece más de 15° respecto del reposo (desplazar la zona en bloque daba 35–40°).
+    const angulos = (e: ReturnType<typeof resolverEsqueleto>) => {
+      const t = crearTorso();
+      const y0 = Array.from(t.geometry.getAttribute('position').array).filter((_, i) => i % 3 === 1);
+      t.deformar(e);
+      const n = t.geometry.getAttribute('normal');
+      const idx = t.geometry.index!.array;
+      const out: number[] = [];
+      for (let k = 0; k < idx.length; k += 3)
+        for (const [a, b] of [
+          [idx[k], idx[k + 1]],
+          [idx[k + 1], idx[k + 2]],
+          [idx[k + 2], idx[k]],
+        ]) {
+          const d = n.getX(a) * n.getX(b) + n.getY(a) * n.getY(b) + n.getZ(a) * n.getZ(b);
+          out.push(y0[a] < 1.05 || y0[b] < 1.05 ? 0 : (Math.acos(Math.min(1, d)) * 180) / Math.PI);
+        }
+      return out;
+    };
+    const base = angulos(reposo);
+    for (const [d, i] of [
+      [1, 0],
+      [0, 1],
+      [1, 1],
+      [0.5, 0.2],
+    ]) {
+      const a = angulos(resolverEsqueleto({ ...NEUTRA, adelantarD: d, adelantarI: i }));
+      const peor = Math.max(...a.map((v, j) => v - base[j]));
+      expect(peor, `adelantar D ${d} · I ${i}`).toBeLessThan(15);
+    }
+  });
+
   it('el brazo que cruza no se mete en el cuerpo ni en los muslos, ni choca con el otro brazo', () => {
     for (let k = 0; k <= 40; k++) {
       const x = (2 * DESFASE * k) / 40;

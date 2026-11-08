@@ -1,5 +1,8 @@
 import { BufferGeometry, DynamicDrawUsage, Float32BufferAttribute, Quaternion, SphereGeometry, Vector3 } from 'three';
-import { type Esqueleto, PROP, adelantoHombro } from './cuerpo';
+import { type Esqueleto, PROP, adelantarHombro } from './cuerpo';
+
+/** Dónde gira la piel con la clavícula: de 0 a 1 según |x| y según la altura (y). */
+export const PESO_HOMBRO = { x: [0, 0.17], y: [1.05, 1.38] };
 import { type V3, lerp } from './mate';
 
 /**
@@ -154,10 +157,11 @@ export function crearTorso() {
   for (let i = 0; i < position.count; i++) {
     pesos[i] = pasoSuave(0.11, 0.185, Math.abs(reposo[i * 3])) * pasoSuave(1.32, 1.4, reposo[i * 3 + 1]);
   }
-  // Lo que acompaña al hombro cuando se adelanta: el hombro y la parte alta del pecho y de la espalda de ese lado.
+  // Lo que gira con la clavícula cuando el hombro se adelanta: entero en el hombro y cada vez
+  // menos hacia el esternón, la columna y las costillas de abajo (sin pliegues donde termina).
   const pesosHombro = new Float32Array(position.count);
   for (let i = 0; i < position.count; i++) {
-    pesosHombro[i] = pasoSuave(0.05, 0.15, Math.abs(reposo[i * 3])) * pasoSuave(1.2, 1.36, reposo[i * 3 + 1]);
+    pesosHombro[i] = pasoSuave(PESO_HOMBRO.x[0], PESO_HOMBRO.x[1], Math.abs(reposo[i * 3])) * pasoSuave(PESO_HOMBRO.y[0], PESO_HOMBRO.y[1], reposo[i * 3 + 1]);
   }
 
   const v = new Vector3();
@@ -187,14 +191,13 @@ export function crearTorso() {
 
       for (let i = 0; i < position.count; i++) {
         let x = reposo[i * 3];
-        let y = reposo[i * 3 + 1];
+        const y = reposo[i * 3 + 1];
         let z = reposo[i * 3 + 2];
         const adelanto = x < 0 ? e.adelantarD : e.adelantarI;
         if (adelanto && pesosHombro[i] > 0) {
-          const d = adelantoHombro(x < 0 ? -1 : 1, adelanto * pesosHombro[i]);
-          x += d[0];
-          y += d[1];
-          z += d[2];
+          const d = adelantarHombro([x, y, z], x < 0 ? -1 : 1, adelanto * pesosHombro[i]);
+          x = d[0];
+          z = d[2];
         }
         const a = e.inclinar * pasoSuave(PROP.pivoteY - 0.04, PROP.pivoteY + 0.04, y);
         const c = Math.cos(a);
