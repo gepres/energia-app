@@ -649,6 +649,7 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     SEG_TRASPASO,
     PAUSA_TRASPASO,
     ORDEN_TRASPASOS,
+    ORDEN_TRASPASOS_2,
     PRIMERO,
     SEGUNDO,
     CIERRE_CUBRIR,
@@ -719,10 +720,10 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     }
     // Hay momentos en que la sostienen entre las dos (en cada traspaso).
     expect(ambas).toBeGreaterThan(20);
-    // Al ir a cubrir los dedos y al cambiar de brazo, tampoco la sueltan.
+    // Al ir a cubrir los dedos de cada brazo, tampoco la sueltan.
     for (const [paso, A] of [
       [2, PRIMERO],
-      [4, SEGUNDO],
+      [6, SEGUNDO],
     ] as const) {
       const total = FASES_DELANTE[A].reduce((a, f) => a + f.dur, 0);
       for (let i = 0; i <= 80; i++) {
@@ -789,12 +790,13 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     expect(DIST).toBeLessThanOrEqual(0.1);
     for (const [paso, A] of [
       [3, PRIMERO],
-      [5, SEGUNDO],
+      [7, SEGUNDO],
     ] as const) {
       const fases = FASES_ATRAS[A];
       const total = fases.reduce((a, f) => a + f.dur, 0);
+      // La ida (dedos → hombro) y la vuelta (hombro → dedos).
       const ini = fases.slice(0, fases.findIndex((f) => f.id === 'recorrer')).reduce((a, f) => a + f.dur, 0);
-      const dur = fases.find((f) => f.id === 'recorrer')!.dur;
+      const dur = fases.find((f) => f.id === 'recorrer')!.dur + fases.find((f) => f.id === 'volver')!.dur;
       const B = A === 'I' ? 'D' : 'I';
       for (let i = 0; i <= 40; i++) {
         const e = evaluar(sec, paso, (ini + (dur * i) / 40) / total, OPCIONES_INICIALES);
@@ -829,7 +831,7 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
         }
       return m - A.radio - B.radio;
     };
-    for (const paso of [0, 1, 2, 3, 4, 5]) {
+    for (let paso = 0; paso < sec.pasos.length; paso++) {
       for (const e of muestras(paso, paso < 2 ? 200 : 60)) {
         const p = e.figuras[0].pose;
         const q = resolverEsqueleto(p);
@@ -852,7 +854,7 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     };
     // Al cubrir los dedos la esfera envuelve la yema a propósito (descrito en el taller): esa fase no se mide aquí.
     const enDedos = (paso: number, A: 'D' | 'I', t: number) => {
-      if (paso !== 2 && paso !== 4) return false;
+      if (paso !== 2 && paso !== 6) return false;
       const f = FASES_DELANTE[A];
       const total = f.reduce((a, x) => a + x.dur, 0);
       return t * total >= f[0].dur - 1e-9 && t * total <= f[0].dur + f[1].dur + 1e-9;
@@ -860,8 +862,8 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     for (const [paso, A] of [
       [2, PRIMERO],
       [3, PRIMERO],
-      [4, SEGUNDO],
-      [5, SEGUNDO],
+      [6, SEGUNDO],
+      [7, SEGUNDO],
     ] as const) {
       for (const [i, e] of muestras(paso, 120).entries()) {
         const esf = e.esferas[0];
@@ -885,12 +887,12 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
 
   it('palpa en orden: dedos; por delante, de la muñeca al codo en 4 tramos; por atrás, del codo a la muñeca; hasta el hombro', () => {
     expect(FASES_DELANTE[PRIMERO].map((f) => f.id)).toEqual(['preparar', 'dedos', 'aMuneca', 'linea']);
-    expect(FASES_ATRAS[PRIMERO].map((f) => f.id)).toEqual(['girar', 'linea', 'aYemas', 'recorrer', 'quieto']);
-    expect(FASES_ATRAS[SEGUNDO].map((f) => f.id).at(-1)).toBe('final');
+    // Por atrás: los puntos, el recorrido de ida y vuelta y la esfera que se absorbe (en los dos brazos).
+    for (const A of [PRIMERO, SEGUNDO]) expect(FASES_ATRAS[A].map((f) => f.id)).toEqual(['girar', 'linea', 'aYemas', 'recorrer', 'volver', 'quieto', 'absorber']);
     // Empieza la mano izquierda con la mano derecha: primero se palpa el brazo derecho y después el izquierdo.
     expect([PRIMERO, SEGUNDO]).toEqual(['D', 'I']);
     // El recorrido termina en el hombro.
-    expect(sec.pasos).toHaveLength(6);
+    expect(sec.pasos).toHaveLength(8);
     for (const A of ['I', 'D'] as const) {
       const r = BRAZOS[A].recorrido;
       const q = resolverEsqueleto(SERENA);
@@ -905,7 +907,7 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     expect(CIERRE_CUBRIR).toBeGreaterThanOrEqual(0.35);
     for (const [paso, A] of [
       [2, PRIMERO],
-      [4, SEGUNDO],
+      [6, SEGUNDO],
     ] as const) {
       const fases = FASES_DELANTE[A];
       const total = fases.reduce((a, f) => a + f.dur, 0);
@@ -996,8 +998,8 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     for (const [paso, A, fases, delante] of [
       [2, PRIMERO, FASES_DELANTE[PRIMERO], true],
       [3, PRIMERO, FASES_ATRAS[PRIMERO], false],
-      [4, SEGUNDO, FASES_DELANTE[SEGUNDO], true],
-      [5, SEGUNDO, FASES_ATRAS[SEGUNDO], false],
+      [6, SEGUNDO, FASES_DELANTE[SEGUNDO], true],
+      [7, SEGUNDO, FASES_ATRAS[SEGUNDO], false],
     ] as const) {
       const total = fases.reduce((a, f) => a + f.dur, 0);
       const j = fases.findIndex((f) => f.id === 'linea');
@@ -1027,6 +1029,116 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
         const ahora = avance(en(x));
         expect(ahora - antes, `paso ${paso + 1}, x ${x.toFixed(2)}: avanza`).toBeGreaterThan(0.0002);
         antes = ahora;
+      }
+    }
+  });
+
+  it('al terminar el primer brazo la esfera se absorbe y el otro brazo empieza otra vez desde las barras y los traspasos', () => {
+    // Fin del paso 4: la esfera se absorbió en la palma.
+    expect(evaluar(sec, 3, 1, OPCIONES_INICIALES).esferas[0].activa).toBe(false);
+    // Paso 5: otra vez las barras, con la energía que sube a las manos.
+    const total = FASES_TOMAR.reduce((a, f) => a + f.dur, 0);
+    const iniTomar = FASES_TOMAR.slice(0, FASES_TOMAR.findIndex((f) => f.id === 'tomar')).reduce((a, f) => a + f.dur, 0);
+    const tomando = evaluar(sec, 4, (iniTomar + 0.8) / total, OPCIONES_INICIALES);
+    expect(tomando.barras.opacidad).toBe(1);
+    expect(tomando.flujos.filter((f) => f.activo && f.intensidad > 0.5)).toHaveLength(2);
+    // Al formarla de nuevo se queda la izquierda; después de los traspasos, la derecha (que cubre los dedos de la izquierda).
+    const fin5 = evaluar(sec, 4, 1, OPCIONES_INICIALES);
+    expect(dist(fin5.esferas[0].pos, palmas(fin5).I)).toBeLessThan(R + 0.016);
+    expect(ORDEN_TRASPASOS_2[0]).toBe('I');
+    const fin6 = evaluar(sec, 5, 1, OPCIONES_INICIALES);
+    expect(dist(fin6.esferas[0].pos, palmas(fin6).D)).toBeLessThan(R + 0.016);
+    // En los traspasos de la segunda vuelta tampoco la suelta nunca.
+    for (const e of muestras(5, 200)) {
+      const { D, I } = palmas(e);
+      expect(Math.min(dist(e.esferas[0].pos, D), dist(e.esferas[0].pos, I))).toBeLessThan(R * Math.max(1, e.esferas[0].estirar) + 0.016);
+    }
+    // Al final del ejercicio también se absorbe.
+    expect(evaluar(sec, 7, 1, OPCIONES_INICIALES).esferas[0].activa).toBe(false);
+  });
+
+  it('el recorrido es de ida y vuelta (dedos → hombro → dedos) y la mano que recorre no atraviesa el cuerpo', () => {
+    /** Piel del torso, el cuello y la cabeza (vértices y normales) en una pose. */
+    const piel = (e: Estado) => {
+      const q = resolverEsqueleto(e.figuras[0].pose);
+      const torso = crearTorso();
+      torso.deformar(q);
+      const g = crearGeometrias();
+      const piezas: [BufferGeometry, Matrix4][] = [
+        [torso.geometry, new Matrix4()],
+        [g.cuello, new Matrix4().makeRotationFromEuler(new Euler(q.inclinar, 0, 0)).setPosition(...q.cuello)],
+        [g.cabeza, new Matrix4().makeRotationFromEuler(new Euler(q.cabezaPitch, q.cabezaYaw, 0, 'YXZ')).setPosition(...q.cabeza)],
+      ];
+      const pts: number[][] = [];
+      const nor: number[][] = [];
+      const v = new Vector3();
+      for (const [geo0, m] of piezas) {
+        const geo = geo0;
+        if (!geo.getAttribute('normal')) geo.computeVertexNormals();
+        const pos = geo.getAttribute('position');
+        const nrm = geo.getAttribute('normal');
+        const rot = new Matrix4().extractRotation(m);
+        for (let i = 0; i < pos.count; i++) {
+          v.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(m);
+          pts.push([v.x, v.y, v.z]);
+          v.set(nrm.getX(i), nrm.getY(i), nrm.getZ(i)).applyMatrix4(rot).normalize();
+          nor.push([v.x, v.y, v.z]);
+        }
+      }
+      return { pts, nor };
+    };
+    /** Distancia con signo de un punto a la piel (negativa si está adentro), según el vértice más cercano. */
+    const conSigno = (c: number[], s: { pts: number[][]; nor: number[][] }) => {
+      let m = 1e9;
+      let k = 0;
+      s.pts.forEach((q, i) => {
+        const d = dist(c, q);
+        if (d < m) {
+          m = d;
+          k = i;
+        }
+      });
+      const n = s.nor[k];
+      const lado = [0, 1, 2].reduce((a, j) => a + (c[j] - s.pts[k][j]) * n[j], 0);
+      return lado < 0 ? -m : m;
+    };
+    for (const [paso, A] of [
+      [3, PRIMERO],
+      [7, SEGUNDO],
+    ] as const) {
+      const fases = FASES_ATRAS[A];
+      const total = fases.reduce((a, f) => a + f.dur, 0);
+      const ini = fases.slice(0, fases.findIndex((f) => f.id === 'recorrer')).reduce((a, f) => a + f.dur, 0);
+      const ida = fases.find((f) => f.id === 'recorrer')!.dur;
+      const vuelta = fases.find((f) => f.id === 'volver')!.dur;
+      const en = (seg: number) => evaluar(sec, paso, (ini + seg) / total, OPCIONES_INICIALES);
+      const B = A === 'D' ? 'I' : 'D';
+      const r = BRAZOS[A].recorrido;
+      const sobre = (pp: { piel: number[]; normal: number[] }) => pp.piel.map((x, k) => x + pp.normal[k] * DIST);
+      // Ida y vuelta: empieza sobre los dedos, llega al hombro y vuelve a los dedos.
+      expect(dist(palmas(en(0))[B], sobre(r[0])), `${A}: empieza en los dedos`).toBeLessThan(0.01);
+      expect(dist(palmas(en(ida))[B], sobre(r[r.length - 1])), `${A}: llega al hombro`).toBeLessThan(0.01);
+      expect(dist(palmas(en(ida + vuelta))[B], sobre(r[0])), `${A}: vuelve a los dedos`).toBeLessThan(0.01);
+      // La mano y el antebrazo que recorren no se meten en el torso, el cuello ni la cabeza.
+      for (let i = 0; i <= 16; i++) {
+        const e = en(((ida + vuelta) * i) / 16);
+        const p = e.figuras[0].pose;
+        const q = resolverEsqueleto(p);
+        const W = B === 'I' ? q.munecaI : q.munecaD;
+        const E = B === 'I' ? q.codoI : q.codoD;
+        const pal = B === 'I' ? q.palmaI : q.palmaD;
+        const mano = segmentosMano(W, pal.dedos, pal.normal, B === 'D' ? 1 : -1, B === 'I' ? p.cierreI : p.cierreD);
+        const muestrasBrazo: [number[], number][] = [];
+        for (const g of mano.slice(1)) for (const u of [0, 0.5, 1]) muestrasBrazo.push([g.pos.map((x, k) => x + g.dir[k] * g.largo * u), g.radio]);
+        for (const u of [0, 0.25, 0.5, 0.75]) muestrasBrazo.push([W.map((x, k) => x + (E[k] - x) * u), 0.03]);
+        // El brazo, del codo hasta la mitad (más arriba nace del hombro).
+        const H = B === 'I' ? q.hombroI : q.hombroD;
+        for (const u of [0, 0.25, 0.5]) muestrasBrazo.push([E.map((x, k) => x + (H[k] - x) * u), 0.04]);
+        const s = piel(e);
+        const valores = muestrasBrazo.map(([c, rad]) => conSigno(c, s) - rad);
+        const peor = Math.min(...valores);
+        const donde = valores.indexOf(peor) >= muestrasBrazo.length - 7 ? (valores.indexOf(peor) >= muestrasBrazo.length - 3 ? 'el brazo' : 'el antebrazo') : 'la mano';
+        expect(peor, `${A}: recorrido ${i}/16, ${donde} dentro del cuerpo`).toBeGreaterThan(-0.005);
       }
     }
   });

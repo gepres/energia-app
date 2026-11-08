@@ -50,8 +50,11 @@ import {
  *    codo, la distancia dividida en 4, haciendo goma en cada punto (muñeca, ¼,
  *    ½, ¾ y codo), de forma continua, como una ola; por delante (palma arriba)
  *    y, con el brazo girado, por atrás, del codo a la muñeca;
- *  - la mano recorre el brazo sin tocarlo, a 5–10 cm, desde los dedos hasta el hombro;
- *  - después, lo mismo con el otro brazo (la derecha cubre los dedos de la izquierda).
+ *  - la mano recorre el brazo y la mano sin tocarlos, a 5–10 cm, como cubriéndolos: de
+ *    los dedos al hombro (llega por delante) y de vuelta a los dedos; la esfera vuelve a
+ *    la palma y se absorbe;
+ *  - después, lo mismo con el otro brazo, empezando otra vez desde las barras y los
+ *    traspasos (la derecha cubre los dedos de la izquierda).
  */
 
 type Lado = 'D' | 'I';
@@ -196,6 +199,10 @@ function recibir(rec: Lado, c0: V3, hacia: number, k: number): { mano: Mano; c: 
 interface PuntoPiel {
   piel: V3;
   normal: V3;
+  /** Hacia dónde apuntan los dedos de la mano que pasa por encima (si no, cruzan el brazo a 45°). */
+  dedos?: V3;
+  /** Hacia dónde va su codo (si no, afuera, abajo y adelante). */
+  codo?: V3;
 }
 
 interface Brazo {
@@ -260,6 +267,9 @@ const DONDE_LINEA = ['la muñeca', 'el primer cuarto del antebrazo', 'la mitad d
 const PHI_PALPAR = 45;
 const PHI_CUBRIR = -15;
 
+/** Codo de la mano que llega al hombro del otro lado: bien adelante (así el brazo cruza por delante del pecho). */
+const CODO_HOMBRO: V3 = normV([0, -0.15, 1]);
+
 function brazo(A: Lado): Brazo {
   const s = SIGNO[A];
   const B = OTRO[A];
@@ -317,15 +327,25 @@ function brazo(A: Lado): Brazo {
   // Del codo al hombro, la mano pasa por delante del brazo (por el pliegue del codo), sin rozarlo.
   const nBrazo = ortogonal(normV([-s * 0.2, 0.3, 1]), normV(restaV(H, E)));
   const nPliegue = normV(sumaV(arribaAnte, nBrazo));
+  // El recorrido, cubriendo el brazo y la mano sin tocarlos. Sobre la mano y el antebrazo, los dedos
+  // de la mano que recorre cruzan el brazo; sobre el brazo y el hombro, la mano gira y sube por
+  // delante, con los dedos hacia arriba: llega al hombro por delante, así el otro brazo pasa por
+  // delante del pecho y no alrededor de la cabeza.
+  const cruzado = normV([s * Math.SQRT1_2, 0, Math.SQRT1_2]);
+  const haciaArriba = normV([s * 0.15, 1, -0.2]);
+  // El codo de la mano que recorre: afuera, abajo y adelante; al llegar al hombro, bien adelante.
+  const codoCerca = normV([-s * 0.3, -0.4, 0.85]);
+  const codoLejos = CODO_HOMBRO;
+  const d = (pp: PuntoPiel, dir: V3, codo = codoCerca): PuntoPiel => ({ ...pp, dedos: dir, codo });
   const recorrido = [
-    p(sumaV(W, escalaV(dedos, 0.165)), ARRIBA, 0.01),
-    p(sumaV(W, escalaV(dedos, 0.085)), ARRIBA, 0.016),
-    puntos.muneca,
-    puntos.antebrazo,
-    puntos.codo,
-    p(E, nPliegue, 0.036 + DIST * 0.35),
-    p(lerpV(E, H, 0.5), nBrazo, 0.046),
-    p(H, normV([s * 0.3, 1, 0.25]), 0.06),
+    d(p(sumaV(W, escalaV(dedos, 0.165)), ARRIBA, 0.01), cruzado),
+    d(p(sumaV(W, escalaV(dedos, 0.085)), ARRIBA, 0.016), cruzado),
+    d(puntos.muneca, cruzado),
+    d(puntos.antebrazo, cruzado),
+    d(puntos.codo, cruzado),
+    d(p(E, nPliegue, 0.036 + DIST * 0.35), normV(sumaV(cruzado, haciaArriba)), normV(sumaV(codoCerca, codoLejos))),
+    d(p(lerpV(E, H, 0.5), nBrazo, 0.046), haciaArriba, codoLejos),
+    d(p(H, normV([s * 0.35, 0.3, 1]), 0.055), haciaArriba, codoLejos),
   ];
   return { A, B, s, palpado, puntos, linea, cubrir, recorrido };
 }
@@ -333,7 +353,9 @@ function brazo(A: Lado): Brazo {
 const BRAZOS: Record<Lado, Brazo> = { I: brazo('I'), D: brazo('D') };
 
 function mezclarPunto(a: PuntoPiel, b: PuntoPiel, k: number): PuntoPiel {
-  return { piel: lerpV(a.piel, b.piel, k), normal: normV(lerpV(a.normal, b.normal, k)) };
+  const dedos = a.dedos && b.dedos ? normV(lerpV(a.dedos, b.dedos, k)) : undefined;
+  const codo = a.codo && b.codo ? normV(lerpV(a.codo, b.codo, k)) : undefined;
+  return { piel: lerpV(a.piel, b.piel, k), normal: normV(lerpV(a.normal, b.normal, k)), dedos, codo };
 }
 
 /** Punto a una fracción `u` (0–1, por largo) de una lista de puntos. */
@@ -347,22 +369,24 @@ function aLoLargo(lista: PuntoPiel[], u: number): PuntoPiel {
 }
 
 /** La mano de `b.B` con el hueco de la palma en `hueco`, mirando hacia `-normal`. */
-function manoEn(b: Brazo, hueco: V3, normal: V3, phi = PHI_PALPAR, cierre = 0.15): Mano {
+function manoEn(b: Brazo, hueco: V3, normal: V3, phi = PHI_PALPAR, cierre = 0.15, haciaDedos?: V3): Mano {
   const palma = escalaV(normal, -1);
   const f = (phi * Math.PI) / 180;
-  const dedos = ortogonal(normV([b.s * Math.sin(f), 0, Math.cos(f)]), palma);
+  const dedos = ortogonal(haciaDedos ?? normV([b.s * Math.sin(f), 0, Math.cos(f)]), palma);
   return {
     mano: restaV(restaV(hueco, escalaV(dedos, HUECO.dedos)), escalaV(palma, HUECO.piel)),
     palma,
     dedos,
     cierre,
-    codo: normV([-b.s * 0.8, -0.5, -0.2]),
+    // El codo hacia afuera, abajo y adelante: al cruzar hasta el otro brazo, el brazo pasa por delante del pecho.
+    codo: normV([-b.s * 0.3, -0.4, 0.85]),
   };
 }
 
 /** La mano que palpa, encima del punto, a DIST + `alza` de la piel, con la palma hacia el brazo. */
 function encima(b: Brazo, pp: PuntoPiel, alza: number, extra: Partial<Mano> = {}, phi = PHI_PALPAR): Mano {
-  return { ...manoEn(b, sumaV(pp.piel, escalaV(pp.normal, DIST + alza)), pp.normal, phi), ...extra };
+  const m = manoEn(b, sumaV(pp.piel, escalaV(pp.normal, DIST + alza)), pp.normal, phi, 0.15, pp.dedos);
+  return { ...m, ...(pp.codo ? { codo: pp.codo } : {}), ...extra };
 }
 
 /** Esfera entre la piel y la palma: se estira (goma) cuando la mano sube. */
@@ -464,7 +488,7 @@ function quedarse(da: Lado, k: number): { manos: Manos; c: V3; ambas: boolean } 
   return { manos: manos(da, mDa, r.mano), c: r.c, ambas: k < 0.08 };
 }
 
-function tomarEsferas(e: Estado, seg: number) {
+function tomarEsferas(e: Estado, seg: number, queda: Lado) {
   const { id, k } = enFase(FASES_TOMAR, seg);
   const s = entraSaleSeno(k);
   if (id === 'agarrar') {
@@ -483,11 +507,11 @@ function tomarEsferas(e: Estado, seg: number) {
     return;
   }
   if (id === 'quedarse') {
-    const q = quedarse('I', k);
+    const q = quedarse(OTRO[queda], k);
     e.figuras[0].pose = armar(q.manos);
     esferaEn(e, q.c);
     barrasEnPuno(e, 0, 0.3, 0.3);
-    e.hud.aviso = 'La derecha se queda con la esfera';
+    e.hud.aviso = `La ${NOMBRE_MANO[queda]} se queda con la esfera`;
     return;
   }
   // Tomar energía de las barras, juntar las manos al frente, unir las esferas y jugar con ella.
@@ -517,6 +541,8 @@ const FASES_TRASPASO: Fase<IdTraspaso>[] = (Object.keys(TRASPASO) as IdTraspaso[
 const SEG_TRASPASO = duracion(FASES_TRASPASO);
 /** Quién la da en cada traspaso: derecha → izquierda → derecha → izquierda. */
 const ORDEN_TRASPASOS: Lado[] = ['D', 'I', 'D'];
+/** Con el otro brazo, en espejo: izquierda → derecha → izquierda → derecha (queda en la derecha). */
+const ORDEN_TRASPASOS_2: Lado[] = ['I', 'D', 'I'];
 const PAUSA_TRASPASO = 0.4;
 const DUR_PASAR = ORDEN_TRASPASOS.length * SEG_TRASPASO + (ORDEN_TRASPASOS.length - 1) * PAUSA_TRASPASO;
 const ABAJO: V3 = [0, -1, 0];
@@ -581,14 +607,14 @@ const AVISO_TRASPASO: Record<IdTraspaso, string> = {
   quedarse: 'La de arriba la suelta: queda en la mano de abajo',
 };
 
-function pasar(e: Estado, seg: number) {
+function pasar(e: Estado, seg: number, orden: Lado[]) {
   const ciclo = SEG_TRASPASO + PAUSA_TRASPASO;
-  const n = Math.min(ORDEN_TRASPASOS.length - 1, Math.floor(seg / ciclo));
+  const n = Math.min(orden.length - 1, Math.floor(seg / ciclo));
   const x = Math.min(seg - n * ciclo, SEG_TRASPASO);
-  const t = traspaso(ORDEN_TRASPASOS[n], x);
+  const t = traspaso(orden[n], x);
   e.figuras[0].pose = armar(t.manos);
   esferaEn(e, t.c, R, 1.25 + 0.4 * Math.abs(t.estirar - 1), t.estirar, t.fase === 'goma' ? ARRIBA : null);
-  e.hud.contador = { valor: n + (x >= SEG_TRASPASO ? 1 : 0), total: ORDEN_TRASPASOS.length, etiqueta: 'traspasos' };
+  e.hud.contador = { valor: n + (x >= SEG_TRASPASO ? 1 : 0), total: orden.length, etiqueta: 'traspasos' };
   e.hud.aviso = AVISO_TRASPASO[t.fase];
 }
 
@@ -741,21 +767,24 @@ const fasesDelante = (preparar: number): Fase<IdDelante>[] => [
 /** Primero se palpa el brazo derecho (con la mano izquierda) y después el izquierdo (descrito en el taller). */
 const PRIMERO: Lado = 'D';
 const SEGUNDO: Lado = 'I';
-/** Cambio de brazo: llevar la esfera al medio, pasarla (una mano arriba y otra abajo) y preparar a cubrir. */
-const CAMBIO = { llevar: 2.4, pasar: 1.8, preparar: 2.6 };
-const DUR_CAMBIO = CAMBIO.llevar + CAMBIO.pasar + CAMBIO.preparar;
-const FASES_DELANTE: Record<Lado, Fase<IdDelante>[]> = { [PRIMERO]: fasesDelante(CAMBIO.preparar), [SEGUNDO]: fasesDelante(DUR_CAMBIO) } as Record<Lado, Fase<IdDelante>[]>;
+/** Cada brazo empieza igual: la mano que tiene la esfera la da vuelta y va a cubrir el primer dedo. */
+const PREPARAR = 2.6;
+const FASES_DELANTE: Record<Lado, Fase<IdDelante>[]> = { D: fasesDelante(PREPARAR), I: fasesDelante(PREPARAR) };
 
-type IdAtras = 'girar' | 'linea' | 'aYemas' | 'recorrer' | 'quieto' | 'final';
-const fasesAtras = (final: number): Fase<IdAtras>[] => [
+type IdAtras = 'girar' | 'linea' | 'aYemas' | 'recorrer' | 'volver' | 'quieto' | 'absorber';
+/** Por atrás: los 5 puntos, el recorrido de ida (dedos → hombro) y vuelta (hombro → dedos), y la esfera se absorbe. */
+const fasesAtras = (): Fase<IdAtras>[] => [
   { id: 'girar', dur: 1.4 },
   FASE_LINEA,
   { id: 'aYemas', dur: 0.9 },
   { id: 'recorrer', dur: 4.6 },
-  { id: 'quieto', dur: 0.6 },
-  ...(final > 0 ? [{ id: 'final' as const, dur: final }] : []),
+  { id: 'volver', dur: 4.6 },
+  { id: 'quieto', dur: 0.5 },
+  { id: 'absorber', dur: 4.2 },
 ];
-const FASES_ATRAS: Record<Lado, Fase<IdAtras>[]> = { [PRIMERO]: fasesAtras(0), [SEGUNDO]: fasesAtras(4.2) } as Record<Lado, Fase<IdAtras>[]>;
+const FASES_ATRAS: Record<Lado, Fase<IdAtras>[]> = { D: fasesAtras(), I: fasesAtras() };
+/** Al recorrer el brazo, la mano va ahuecada, como cubriéndolo (al palpar, 0,15). */
+const CIERRE_RECORRER = 0.3;
 
 /** Dónde lleva la esfera la mano que acaba de recorrer el brazo `b` (debajo de su palma, al frente). */
 function frenteLlevando(b: Brazo): Mano {
@@ -782,53 +811,14 @@ function suelta(l: Lado): Mano {
 /** Centro de la esfera debajo de la palma de una mano (palma hacia la esfera). */
 const bajoPalma = (m: Mano): V3 => enPalma(m, R + LUZ_PALMA);
 
-/**
- * Cambio de brazo (antes del segundo): la mano que recorrió el primer brazo lleva la
- * esfera al medio, arriba; la del brazo ya palpado se pone abajo y la recibe, como en
- * los traspasos (queda en la mano de abajo); después esa mano la da vuelta y cubre los
- * dedos del segundo brazo.
- */
-function cambiarDeBrazo(b: Brazo, seg: number): { manos: Manos; c: V3; r: number; aviso: string } {
-  const previo = BRAZOS[b.B];
-  if (seg < CAMBIO.llevar) {
-    const k = seg / CAMBIO.llevar;
-    // Lleva: la mano con la esfera debajo de la palma (b.A) va al medio, arriba, pasando por delante.
-    const finRecorrido = encima(previo, previo.recorrido[previo.recorrido.length - 1], 0);
-    const arriba = vertical(b.A, CM, true);
-    const s = entraSaleSeno(k);
-    const lleva = mezclarMano(finRecorrido, arriba, s);
-    const mLleva = { ...lleva, mano: sumaV(lleva.mano, [0, 0.03 * Math.sin(Math.PI * s), 0.06 * Math.sin(Math.PI * s)]) };
-    const c = enPalma(mLleva, R + LUZ_PALMA * (1 - s));
-    // Recibe: el brazo palpado gira la palma hacia arriba y se pone abajo, antes de que llegue la esfera.
-    const sr = entraSaleSeno(tramo(k, 0, 0.7));
-    const recibe = mezclarMano(previo.palpado(1), vertical(b.B, CM, false), sr, [-SIGNO[b.B], 0, 0]);
-    return { manos: manos(b.A, mLleva, recibe), c, r: R, aviso: 'Se sigue con la otra mano: la esfera va al medio, sin soltarla' };
-  }
-  if (seg < CAMBIO.llevar + CAMBIO.pasar) {
-    // La de arriba la suelta y queda en la de abajo (como en los traspasos).
-    const k = (seg - CAMBIO.llevar) / CAMBIO.pasar;
-    const t = traspaso(b.A, TRASPASO.juntar + TRASPASO.goma + k * TRASPASO.quedarse);
-    return { manos: t.manos, c: t.c, r: R, aviso: 'La de arriba la suelta: queda en la mano de abajo' };
-  }
-  const p = prepararCubrir(b, (seg - CAMBIO.llevar - CAMBIO.pasar) / CAMBIO.preparar);
-  return { ...p, aviso: `La mano ${NOMBRE_MANO[b.B]} da vuelta la esfera sin soltarla y va a cubrir los dedos` };
-}
-
 function delante(e: Estado, A: Lado, seg: number) {
   const b = BRAZOS[A];
   const { id, k } = enFase(FASES_DELANTE[A], seg);
   if (id === 'preparar') {
-    if (A === PRIMERO) {
-      const p = prepararCubrir(b, k);
-      e.figuras[0].pose = armar(p.manos);
-      esferaEn(e, p.c, p.r);
-      e.hud.aviso = `La mano ${NOMBRE_MANO[b.B]} da vuelta la esfera sin soltarla y va a cubrir los dedos`;
-    } else {
-      const p = cambiarDeBrazo(b, k * DUR_CAMBIO);
-      e.figuras[0].pose = armar(p.manos);
-      esferaEn(e, p.c, p.r);
-      e.hud.aviso = p.aviso;
-    }
+    const p = prepararCubrir(b, k);
+    e.figuras[0].pose = armar(p.manos);
+    esferaEn(e, p.c, p.r);
+    e.hud.aviso = `La mano ${NOMBRE_MANO[b.B]} da vuelta la esfera sin soltarla y va a cubrir los dedos`;
     return;
   }
   if (id === 'dedos') {
@@ -872,20 +862,25 @@ function atras(e: Estado, A: Lado, seg: number) {
     e.hud.aviso = 'Hasta la punta de los dedos';
     return;
   }
-  if (id === 'recorrer' || id === 'quieto') {
-    const u = id === 'recorrer' ? entraSaleSeno(k) : 1;
+  if (id === 'recorrer' || id === 'volver' || id === 'quieto') {
+    // Ida, de los dedos al hombro, y vuelta, del hombro a los dedos: la mano ahuecada, como cubriéndolo.
+    const u = id === 'recorrer' ? entraSaleSeno(k) : id === 'volver' ? 1 - entraSaleSeno(k) : 0;
     const pp = aLoLargo(b.recorrido, u);
-    const mb = encima(b, pp, 0);
+    const cierre = id === 'recorrer' ? lerp(0.15, CIERRE_RECORRER, tramo(k, 0, 0.15)) : id === 'volver' ? CIERRE_RECORRER : lerp(CIERRE_RECORRER, 0.15, k);
+    const mb = encima(b, pp, 0, { cierre });
     e.figuras[0].pose = armar(manos(A, b.palpado(1), mb));
     esferaGoma(e, pp, 0);
-    rotulo(e, b, pp, '5–10 cm', id === 'recorrer' ? ventana(k, 0, 1, 0.08) : 1 - k, 'distancia');
-    e.hud.aviso = 'La mano recorre el brazo sin tocarlo, a 5–10 cm, hasta el hombro';
+    rotulo(e, b, pp, '5–10 cm', id === 'recorrer' ? ventana(k, 0, 1, 0.08) : id === 'volver' ? ventana(k, 0, 1, 0.08) : 0, 'distancia');
+    e.hud.aviso =
+      id === 'volver' || id === 'quieto'
+        ? 'Y vuelve, cubriéndolo sin tocarlo, hasta los dedos'
+        : 'La mano recorre el brazo cubriéndolo, sin tocarlo, a 5–10 cm, hasta el hombro';
     return;
   }
   e.hud.contador = null;
-  // Final (después del segundo brazo), por turnos: el brazo palpado se suelta al costado; la otra
-  // mano trae la esfera al frente, gira por debajo sin soltarla y la esfera se absorbe en la palma; las manos se sueltan.
-  const finRecorrido = encima(b, b.recorrido[b.recorrido.length - 1], 0);
+  // Al terminar cada brazo, por turnos: el brazo palpado se suelta al costado; la otra mano trae la
+  // esfera al frente, gira por debajo sin soltarla y la esfera se absorbe en la palma; las manos se sueltan.
+  const finRecorrido = encima(b, b.recorrido[0], 0);
   const lleva = frenteLlevando(b);
   const sB = SIGNO[b.B];
   const mA = mezclarMano(b.palpado(1), suelta(A), entraSaleSeno(clamp(k / 0.22)));
@@ -910,7 +905,14 @@ function atras(e: Estado, A: Lado, seg: number) {
   if (r > 0.001) esferaEn(e, c, r);
   else e.esferas[0].activa = false;
   pulso(e, puntoMundo(e, 0, c), tramo(k, 0.68, 0.88), 0.2, 'oro');
-  e.hud.aviso = k < 0.22 ? 'El brazo se suelta' : k < 0.68 ? 'La esfera vuelve a la palma' : 'Sensaciones: calor, presión, hormigueo, electricidad';
+  e.hud.aviso =
+    k < 0.22
+      ? 'El brazo se suelta'
+      : k < 0.68
+        ? 'La esfera vuelve a la palma'
+        : A === SEGUNDO
+          ? 'Sensaciones: calor, presión, hormigueo, electricidad'
+          : 'La esfera se absorbe en la palma';
 }
 
 // ── Cámaras ─────────────────────────────────────────────────────────────
@@ -930,8 +932,7 @@ function pasoDelante(A: Lado) {
   return {
     dur,
     aplicar: (e: Estado, t: number) => {
-      toma(e, A === PRIMERO ? camDelante(A) : CAM_MANOS, t, 0, 0.1);
-      if (A === SEGUNDO) toma(e, camDelante(A), t, tDedos - 0.12, tDedos - 0.02);
+      toma(e, camDelante(A), t, 0, 0.1);
       toma(e, camDedos(A), t, tDedos - 0.04, tDedos + 0.04);
       toma(e, camDelante(A), t, tMuneca - 0.02, tMuneca + 0.06);
       delante(e, A, t * dur);
@@ -948,8 +949,34 @@ function pasoAtras(A: Lado) {
     dur,
     aplicar: (e: Estado, t: number) => {
       toma(e, camHombro(A), t, inicioRecorrer - 0.04, inicioRecorrer + 0.08);
-      if (A === SEGUNDO) toma(e, TOMAS.general, t, finQuieto + 0.05, 0.97);
+      toma(e, TOMAS.general, t, finQuieto + 0.02, 0.97);
       atras(e, A, t * dur);
+    },
+  };
+}
+
+/** Cargar de las barras y formar la esfera; al final se queda con ella la mano `queda`. */
+function pasoCargar(queda: Lado) {
+  return {
+    dur: DUR_TOMAR,
+    aplicar: (e: Estado, t: number) => {
+      toma(e, ENCUADRE_BARRAS, t, 0, 0.15);
+      toma(e, CAM_JUNTAR, t, T_JUNTAR, T_JUNTAR + 0.12);
+      toma(e, CAM_MANOS, t, T_BAJAR, T_BAJAR + 0.12);
+      tomarEsferas(e, t * DUR_TOMAR, queda);
+    },
+  };
+}
+
+/** Pasar la esfera de mano en mano, lentamente, jugando como goma y sin soltarla. */
+function pasoPasar(orden: Lado[]) {
+  return {
+    dur: DUR_PASAR,
+    aplicar: (e: Estado, t: number) => {
+      toma(e, CAM_MANOS, t, 0, 0.06);
+      e.esferas[1].activa = false;
+      e.esferas[2].activa = false;
+      pasar(e, t * DUR_PASAR, orden);
     },
   };
 }
@@ -960,32 +987,21 @@ export const sensibilizacionManos: Secuencia = {
     e.camara = { ...TOMAS.general };
   },
   pasos: [
-    // 1 · Cargar de las barras y formar la esfera
-    {
-      dur: DUR_TOMAR,
-      aplicar: (e, t) => {
-        toma(e, ENCUADRE_BARRAS, t, 0, 0.15);
-        toma(e, CAM_JUNTAR, t, T_JUNTAR, T_JUNTAR + 0.12);
-        toma(e, CAM_MANOS, t, T_BAJAR, T_BAJAR + 0.12);
-        tomarEsferas(e, t * DUR_TOMAR);
-      },
-    },
-    // 2 · Pasar de mano en mano, lentamente, jugando como goma y sin soltarla
-    {
-      dur: DUR_PASAR,
-      aplicar: (e, t) => {
-        e.esferas[1].activa = false;
-        e.esferas[2].activa = false;
-        pasar(e, t * DUR_PASAR);
-      },
-    },
+    // 1 · Cargar de las barras y formar la esfera (se queda la derecha)
+    pasoCargar('D'),
+    // 2 · Pasar de mano en mano (termina en la izquierda)
+    pasoPasar(ORDEN_TRASPASOS),
     // 3 · Brazo derecho: la mano izquierda cubre los dedos y sigue por delante
     pasoDelante(PRIMERO),
-    // 4 · Brazo derecho: por atrás y recorrido hasta el hombro
+    // 4 · Brazo derecho: por atrás, recorrido de ida y vuelta, y la esfera se absorbe
     pasoAtras(PRIMERO),
-    // 5 · Brazo izquierdo: cambio de brazo, la derecha cubre los dedos y sigue por delante
+    // 5 · Con el otro brazo, otra vez desde las barras (se queda la izquierda)
+    pasoCargar('I'),
+    // 6 · Pasar de mano en mano (termina en la derecha)
+    pasoPasar(ORDEN_TRASPASOS_2),
+    // 7 · Brazo izquierdo: la mano derecha cubre los dedos y sigue por delante
     pasoDelante(SEGUNDO),
-    // 6 · Brazo izquierdo: por atrás, recorrido hasta el hombro y final
+    // 8 · Brazo izquierdo: por atrás, recorrido de ida y vuelta, y la esfera se absorbe
     pasoAtras(SEGUNDO),
   ],
 };
@@ -999,6 +1015,7 @@ export const sensibilizarInterno = {
   enPalma,
   reposo,
   ORDEN_TRASPASOS,
+  ORDEN_TRASPASOS_2,
   FASES_TOMAR,
   FASES_TRASPASO,
   SEG_TRASPASO,

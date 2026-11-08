@@ -241,7 +241,7 @@ export const EJERCICIOS: Ejercicio[] = [
     subtitulo: 'sin soltar la esfera, palpando dedos y brazos',
     origen: 'revision',
     resumen:
-      'Primero se carga de las barras: una esfera en cada mano, se juntan en una y se juega con ella como goma. La esfera pasa de mano en mano, lentamente y sin soltarla nunca: una mano arriba y otra abajo, jugando con ella como goma. Después la mano izquierda, con forma de agarrar y con la energía de la esfera dentro, cubre los dedos de la derecha uno por uno, lentamente y sin tocarlos, con la yema de cada dedo en el centro de la esfera y ese dedo un poco separado de los demás, y en cada uno hace goma; acompaña a la esfera por el brazo, de la muñeca al codo en 4 tramos iguales, haciendo goma en cada punto de forma continua, como una ola, por delante y por atrás, y recorre el brazo sin tocarlo, a 5–10 cm, hasta el hombro. Luego, lo mismo con el otro brazo.',
+      'Primero se carga de las barras: una esfera en cada mano, se juntan en una y se juega con ella como goma. La esfera pasa de mano en mano, lentamente y sin soltarla nunca: una mano arriba y otra abajo, jugando con ella como goma. Después la mano izquierda, con forma de agarrar y con la energía de la esfera dentro, cubre los dedos de la derecha uno por uno, lentamente y sin tocarlos, con la yema de cada dedo en el centro de la esfera y ese dedo un poco separado de los demás, y en cada uno hace goma; acompaña a la esfera por el brazo, de la muñeca al codo en 4 tramos iguales, haciendo goma en cada punto de forma continua, como una ola, por delante y por atrás, y recorre el brazo y la mano sin tocarlos, a 5–10 cm, como cubriéndolos, hasta el hombro y de vuelta a los dedos; la esfera vuelve a la palma y se absorbe. Luego, lo mismo con el otro brazo, empezando otra vez desde las barras.',
     acento: 'oro',
     bloques: [{ titulo: 'Sensaciones reportadas', items: ['Calor', 'Presión', 'Hormigueo', 'Electricidad'] }],
     pasos: [
@@ -277,32 +277,46 @@ export const EJERCICIOS: Ejercicio[] = [
       },
       {
         id: 'derecho-atras',
-        titulo: 'Brazo derecho: por atrás y hasta el hombro',
+        titulo: 'Brazo derecho: por atrás, ida y vuelta',
         texto:
-          'El brazo derecho gira con la palma hacia abajo y se palpa por atrás de la misma forma: del codo a la muñeca, en los mismos 5 puntos, con goma en cada uno, de forma continua. Después la mano izquierda recorre el brazo suavemente, sin tocarlo, a 5–10 cm de la piel, desde los dedos hasta el hombro.',
+          'El brazo derecho gira con la palma hacia abajo y se palpa por atrás de la misma forma: del codo a la muñeca, en los mismos 5 puntos, con goma en cada uno, de forma continua. Después la mano izquierda, ahuecada, recorre el brazo y la mano suavemente, como cubriéndolos y sin tocarlos, a 5–10 cm de la piel: de los dedos hasta el hombro (llega por delante) y de vuelta hasta los dedos. Al terminar, la esfera vuelve a la palma y se absorbe.',
         cantidad: {
           valor: 10,
           unidad: 'cm de la piel como máximo (5–10 cm)',
           pregunta: '¿A qué distancia de la piel recorre la mano el brazo hasta el hombro? (máximo)',
         },
         aclaracion:
-          'Descrito en el taller: el brazo se palpa a distancia por delante y por atrás (el brazo gira); después la mano lo recorre sin tocarlo, a 5–10 cm, hasta el hombro.',
+          'Descrito en el taller: el brazo se palpa a distancia por delante y por atrás (el brazo gira); después la mano lo recorre sin tocarlo, a 5–10 cm, hasta el hombro. En la revisión: el recorrido es de ida y vuelta (dedos → hombro → dedos), cubriendo el brazo y la mano, y al terminar la esfera vuelve a la palma y se absorbe.',
+        lectura: 'La mano llega al hombro por delante, con los dedos hacia arriba: así el otro brazo cruza por delante del pecho.',
+      },
+      {
+        id: 'otra-mano-barras',
+        titulo: 'Con el otro brazo: otra vez desde las barras',
+        texto:
+          'Para seguir con el otro brazo se empieza otra vez desde las barras: cada mano toma energía de su barra, las dos esferas se unen en una y se juega con ella como goma; después se baja al frente y la izquierda se queda con ella.',
+        aclaracion: 'Descrito en el taller: cuando se comienza con la otra mano, se comienza desde las barras de energía. En la revisión: también los traspasos.',
+        lectura: 'En espejo con el primer brazo: ahora se queda con la esfera la izquierda.',
+      },
+      {
+        id: 'otra-mano-pasar',
+        titulo: 'De mano en mano, otra vez',
+        texto:
+          'Otra vez de mano en mano, lentamente y sin soltarla, con una mano arriba y la otra abajo y jugando como goma: izquierda → derecha → izquierda → derecha. Queda en la derecha, que es la que cubre los dedos de la izquierda.',
+        aclaracion: 'Descrito en el taller (como en el paso 2).',
       },
       {
         id: 'izquierdo-delante',
         titulo: 'Brazo izquierdo: la derecha cubre los dedos',
         texto:
-          'Se sigue con la otra mano: la izquierda lleva la esfera al medio, la derecha se pone abajo y la recibe (como en los traspasos), da vuelta la esfera sin soltarla y, con forma de agarrar, cubre los dedos de la izquierda uno por uno, lentamente y sin tocarlos, con cada dedo un poco separado de los demás, la yema en el centro de la esfera y haciendo goma en cada uno. Después acompaña a la esfera por delante del brazo izquierdo, de la muñeca al codo en 4 tramos iguales, con goma en cada punto, de forma continua.',
+          'La izquierda se extiende con la palma hacia arriba; la derecha da vuelta la esfera sin soltarla y, con forma de agarrar, cubre los dedos de la izquierda uno por uno, lentamente y sin tocarlos, con cada dedo un poco separado de los demás, la yema en el centro de la esfera y haciendo goma en cada uno. Después acompaña a la esfera por delante del brazo izquierdo, de la muñeca al codo en 4 tramos iguales, con goma en cada punto, de forma continua.',
         aclaracion: 'Descrito en el taller: después se sigue con la otra mano.',
-        lectura: 'La esfera pasa a la derecha como en los traspasos del paso 2 (una mano arriba y otra abajo, queda en la de abajo).',
       },
       {
         id: 'izquierdo-atras',
-        titulo: 'Brazo izquierdo: por atrás y hasta el hombro',
+        titulo: 'Brazo izquierdo: por atrás, ida y vuelta',
         texto:
-          'El brazo izquierdo gira y se palpa por atrás; después la mano derecha lo recorre sin tocarlo, a 5–10 cm de la piel, desde los dedos hasta el hombro.',
+          'El brazo izquierdo gira y se palpa por atrás; después la mano derecha, ahuecada, lo recorre como cubriéndolo y sin tocarlo, a 5–10 cm de la piel, de los dedos hasta el hombro y de vuelta. Al terminar, la esfera vuelve a la palma y se absorbe, y las manos se sueltan a los costados.',
         aclaracion: 'Descrito en el taller.',
-        lectura: 'Al terminar, la esfera vuelve a la palma y se absorbe; las manos se sueltan a los costados.',
       },
     ],
   },
