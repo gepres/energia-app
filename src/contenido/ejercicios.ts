@@ -71,6 +71,34 @@ export const EJERCICIOS: Ejercicio[] = [
       },
     ],
   },
+  {
+    id: 'sellar-cielo',
+    numero: 2,
+    titulo: 'Sellar desde el cielo',
+    subtitulo: '3 veces',
+    origen: 'revision',
+    resumen:
+      'Las dos manos estiradas hacia arriba tocan una nube luminosa de energía; se la agarra y, bajando los brazos abiertos por los costados, la energía cubre el cuerpo como un velo. Tres veces.',
+    acento: 'violeta',
+    pasos: [
+      {
+        id: 'tocar-nube',
+        titulo: 'Manos a la nube',
+        texto: 'Estirar las dos manos hacia arriba hasta tocar una nube luminosa de energía.',
+        aclaracion: 'Descrito en el taller.',
+      },
+      {
+        id: 'bajar-velo',
+        titulo: 'Agarrar y bajar el velo · 3 veces',
+        texto:
+          'Agarrar la nube y bajar los brazos abriéndolos por los costados: la energía va cubriendo el cuerpo como un velo. Al final, las manos quedan sueltas a los costados.',
+        cantidad: { valor: 3, unidad: 'veces', pregunta: '¿Cuántas veces se sella desde el cielo?' },
+        aclaracion:
+          'Descrito en el taller: las dos manos arriba tocando una nube luminosa, se la agarra y se baja abriendo por los costados; 3 veces; las manos terminan sueltas a los costados.',
+        lectura: 'Entre una vez y otra, las manos vuelven a subir por delante hasta la nube.',
+      },
+    ],
+  },
 
   // ───────────────────────── VERSIÓN DE REFERENCIA ─────────────────────────
   // ───────────────────────── MANEJO DE ENERGÍA · SET 2026 ─────────────────────────

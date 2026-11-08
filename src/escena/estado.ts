@@ -121,6 +121,20 @@ export interface Manto {
   lineas: number;
 }
 
+/** Nube luminosa de energía (sobre la cabeza, en «Sellar desde el cielo»). */
+export interface Nube {
+  activa: boolean;
+  /** Centro en el mundo. */
+  centro: V3;
+  /** Semiancho (m); el alto y la profundidad son proporcionales. */
+  radio: number;
+  /** Brillo general (0 apagada, 1 normal, > 1 destello). */
+  intensidad: number;
+  /** Color del borde y del corazón de la nube. */
+  color: ColorEnergia;
+  color2: ColorEnergia;
+}
+
 /** Dos barras verticales de energía frente a una figura (columna izquierda y derecha). */
 export interface Barras {
   activa: boolean;
@@ -198,6 +212,7 @@ export interface Estado {
   mantos: Manto[];
   cubo: Cubo;
   barras: Barras;
+  nube: Nube;
   pulsos: Pulso[];
   marcas: Marca[];
   cotas: Cota[];
@@ -320,6 +335,7 @@ export function crearEstado(): Estado {
       opacidad: 1,
     },
     barras: { activa: false, izq: [0, 0, 0], der: [0, 0, 0], alto: 1.75, opacidad: 0, resalte: 0, resalteDer: 0, radio: 0.035, crece: 0.6 },
+    nube: { activa: false, centro: [0, 2.16, 0.07], radio: 0.4, intensidad: 0, color: 'violeta', color2: 'blanco' },
     pulsos: [],
     marcas: [],
     cotas: [],

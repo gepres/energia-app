@@ -532,3 +532,59 @@ export function poseCargaBarras(uD: number | null, uI: number | null): Pose {
     cabezaPitch: uD !== null || uI !== null ? 0.1 : 0.02,
   });
 }
+
+// ── Sellar desde el cielo (descrito en el taller) ───────────────────────
+
+/** Nube luminosa por encima de la cabeza, apenas al frente: las manos estiradas llegan a su base. */
+export const NUBE_CIELO = { centro: [0, 2.16, 0.07] as V3, radio: 0.4 };
+
+/** Hombro (alto y separación) y distancia hombro–muñeca con el brazo casi recto. */
+const HOMBRO = { x: 0.182, y: 1.415, z: -0.01 };
+const BRAZO_RECTO = 0.535;
+/** Codo apenas hacia atrás: con el brazo casi recto, el mismo en todo el gesto (sin saltos). */
+const CODO_ATRAS = (s: number): V3 => normV([s * 0.6, 0, -1]);
+
+/**
+ * Las dos manos estiradas hacia arriba tocando la nube: dedos hacia arriba
+ * (entran en la base de la nube), palmas al frente. `cierre` las cierra al agarrarla.
+ */
+export function manosALaNube(cierre = 0.22): Pose {
+  return bajarPorLosCostados(-0.04, cierre);
+}
+
+/**
+ * Bajada abriendo por los costados: cada brazo, casi recto, describe un arco en
+ * el plano del cuerpo. `theta` es el ángulo desde arriba (0 = brazo hacia
+ * arriba, π/2 = en cruz, ≈ 2,93 = abajo, junto al muslo). Las manos, que
+ * sostienen el velo, miran al frente con los dedos siguiendo al brazo.
+ */
+export function bajarPorLosCostados(theta: number, cierre: number): Pose {
+  const brazo = (s: number) => {
+    const z = HOMBRO.z + 0.087 * Math.pow(Math.max(0, 1 - theta / Math.PI), 2);
+    const mano: V3 = [s * (HOMBRO.x + BRAZO_RECTO * Math.sin(theta)), HOMBRO.y + BRAZO_RECTO * Math.cos(theta), z];
+    // Arriba, la palma mira al frente y un poco arriba (hacia la nube).
+    const palma = normV([-s * 0.15 * Math.cos(theta), 0.3 * Math.max(0, Math.cos(theta)), 1]);
+    const dedos = normV([s * Math.sin(theta), Math.cos(theta), 0.06 * Math.cos(theta)]);
+    return { mano, palma, dedos };
+  };
+  const D = brazo(-1);
+  const I = brazo(1);
+  return pose({
+    manoD: D.mano,
+    manoI: I.mano,
+    codoD: CODO_ATRAS(-1),
+    codoI: CODO_ATRAS(1),
+    palmaD: D.palma,
+    palmaI: I.palma,
+    dedosD: D.dedos,
+    dedosI: I.dedos,
+    cierreD: cierre,
+    cierreI: cierre,
+    // Mira la nube arriba y vuelve a mirar al frente mientras baja.
+    cabezaPitch: -0.3 * Math.max(0, Math.cos(theta)) + 0.06 * Math.max(0, -Math.cos(theta)),
+  });
+}
+
+/** Ángulo final de la bajada: las manos quedan junto a los muslos. */
+export const THETA_ABAJO = 2.93;
+

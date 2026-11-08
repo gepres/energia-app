@@ -1063,7 +1063,11 @@ button {
   border: 1px solid var(--borde);
   font-family: var(--serif);
   font-size: 15px;
-  white-space: nowrap;
+  /* En pantallas angostas el aviso hace salto de línea en vez de cortarse. */
+  width: max-content;
+  max-width: calc(100% - 32px);
+  text-align: center;
+  text-wrap: balance;
 }
 
 @media (max-width: 959px) {
@@ -1089,6 +1093,7 @@ button {
   .hud-aviso {
     bottom: 16px;
     font-size: 13px;
+    border-radius: 16px;
   }
 }
 

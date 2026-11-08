@@ -7,6 +7,7 @@ import type { Estado } from '../escena/estado';
 import { largoV, restaV } from '../escena/mate';
 import { SECUENCIAS } from './index';
 import { OPCIONES_INICIALES, duracionTotal, evaluar, ubicar } from './motor';
+import { faseSellado } from './sellarCielo';
 
 const MUESTRAS = [0, 0.13, 0.37, 0.5, 0.71, 0.94, 1];
 
@@ -208,3 +209,49 @@ describe('Cargar el ombligo (descrito en el taller)', () => {
     expect(largoV(restaV(esq.munecaI, esq.hombroI))).toBeGreaterThan(0.5);
   });
 });
+
+describe('Sellar desde el cielo (descrito en el taller)', () => {
+  const sec = SECUENCIAS['sellar-cielo'];
+  const dur = sec.pasos[1].dur;
+  const esqEn = (paso: number, t: number) => resolverEsqueleto(evaluar(sec, paso, t, OPCIONES_INICIALES).figuras[0].pose);
+  /** Primer instante (t del paso 2) en que el gesto está en esa vez y fase con ese avance. */
+  const instante = (vez: number, fase: string, k: number) => {
+    for (let i = 0; i <= 4000; i++) {
+      const f = faseSellado((i / 4000) * dur);
+      if (f.vez === vez && f.fase === fase && f.k >= k) return i / 4000;
+    }
+    throw new Error(`no hay ${fase} ${vez}`);
+  };
+
+  it('termina el paso 1 con las dos manos estiradas arriba, tocando la nube', () => {
+    const e = esqEn(0, 1);
+    expect(e.munecaD[1]).toBeGreaterThan(1.9);
+    expect(e.munecaI[1]).toBeGreaterThan(1.9);
+    const n = evaluar(sec, 0, 1, OPCIONES_INICIALES).nube;
+    expect(n.activa).toBe(true);
+    // Las puntas de los dedos (≈ 17 cm más arriba de la muñeca) entran en la base de la nube.
+    expect(e.munecaD[1] + 0.17).toBeGreaterThan(n.centro[1] - n.radio * 0.38);
+  });
+
+  it('baja los brazos abiertos por los costados (en cruz a mitad de camino)', () => {
+    const e = esqEn(1, instante(0, 'bajar', 0.5));
+    expect(e.munecaD[0]).toBeLessThan(-0.55);
+    expect(e.munecaI[0]).toBeGreaterThan(0.55);
+    expect(Math.abs(e.munecaD[1] - 1.415)).toBeLessThan(0.15);
+  });
+
+  it('cuenta 3 veces, sin saltos, y termina con las manos sueltas a los costados', () => {
+    let previo = 0;
+    for (let i = 0; i <= 300; i++) {
+      const c = evaluar(sec, 1, i / 300, OPCIONES_INICIALES).hud.contador!;
+      expect(c.valor - previo).toBeGreaterThanOrEqual(0);
+      expect(c.valor - previo).toBeLessThanOrEqual(1);
+      previo = c.valor;
+    }
+    expect(previo).toBe(3);
+    const e = esqEn(1, 1);
+    expect(e.munecaD[1]).toBeLessThan(1.0);
+    expect(Math.abs(e.munecaD[0])).toBeLessThan(0.3);
+  });
+});
+
