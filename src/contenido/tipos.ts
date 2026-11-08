@@ -1,5 +1,8 @@
-/** Origen del ejercicio dentro de los apuntes de la carpeta. */
-export type Origen = 'set2026' | 'notas';
+/**
+ * Origen del ejercicio. `revision` es la pista nueva que se rehace uno por uno
+ * con el taller; `set2026` y `notas` son la versión de referencia anterior.
+ */
+export type Origen = 'revision' | 'set2026' | 'notas';
 
 /** Color de acento de cada ejercicio (se traduce a tokens de UI y de escena). */
 export type Acento = 'oro' | 'cielo' | 'tierra' | 'rosa' | 'violeta' | 'jade';

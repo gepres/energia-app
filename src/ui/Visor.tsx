@@ -19,7 +19,7 @@ import { LineaTiempo } from './LineaTiempo';
 import { marcarVisto } from './progreso';
 import { irA } from './ruta';
 
-const VELOCIDADES = [0.5, 0.75, 1, 1.5];
+const VELOCIDADES = [0.5, 0.75, 1, 1.5, 2];
 
 export function Visor({ id, paso }: { id: string; paso?: number }) {
   const ej = buscarEjercicio(id);
@@ -96,7 +96,8 @@ function VisorEjercicio({ ej }: { ej: Ejercicio }) {
         </button>
         <div className="visor-titulo">
           <span className="visor-numero">
-            {String(ej.numero).padStart(2, '0')} · {ej.origen === 'set2026' ? 'Set 2026' : 'Notas del repaso'}
+            {String(ej.numero).padStart(2, '0')} ·{' '}
+            {ej.origen === 'revision' ? 'Uno por uno' : ej.origen === 'set2026' ? 'Set 2026 · referencia' : 'Notas · referencia'}
           </span>
           <h1>
             {ej.titulo}

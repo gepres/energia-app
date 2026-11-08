@@ -742,9 +742,9 @@ function BarrasEnergia() {
     izq.current!.position.set(b.izq[0], b.izq[1] + b.alto / 2, b.izq[2]);
     der.current!.position.set(b.der[0], b.der[1] + b.alto / 2, b.der[2]);
     izq.current!.scale.set(1 + 0.6 * b.resalte, b.alto, 1 + 0.6 * b.resalte);
-    der.current!.scale.set(1, b.alto, 1);
-    matI.uniforms.uIntensidad.value = b.opacidad * (0.8 + 0.9 * b.resalte);
-    matD.uniforms.uIntensidad.value = b.opacidad * 0.8;
+    der.current!.scale.set(1 + 0.6 * b.resalteDer, b.alto, 1 + 0.6 * b.resalteDer);
+    matI.uniforms.uIntensidad.value = b.opacidad * (0.5 + 0.7 * b.resalte);
+    matD.uniforms.uIntensidad.value = b.opacidad * (0.5 + 0.7 * b.resalteDer);
     matI.uniforms.uTiempo.value = matD.uniforms.uTiempo.value = reloj.valor;
   });
   return (

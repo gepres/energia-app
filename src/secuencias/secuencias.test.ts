@@ -28,10 +28,11 @@ function buscarNoFinito(v: unknown, ruta = 'estado'): string | null {
 }
 
 describe('contenido', () => {
-  it('tiene los 12 ejercicios: 7 del documento y 5 de las notas', () => {
-    expect(EJERCICIOS).toHaveLength(12);
+  it('conserva los 12 de referencia (7 del documento y 5 de las notas) y suma los nuevos', () => {
     expect(EJERCICIOS.filter((e) => e.origen === 'set2026')).toHaveLength(7);
     expect(EJERCICIOS.filter((e) => e.origen === 'notas')).toHaveLength(5);
+    expect(EJERCICIOS.filter((e) => e.origen === 'revision').map((e) => e.id)).toContain('cargar-ombligo');
+    expect(new Set(EJERCICIOS.map((e) => e.id)).size).toBe(EJERCICIOS.length);
   });
 
   it('conserva literales las frases del apunte', () => {

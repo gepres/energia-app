@@ -125,6 +125,8 @@ export interface Barras {
   opacidad: number;
   /** Brillo extra de la barra izquierda (de la que se toma energía). */
   resalte: number;
+  /** Brillo extra de la barra derecha. */
+  resalteDer: number;
 }
 
 export interface Cubo {
@@ -308,7 +310,7 @@ export function crearEstado(): Estado {
       resalte: 0,
       opacidad: 1,
     },
-    barras: { activa: false, izq: [0, 0, 0], der: [0, 0, 0], alto: 1.75, opacidad: 0, resalte: 0 },
+    barras: { activa: false, izq: [0, 0, 0], der: [0, 0, 0], alto: 1.75, opacidad: 0, resalte: 0, resalteDer: 0 },
     pulsos: [],
     marcas: [],
     cotas: [],

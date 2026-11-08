@@ -91,7 +91,7 @@ function LuzEnergia() {
     const p = posicionPegada(s.pos, s.ref, s.pegado);
     l.position.set(p[0], p[1], p[2]);
     l.color.copy(colorEnergia(s.color));
-    l.intensity = Math.min(0.7, valor * 7);
+    l.intensity = Math.min(0.5, valor * 6);
   }, -4);
   return <pointLight ref={luz} distance={1.6} decay={2} intensity={0} />;
 }

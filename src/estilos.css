@@ -344,6 +344,14 @@ button {
   color: var(--texto-2);
 }
 
+.inicio-grupo[data-referencia='true'] .tarjeta {
+  opacity: 0.72;
+}
+
+.inicio-grupo[data-referencia='true'] .tarjeta:hover {
+  opacity: 1;
+}
+
 .inicio-pie {
   max-width: 560px;
   margin-top: 48px;

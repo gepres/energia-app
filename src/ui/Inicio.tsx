@@ -31,8 +31,9 @@ function Tarjeta({ ej, visto, repaso }: { ej: Ejercicio; visto: boolean; repaso?
 export function Inicio() {
   const progreso = useProgreso();
   const grupos = [
-    { titulo: 'Manejo de energía · set 2026', nota: 'Del documento del taller', lista: EJERCICIOS.filter((e) => e.origen === 'set2026') },
-    { titulo: 'Notas del repaso', nota: 'Fundamentos que se repasaron en grupo', lista: EJERCICIOS.filter((e) => e.origen === 'notas') },
+    { titulo: 'Uno por uno', nota: 'Rehechos con la descripción del taller', lista: EJERCICIOS.filter((e) => e.origen === 'revision'), referencia: false },
+    { titulo: 'Referencia · set 2026', nota: 'Versión anterior, del documento del taller', lista: EJERCICIOS.filter((e) => e.origen === 'set2026'), referencia: true },
+    { titulo: 'Referencia · notas del repaso', nota: 'Versión anterior, de las notas', lista: EJERCICIOS.filter((e) => e.origen === 'notas'), referencia: true },
   ];
   return (
     <main className="inicio">
@@ -59,7 +60,7 @@ export function Inicio() {
         </nav>
       </header>
       {grupos.map((g) => (
-        <section key={g.titulo} className="inicio-grupo">
+        <section key={g.titulo} className="inicio-grupo" data-referencia={g.referencia}>
           <div className="inicio-grupo-cabeza">
             <h2>{g.titulo}</h2>
             <span>{g.nota}</span>

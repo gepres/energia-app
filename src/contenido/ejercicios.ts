@@ -42,6 +42,43 @@ export const DUDAS: Duda[] = [
 ];
 
 export const EJERCICIOS: Ejercicio[] = [
+  // ───────────────────────── UNO POR UNO (descritos en el taller) ─────────────────────────
+  {
+    id: 'cargar-ombligo',
+    numero: 1,
+    titulo: 'Cargar el ombligo',
+    subtitulo: '15 por cada mano',
+    origen: 'revision',
+    resumen:
+      'Brazos al frente a la altura de los hombros, tomando la energía de dos barras verticales; cada mano lleva lentamente 15 esferas de energía al ombligo.',
+    acento: 'oro',
+    pasos: [
+      {
+        id: 'brazos-barras',
+        titulo: 'Brazos al frente',
+        texto:
+          'Estirar los brazos al frente, a la altura de los hombros (90°), y agarrar la energía que está a la altura de las manos, como barras de energía verticales.',
+        aclaracion: 'Descrito en el taller.',
+      },
+      {
+        id: 'mano-derecha',
+        titulo: 'Mano derecha · 15',
+        texto: 'Después de un momento, la mano derecha se dirige lentamente al ombligo llevando una bola o esfera de energía. 15 veces.',
+        cantidad: { valor: 15, unidad: 'cargas por cada mano', pregunta: '¿Cuántas cargas al ombligo se hacen con cada mano?' },
+        aclaracion: 'Descrito en el taller: 15 por cada mano, de forma lenta.',
+        lectura: 'Mientras una mano carga, la otra se queda estirada en su barra. La esfera viaja en la palma y se entrega con la palma hacia el ombligo.',
+      },
+      {
+        id: 'mano-izquierda',
+        titulo: 'Mano izquierda · 15',
+        texto: 'Luego la mano izquierda hace lo mismo: toma la energía de su barra y la lleva lentamente al ombligo. 15 veces.',
+        cantidad: { valor: 30, unidad: 'cargas en total', pregunta: '¿Cuántas cargas al ombligo se hacen en total?' },
+        aclaracion: 'Descrito en el taller: 15 por cada mano, de forma lenta.',
+      },
+    ],
+  },
+
+  // ───────────────────────── VERSIÓN DE REFERENCIA ─────────────────────────
   // ───────────────────────── MANEJO DE ENERGÍA · SET 2026 ─────────────────────────
   {
     id: 'liberar-creencias',
