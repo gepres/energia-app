@@ -3,7 +3,7 @@ import type { Estado } from '../escena/estado';
 import { segmentosMano } from '../escena/manos';
 import { type V3, clamp, entraSaleSeno, escalaV, lerp, lerpV, normV, restaV, rotarX, sumaV, tramo } from '../escena/mate';
 import { SERENA } from '../escena/poses';
-import { TOMAS, apagarFlujos, esfera, flujo, pulso } from './comunes';
+import { TOMAS, esfera, flujo, pulso } from './comunes';
 import { type Secuencia, encuadre, enMundo, fijarPose, toma } from './motor';
 import {
   type Fase,
@@ -84,14 +84,14 @@ const conManos = (d: Mano, i: Mano, cabeza: number, yaw = 0): Pose => ({ ...arma
 /** Centro de la esfera en la mano (debajo de la palma si mira al piso, encima si mira al cielo). */
 const enLaMano = (m: Mano, r: number) => enPalma(m, r);
 
-function esferaEn(e: Estado, c: V3, r: number, mezcla: number, brillo: number, dona = 0) {
+function esferaEn(e: Estado, c: V3, r: number, mezcla: number, brillo: number, dona = 0, eje: V3 | null = null) {
   esfera(e, 0, {
     ref: null,
     pegado: 0,
     pos: enMundo(e, 0, c),
     radio: r,
     estirar: 1,
-    eje: null,
+    eje,
     brillo,
     color: 'tierra',
     color2: 'cielo',
@@ -293,7 +293,7 @@ function dona(e: Estado, seg: number) {
   e.hud.aviso = 'La esfera queda hueca, como una dona';
 }
 
-// ── Paso 4 · En cuclillas: la dona debajo de la ingle y un tubo de energía al piso ──
+// ── Paso 4 · En cuclillas: la dona baja del perineo al piso y forma un tubo de energía ──
 
 /**
  * En cuclillas (descrito en la revisión): los pies se abren un poco y las rodillas van hacia
@@ -316,26 +316,36 @@ function postura(k: number, piso = 0): Partial<Pose> {
 }
 
 /**
- * La parte baja de la ingle, en cuclillas: debajo de la pelvis, entre el pubis y el periné. Ahí
- * la piel queda a 0,279 m del piso (medido sobre la malla del torso en esa postura).
+ * El tubo nace en el perineo (descrito en la revisión): la parte más baja de la pelvis. Debajo
+ * del punto del perineo, la piel queda 1,3 cm más arriba (medido sobre la malla, de pie y en
+ * cuclillas); la boca del tubo va apenas metida en el cuerpo, así nace de él.
  */
-const INGLE_EN_CUCLILLAS = transformarPunto(PUNTOS.genital, CUCLILLAS.agachar, 0, 0, CUCLILLAS.atrasar);
-const PERINEO_EN_CUCLILLAS = transformarPunto(PUNTOS.perineo, CUCLILLAS.agachar, 0, 0, CUCLILLAS.atrasar);
-export const BAJO_PELVIS: V3 = [0, 0.279, lerp(INGLE_EN_CUCLILLAS[2], PERINEO_EN_CUCLILLAS[2], 0.45)];
-/** La dona, justo debajo de la pelvis, con el hueco vertical: el tubo pasa por él. */
-export const BAJO_INGLE: V3 = [BAJO_PELVIS[0], BAJO_PELVIS[1] - 0.045, BAJO_PELVIS[2]];
+const PIEL_PERINEO = 0.013;
+const METIDO = 0.012;
+/** La boca del tubo en el perineo, para una pose: sigue al cuerpo (también cuando se para). */
+function bocaTubo(p: Pose): V3 {
+  return sumaV(transformarPunto(PUNTOS.perineo, p.agachar, p.inclinar, p.girar, p.atrasar), [0, PIEL_PERINEO + METIDO, 0]);
+}
+/** La boca del tubo en cuclillas. */
+export const BOCA_CUCLILLAS: V3 = bocaTubo({ ...SERENA, agachar: CUCLILLAS.agachar, atrasar: CUCLILLAS.atrasar });
 /**
- * El tubo: sale de la parte baja de la ingle (apenas metido en el cuerpo, así nace de él) y baja
- * vertical hasta el piso por el hueco de la dona (elegido en la revisión).
+ * Donde el tubo se conecta con el piso: hasta donde llega la mano, 11 cm adelante del perineo
+ * (justo debajo, en cuclillas, el brazo no alcanza). Ahí queda conectado, también al pararse.
  */
-export const TUBO = { x: BAJO_PELVIS[0], z: BAJO_PELVIS[2], arriba: BAJO_PELVIS[1] + 0.012, radio: 0.04 };
-/**
- * La mano baja al costado del tubo, adelante a la derecha (lejos de la cadera), con la palma
- * hacia él, como llevándolo hasta el piso: así no lo tapa. La punta de los dedos toca el piso ahí.
- */
-const AL_COSTADO = normV([-1, 0, 1.05]);
-const SEP_COSTADO = TUBO.radio + 0.055;
-const PISO: V3 = [TUBO.x + AL_COSTADO[0] * SEP_COSTADO, 0.012, TUBO.z + AL_COSTADO[2] * SEP_COSTADO];
+export const ANCLA: V3 = [0, 0, BOCA_CUCLILLAS[2] + 0.11];
+export const R_TUBO = 0.04;
+/** La altura de la dona apoyada en el piso (su centro), con el tubo pasando por el hueco. */
+const Y_DONA_PISO = 0.03;
+/** De dónde arranca la dona: en el tubo, justo debajo del perineo. */
+const Y_DONA_ARRIBA = BOCA_CUCLILLAS[1] - 0.075;
+
+/** El punto del tubo (de la boca `boca` al ancla) a la altura `y`. */
+const enElTubo = (boca: V3, y: number): V3 => lerpV(ANCLA, boca, clamp(y / boca[1]));
+/** El eje del tubo, de la base (en el piso) a la boca. */
+const ejeTubo = (boca: V3): V3 => normV(restaV(boca, ANCLA));
+
+/** La mano se pone adelante a la derecha de la dona (lejos de la cadera y sin tapar el tubo). */
+const AL_COSTADO = normV([-0.6, 0, 1.2]);
 
 /**
  * Hacia dónde va el codo derecho en cuclillas (en el mundo): adelante, apenas afuera y arriba. Hacia
@@ -346,26 +356,27 @@ const CODO_CUCLILLAS: V3 = [-0.5, 0.15, 1];
 /** Una dirección del mundo en el marco del torso inclinado (las pistas del codo giran con el torso). */
 const enTorso = (d: V3, inclinar: number): V3 => normV(rotarX(d, -inclinar, [0, 0, 0]));
 
-/** La derecha sostiene la dona desde abajo, la palma hacia arriba y los dedos hacia la ingle. */
+/** La derecha sostiene la dona desde abajo, la palma hacia arriba y los dedos hacia el perineo. */
 function bajoLaDona(c: V3, r: number, inclinar: number): Mano {
   return sostener(c, r, ARRIBA, ortogonal(normV([0.25, 0, -1]), ARRIBA), 0.18, enTorso(normV(CODO_CUCLILLAS), inclinar));
 }
 
-/** La derecha con la punta de los dedos en `punta`, los dedos hacia abajo y la palma hacia el tubo. */
-function tocando(punta: V3, inclinar: number): Mano {
-  const dedos = ABAJO;
-  const palma: V3 = [-AL_COSTADO[0], 0, -AL_COSTADO[2]];
-  return { mano: sumaV(punta, [0, PROP.mano - 0.005, 0]), palma, dedos, cierre: 0.12, codo: enTorso(normV(CODO_CUCLILLAS), inclinar) };
+/**
+ * La derecha empuja la dona hacia abajo por su borde (adelante a la derecha): la punta de los
+ * dedos en el borde, los dedos hacia abajo y hacia el tubo, la palma hacia el tubo.
+ */
+function empujando(c: V3, inclinar: number): Mano {
+  const punta = sumaV(c, escalaV(AL_COSTADO, R_CIELO + 0.02));
+  const dedos = normV(sumaV(escalaV(ABAJO, 0.75), escalaV(AL_COSTADO, -0.65)));
+  const palma = ortogonal(escalaV(AL_COSTADO, -1), dedos);
+  return { mano: restaV(punta, escalaV(dedos, PROP.mano - 0.005)), palma, dedos, cierre: 0.12, codo: enTorso(normV(CODO_CUCLILLAS), inclinar) };
 }
-
-/** La derecha al costado del tubo, con la punta de los dedos a la altura `h`. */
-const alCostado = (h: number, inclinar: number) => tocando([PISO[0], h, PISO[2]], inclinar);
 
 type IdTubo = 'agacharse' | 'llevar' | 'bajar' | 'sostener';
 const FASES_TUBO: Fase<IdTubo>[] = [
   { id: 'agacharse', dur: 2.8 },
   { id: 'llevar', dur: 2 },
-  { id: 'bajar', dur: 3 },
+  { id: 'bajar', dur: 3.4 },
   { id: 'sostener', dur: 2.2 },
 ];
 
@@ -386,27 +397,32 @@ function enCuclillas(d: Mano, i: Mano, k = 1, piso = 0, cabeza = -0.5): Pose {
   return { ...conManos(d, i, cabeza), ...postura(k, piso) };
 }
 
-/** El tubo de energía: un cilindro que crece de la ingle hacia abajo, hasta la altura `hasta`. */
-function tubo(e: Estado, hasta: number, opacidad = 1) {
+/**
+ * El tubo de energía, de la boca (en el perineo) al ancla en el piso, formado desde la boca hasta
+ * la altura `hasta` (0 = completo hasta el piso).
+ */
+function tubo(e: Estado, boca: V3, hasta: number, opacidad = 1) {
+  const largo = Math.hypot(boca[0] - ANCLA[0], boca[1] - ANCLA[1], boca[2] - ANCLA[2]);
   Object.assign(e.mantos[0], {
     activo: true,
     forma: 'tubo',
-    centro: enMundo(e, 0, [TUBO.x, 0, TUBO.z]),
-    radio: TUBO.radio,
-    alto: TUBO.arriba,
-    cobertura: clamp((TUBO.arriba - hasta) / TUBO.arriba),
+    centro: enMundo(e, 0, ANCLA),
+    eje: ejeTubo(boca),
+    radio: R_TUBO,
+    alto: largo,
+    cobertura: clamp((boca[1] - hasta) / boca[1]),
     desdeArriba: true,
     banda: -1,
     color: 'tierra',
-    // Más luminoso que un manto: es fino y tiene que verse de la ingle al piso.
+    // Más luminoso que un manto: es fino y tiene que verse del perineo al piso.
     opacidad: 1.7 * opacidad,
     lineas: 0.9,
   });
 }
 
-/** Las partículas que bajan por dentro del tubo, de la ingle al piso. */
-function flujoTubo(e: Estado, cabeza: number, intensidad: number) {
-  flujo(e, 0, ([[TUBO.x, TUBO.arriba, TUBO.z], [TUBO.x, BAJO_INGLE[1], TUBO.z], [TUBO.x, 0.01, TUBO.z]] as V3[]).map((p) => enMundo(e, 0, p)), {
+/** Las partículas que bajan por dentro del tubo, del perineo al piso. */
+function flujoTubo(e: Estado, boca: V3, cabeza: number, intensidad: number) {
+  flujo(e, 0, ([boca, lerpV(boca, ANCLA, 0.5), sumaV(ANCLA, [0, 0.01, 0])] as V3[]).map((p) => enMundo(e, 0, p)), {
     cabeza,
     cola: 1,
     color: 'tierra',
@@ -416,122 +432,121 @@ function flujoTubo(e: Estado, cabeza: number, intensidad: number) {
   });
 }
 
+/** La dona en el tubo (su hueco a lo largo del tubo). */
+function donaEn(e: Estado, c: V3, boca: V3, r = R_CIELO) {
+  esferaEn(e, c, r, 0.55, 1.5, 1, ejeTubo(boca));
+}
+
 /** Al frente de las rodillas, por donde pasa la dona al agacharse. */
 const FRENTE: V3 = [-0.02, 0.45, 0.3];
+/** La dona justo debajo del perineo, y apoyada en el piso. */
+const DONA_ARRIBA = enElTubo(BOCA_CUCLILLAS, Y_DONA_ARRIBA);
+const DONA_PISO = enElTubo(BOCA_CUCLILLAS, Y_DONA_PISO);
 
 function cuclillas(e: Estado, seg: number) {
   const { id, k } = enFase(FASES_TUBO, seg);
   const r = R_CIELO;
+  const boca = BOCA_CUCLILLAS;
   if (id === 'agacharse') {
     // Se pone en cuclillas, con la dona en la mano derecha que baja por delante; la izquierda va a la rodilla.
     const s = entraSaleSeno(k);
     const c = bezier(PECHO, [-0.06, 0.95, 0.42], FRENTE, s);
     const d = sostener(c, r, ARRIBA, normV([0.3, 0, 1]), 0.18, mezclarDir(normV([-1, -0.5, -0.4]), enTorso(normV(CODO_CUCLILLAS), CUCLILLAS.inclinar * s), s));
     const base = enCuclillas(d, izquierdaSuelta(), s);
-    // La izquierda espera a que la rodilla se abra y llega a ella por afuera, sin cruzar el muslo.
+    // La izquierda llega a la rodilla por afuera; se aparta enseguida (el muslo se acerca a la mano que cuelga).
     const ki = entraSaleSeno(k);
-    const rod = enRodilla(base);
-    // Se aparta enseguida (el muslo se acerca a la mano que cuelga apenas baja la cadera).
     const aparta = Math.sin(Math.PI * Math.sqrt(ki));
-    const mi = mezclarMano(izquierdaSuelta(), rod, ki);
+    const mi = mezclarMano(izquierdaSuelta(), enRodilla(base), ki);
     const porAfuera: Mano = { ...mi, mano: sumaV(mi.mano, [0.12 * aparta, 0.08 * aparta, 0.04 * aparta]) };
     e.figuras[0].pose = enCuclillas(d, porAfuera, s, 0, lerp(0.45, -0.5, s));
     esferaEn(e, c, r, 0.55, 1.5, 1);
     e.hud.aviso = 'En cuclillas, con la esfera hueca en la mano derecha';
     return;
   }
-  const izquierda = enRodilla(enCuclillas(bajoLaDona(BAJO_INGLE, r, CUCLILLAS.inclinar), izquierdaSuelta()));
+  const izquierda = enRodilla(enCuclillas(bajoLaDona(DONA_ARRIBA, r, CUCLILLAS.inclinar), izquierdaSuelta()));
   if (id === 'llevar') {
-    // La lleva a la parte baja de la ingle, entre las rodillas.
+    // La lleva al perineo, entre las rodillas, y la toma por el borde (adelante a la derecha) para
+    // bajarla; el hueco de la dona se alinea con el tubo que va a nacer.
     const s = entraSaleSeno(k);
-    const c = bezier(FRENTE, [0, 0.3, 0.2], BAJO_INGLE, s);
+    const c = bezier(FRENTE, [0, 0.3, 0.1], DONA_ARRIBA, s);
     const a = sostener(FRENTE, r, ARRIBA, normV([0.3, 0, 1]), 0.18, enTorso(normV(CODO_CUCLILLAS), CUCLILLAS.inclinar));
-    const b = bajoLaDona(BAJO_INGLE, r, CUCLILLAS.inclinar);
-    const d = sostener(c, r, ARRIBA, ortogonal(mezclarDir(a.dedos, b.dedos, s, [1, 0, 0]), ARRIBA), 0.18, b.codo);
+    const b = empujando(DONA_ARRIBA, CUCLILLAS.inclinar);
+    const d = mezclarMano(a, b, s, [1, 0, 0]);
+    // La mano acompaña a la dona: corrige su posición para que la dona siga en ella.
+    const enLaPalma = lerpV(enLaMano(a, r), sumaV(b.mano, escalaV(b.dedos, PROP.mano - 0.005)), s);
+    d.mano = sumaV(d.mano, restaV(lerpV(c, sumaV(c, escalaV(AL_COSTADO, R_CIELO + 0.02)), s), enLaPalma));
     e.figuras[0].pose = enCuclillas(d, izquierda);
-    esferaEn(e, c, r, 0.55, 1.5, 1);
-    e.hud.aviso = 'La esfera hueca, a la parte baja de la ingle';
+    esferaEn(e, c, r, 0.55, 1.5, 1, normV(lerpV([0, 1, 0], ejeTubo(boca), s)));
+    e.hud.aviso = 'La esfera hueca, al perineo';
     return;
   }
-  // La dona queda debajo de la ingle. La mano sale de debajo de ella y baja de una vez al
-  // costado del tubo, girando de a poco (de la palma hacia arriba a los dedos hacia abajo, la
-  // palma hacia el tubo), hasta tocar el piso con la punta de los dedos: así la muñeca se
-  // mantiene baja. El tubo nace de la parte baja de la ingle, pasa por el hueco de la dona y
-  // crece hacia abajo con la mano.
-  const baja = id === 'bajar' ? entraSaleSeno(k) : 1;
+  // La mano lleva la dona por el borde hacia abajo, por el tubo, hasta el piso: el tubo nace del
+  // perineo (asoma hasta la dona al empezar) y se forma detrás de ella.
+  const asoma = id === 'bajar' ? entraSaleSeno(tramo(k, 0, 0.15, (x) => x)) : 1;
+  const baja = id === 'bajar' ? entraSaleSeno(tramo(k, 0.1, 1, (x) => x)) : 1;
+  const c = enElTubo(boca, lerp(Y_DONA_ARRIBA, Y_DONA_PISO, baja));
   const inclinar = lerp(CUCLILLAS.inclinar, CUCLILLAS.inclinarPiso, baja);
-  const desde = bajoLaDona(BAJO_INGLE, r, CUCLILLAS.inclinar);
-  const hasta = alCostado(PISO[1], inclinar);
-  const d = mezclarMano(desde, hasta, baja, [1, 0, 0]);
-  // Primero se corre al costado (en el primer tercio) y sigue bajando: así no cruza el tubo que se forma.
-  const lado = id === 'bajar' ? entraSaleSeno(tramo(k, 0, 0.35, (x) => x)) : 1;
-  d.mano = [lerp(desde.mano[0], hasta.mano[0], lado), d.mano[1], lerp(desde.mano[2], hasta.mano[2], lado)];
-  e.figuras[0].pose = enCuclillas(d, izquierda, 1, baja);
-  esferaEn(e, BAJO_INGLE, r, 0.55, 1.5, 1);
-  // El tubo sigue a la mano: empieza a bajar cuando la mano ya se apartó y llega al piso con ella.
-  const altura = id === 'bajar' ? lerp(TUBO.arriba, 0, entraSaleSeno(tramo(k, 0.3, 1, (x) => x))) : 0;
-  tubo(e, altura);
-  flujoTubo(e, 1 - altura / TUBO.arriba, 0.9);
+  e.figuras[0].pose = enCuclillas(empujando(c, inclinar), izquierda, 1, baja);
+  donaEn(e, c, boca);
+  const hasta = id === 'bajar' ? Math.max(lerp(boca[1], c[1], asoma), c[1] - Y_DONA_PISO * baja) : 0;
+  tubo(e, boca, hasta);
+  flujoTubo(e, boca, 1 - hasta / boca[1], 0.9);
   if (id === 'sostener') {
-    pulso(e, enMundo(e, 0, [TUBO.x, 0.01, TUBO.z]), tramo(k, 0, 0.7), 0.35, 'tierra');
+    pulso(e, enMundo(e, 0, sumaV(ANCLA, [0, 0.01, 0])), tramo(k, 0, 0.7), 0.35, 'tierra');
     e.tierra = 0.4 * tramo(k, 0, 0.5);
   }
-  e.hud.aviso = id === 'bajar' ? 'La mano baja hasta el piso: se forma un tubo de energía de la ingle al piso' : 'Conectado al piso';
+  e.centros.perineo = 0.4 + 0.6 * (id === 'bajar' ? tramo(k, 0, 0.4) : 1);
+  e.hud.aviso = id === 'bajar' ? 'La mano baja la dona hasta el piso: se forma un tubo de energía del perineo al piso' : 'Conectado al piso';
 }
 
-// ── Paso 5 · La frase, y de pie ─────────────────────────────────────────
+// ── Paso 5 · La frase, y de pie (el tubo sigue conectado al suelo) ──────
 
 type IdFrase = 'frase' | 'pararse';
 const FASES_FRASE: Fase<IdFrase>[] = [
   { id: 'frase', dur: 5.5 },
-  { id: 'pararse', dur: 3.2 },
+  { id: 'pararse', dur: 3.6 },
 ];
 
 function frase(e: Estado, seg: number) {
   const { id, k } = enFase(FASES_FRASE, seg);
   const r = R_CIELO;
-  const izquierda = enRodilla(enCuclillas(bajoLaDona(BAJO_INGLE, r, CUCLILLAS.inclinar), izquierdaSuelta()));
-  const abajo = enCuclillas(alCostado(PISO[1], CUCLILLAS.inclinarPiso), izquierda, 1, 1);
-  e.centros.genital = 0.5 + 0.5 * (id === 'frase' ? tramo(k, 0, 0.3) : 1 - tramo(k, 0.3, 1));
+  const izquierda = enRodilla(enCuclillas(bajoLaDona(DONA_ARRIBA, r, CUCLILLAS.inclinar), izquierdaSuelta()));
+  const abajo = enCuclillas(empujando(DONA_PISO, CUCLILLAS.inclinarPiso), izquierda, 1, 1);
+  e.centros.perineo = 1;
   if (id === 'frase') {
     e.figuras[0].pose = abajo;
-    esferaEn(e, BAJO_INGLE, r, 0.55, 1.5, 1);
-    tubo(e, 0);
-    flujoTubo(e, 1, 0.9);
-    [0.1, 0.45, 0.8].forEach((a) => pulso(e, enMundo(e, 0, [TUBO.x, 0.01, TUBO.z]), clamp((k - a) / 0.3), 0.45, 'tierra'));
+    donaEn(e, DONA_PISO, BOCA_CUCLILLAS);
+    tubo(e, BOCA_CUCLILLAS, 0);
+    flujoTubo(e, BOCA_CUCLILLAS, 1, 0.9);
+    [0.1, 0.45, 0.8].forEach((a) => pulso(e, enMundo(e, 0, sumaV(ANCLA, [0, 0.01, 0])), clamp((k - a) / 0.3), 0.45, 'tierra'));
     e.tierra = 0.4;
     e.hud.aviso = null;
     return;
   }
-  // Se pone de pie (los pies vuelven a su lugar); la dona y el tubo se apagan.
+  // Se pone de pie (los pies vuelven a su lugar). El tubo sigue conectado al suelo: su boca
+  // acompaña al perineo mientras sube y la base queda en el piso, con la dona apoyada.
   const s = entraSaleSeno(k);
   const alFrente: Mano = { ...sostener(FRENTE, 0.03, [-1, 0, 0], ABAJO, 0.25, enTorso(normV(CODO_CUCLILLAS), CUCLILLAS.inclinar)) };
   const mano =
     k < 0.45
-      ? mezclarMano(alCostado(PISO[1], CUCLILLAS.inclinarPiso), alFrente, entraSaleSeno(k / 0.45))
+      ? mezclarMano(empujando(DONA_PISO, CUCLILLAS.inclinarPiso), alFrente, entraSaleSeno(k / 0.45))
       : mezclarMano(alFrente, suelta('D'), entraSaleSeno((k - 0.45) / 0.55));
   const mi = mezclarMano(izquierda, izquierdaSuelta(), tramo(k, 0.3, 1, entraSaleSeno));
   // La cadera sube después de que la mano sale de entre las rodillas.
   const sube = tramo(k, 0.3, 1, entraSaleSeno);
   const pose = enCuclillas(mano, mi, 1 - sube, 1 - s);
   e.figuras[0].pose = k > 0.7 ? mezclarPose(pose, SERENA, entraSaleSeno((k - 0.7) / 0.3), 0.02) : pose;
-  const apaga = 1 - tramo(k, 0, 0.7);
-  if (apaga > 0.01) {
-    esferaEn(e, BAJO_INGLE, r * apaga, 0.55, 1.5, 1);
-    tubo(e, 0, apaga);
-    flujoTubo(e, 1, 0.9 * apaga);
-  } else {
-    e.esferas[0].activa = false;
-    e.mantos[0].activo = false;
-    apagarFlujos(e);
-  }
-  e.tierra = 0.4 * apaga;
-  e.hud.aviso = null;
+  const boca = bocaTubo(e.figuras[0].pose);
+  donaEn(e, DONA_PISO, boca);
+  tubo(e, boca, 0);
+  flujoTubo(e, boca, 1, 0.9);
+  e.tierra = 0.4 - 0.15 * s;
+  e.hud.aviso = k > 0.6 ? 'De pie, el tubo sigue conectado al suelo' : null;
 }
 
 // ── Pasos ───────────────────────────────────────────────────────────────
 
-/** De frente, baja, apenas desde la izquierda: el tubo entre las piernas, de la ingle al piso. */
+/** De frente, baja, apenas desde la izquierda: el tubo entre las piernas, del perineo al piso. */
 const CAM_TUBO = encuadre([0, 0.36, -0.08], 1.15, 0.22, 0.1);
 const durDe = (f: { dur: number }[]) => f.reduce((a, x) => a + x.dur, 0);
 
@@ -574,4 +589,4 @@ export const enraizarMaterial: Secuencia = {
   ],
 };
 
-export const enraizarInterno = { FASES_ABAJO, FASES_ARRIBA, FASES_DONA, FASES_TUBO, FASES_FRASE, PUNTA_INDICE, CUCLILLAS, PISO, BAJO_PELVIS, manoAbajo, manoArriba };
+export const enraizarInterno = { FASES_ABAJO, FASES_ARRIBA, FASES_DONA, FASES_TUBO, FASES_FRASE, PUNTA_INDICE, CUCLILLAS, DONA_ARRIBA, DONA_PISO, bocaTubo, manoAbajo, manoArriba };

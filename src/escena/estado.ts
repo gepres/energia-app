@@ -139,6 +139,11 @@ export interface Manto {
   lineas: number;
   /** 'esfera': cúpula alrededor de la figura; 'tubo': cilindro abierto (p. ej. un tubo de energía al piso). */
   forma: 'esfera' | 'tubo';
+  /**
+   * Hacia dónde va el tubo desde `centro` (su base): sin eje, vertical; con eje, inclinado, de
+   * largo `alto`. La cobertura se cuenta en altura, desde arriba.
+   */
+  eje: V3 | null;
 }
 
 /**
@@ -366,6 +371,7 @@ const manto = (): Manto => ({
   opacidad: 1,
   lineas: 1,
   forma: 'esfera',
+  eje: null,
 });
 
 export function crearEstado(): Estado {

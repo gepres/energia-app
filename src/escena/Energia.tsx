@@ -368,7 +368,10 @@ function UnManto({ i }: { i: number }) {
     me.visible = m.activo && m.opacidad > 0.005 && m.cobertura > 0.001;
     if (!me.visible) return;
     me.geometry = m.forma === 'tubo' ? GEO_TUBO : GEO_MANTO;
-    me.position.set(m.centro[0], m.centro[1] + m.alto / 2, m.centro[2]);
+    // Con eje, el tubo va inclinado desde su base: se orienta y la cobertura se cuenta en altura.
+    const eje = m.eje ? _eje.set(m.eje[0], m.eje[1], m.eje[2]).normalize() : _eje.set(0, 1, 0);
+    me.position.set(m.centro[0] + (eje.x * m.alto) / 2, m.centro[1] + (eje.y * m.alto) / 2, m.centro[2] + (eje.z * m.alto) / 2);
+    me.quaternion.setFromUnitVectors(_arribaY, eje);
     me.scale.set(m.radio, m.alto / 2, m.radio);
     const u = mat.uniforms;
     u.uTiempo.value = reloj.valor;
@@ -378,7 +381,7 @@ function UnManto({ i }: { i: number }) {
     u.uDesdeArriba.value = m.desdeArriba ? 1 : 0;
     u.uBanda.value = m.banda;
     u.uMeridianos.value = m.lineas;
-    u.uAlto.value = m.alto;
+    u.uAlto.value = m.alto * eje.y;
     u.uBase.value = m.centro[1];
   }, -5);
   return <mesh ref={malla} geometry={GEO_MANTO} material={mat} visible={false} renderOrder={8} />;

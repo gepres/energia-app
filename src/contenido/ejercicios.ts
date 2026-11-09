@@ -439,7 +439,7 @@ export const EJERCICIOS: Ejercicio[] = [
     subtitulo: 'generar lo material',
     origen: 'revision',
     resumen:
-      'La mano derecha, estirada hacia abajo, agarra energía − de la tierra durante 5 s y se forma una esfera; estirada hacia arriba, agarra energía + del cielo durante 5 s y la esfera se fortalece. Al frente del pecho, la mano izquierda le hace un hueco: queda en forma de dona. En cuclillas, la esfera hueca va a la parte baja de la ingle y la mano baja hasta el piso: se forma un tubo de energía de la ingle al piso. Al final se dice la frase.',
+      'La mano derecha, estirada hacia abajo, agarra energía − de la tierra durante 5 s y se forma una esfera; estirada hacia arriba, agarra energía + del cielo durante 5 s y la esfera se fortalece. Al frente del pecho, la mano izquierda le hace un hueco: queda en forma de dona. En cuclillas, la esfera hueca va al perineo y la mano la baja hasta el piso: se forma un tubo de energía del perineo al piso. Al final se dice la frase y, de pie, el tubo sigue conectado al suelo.',
     acento: 'tierra',
     pasos: [
       {
@@ -472,18 +472,19 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'tubo-piso',
         titulo: 'En cuclillas: un tubo de energía al piso',
         texto:
-          'Ponerse en cuclillas y, con la mano derecha que tiene la esfera hueca, acercar la esfera a la parte baja de la ingle; con la mano ir bajando hasta conectar con el piso: se forma un tubo de energía de la ingle al piso, por el hueco de la esfera.',
+          'Ponerse en cuclillas y, con la mano derecha que tiene la esfera hueca, acercar la esfera a la parte baja de la ingle, el perineo; con la mano ir bajando la esfera hasta conectar con el piso: se forma un tubo de energía del perineo al piso, por el hueco de la esfera.',
         aclaracion:
-          'Descrito en la revisión. Elegido en la revisión: el tubo va de la ingle al piso; la esfera hueca queda debajo de la ingle y el tubo baja por el agujero de la dona. Del taller (en el ejercicio de referencia): el agujero va en la ingle y queda conectado con la tierra, el piso de tus pies.',
-        lectura: 'La mano izquierda se apoya en la rodilla.',
+          'Descrito en la revisión: el tubo nace en el perineo y, cuando la mano baja hasta el piso, la esfera hueca baja con ella; el tubo pasa por el agujero de la dona. Del taller (en el ejercicio de referencia): el agujero va en la ingle y queda conectado con la tierra, el piso de tus pies.',
+        lectura:
+          'La mano lleva la dona tomándola por el borde y la izquierda se apoya en la rodilla. El tubo llega al piso un poco adelante del perineo, hasta donde alcanza la mano en cuclillas.',
       },
       {
         id: 'decir-conectate',
         titulo: 'Decir la frase',
         texto: 'Decir la frase.',
         frase: 'SÁNATE, CONÉCTATE HASTA SANAR',
-        aclaracion: 'Del ejercicio de referencia; se mantiene al final (elegido en la revisión).',
-        lectura: 'Después la figura vuelve de pie.',
+        aclaracion: 'Del ejercicio de referencia; se mantiene al final (elegido en la revisión). Descrito en la revisión: al ponerse de pie, el tubo sigue conectado al suelo.',
+        lectura: 'Al ponerse de pie, la boca del tubo acompaña al perineo y la base queda en el piso, con la dona apoyada.',
       },
     ],
   },

@@ -18,7 +18,7 @@ import { DIST_MANOS, PIEL_CENTRO, R_UNIDA, SEG } from './unirBarras';
 import { SERENA } from '../escena/poses';
 import { PERFIL_MUSLO, PERFIL_PIERNA, PLANO_MUSLO, PLANO_PIERNA, altoPie, bajoPie, crearGeometrias, crearTorso, radioMiembro } from '../escena/cuerpoGeo';
 import { PRIMERA, SEGUNDA, piernasInterno } from './sensibilizarPiernas';
-import { AGARRES, BAJO_INGLE, PECHO, R_CIELO, R_TIERRA, TUBO, enraizarInterno } from './enraizarMaterial';
+import { AGARRES, ANCLA, BOCA_CUCLILLAS, PECHO, R_CIELO, R_TIERRA, R_TUBO, enraizarInterno } from './enraizarMaterial';
 import { Euler, Matrix4, Vector3, type BufferGeometry } from 'three';
 
 const MUESTRAS = [0, 0.13, 0.37, 0.5, 0.71, 0.94, 1];
@@ -1700,76 +1700,111 @@ describe('Enraizar · generar lo material (uno por uno, descrito en la revisión
     expect(q.munecaI[1]).toBeLessThan(1.0);
   });
 
-  it('en cuclillas, la dona queda debajo de la ingle y el tubo baja de la ingle al piso; la mano toca el piso', () => {
+  /** Distancia de un punto al eje del tubo (la recta del ancla a la boca `boca`). */
+  const alEje = (c: number[], boca: number[]) => {
+    const d = boca.map((v, i) => v - ANCLA[i]);
+    const L = Math.hypot(d[0], d[1], d[2]);
+    const u = d.map((v) => v / L);
+    const w = c.map((v, i) => v - ANCLA[i]);
+    const a = w.reduce((x, v, i) => x + v * u[i], 0);
+    return Math.hypot(w[0] - a * u[0], w[1] - a * u[1], w[2] - a * u[2]);
+  };
+  /** La boca del tubo según el manto: su base más el eje por el largo. */
+  const bocaDe = (m: { centro: number[]; eje: number[] | null; alto: number }) => m.centro.map((v, i) => v + (m.eje ? m.eje[i] : i === 1 ? 1 : 0) * m.alto);
+
+  it('en cuclillas, el tubo nace en el perineo y la dona baja con la mano hasta el piso: el tubo queda formado del perineo al piso', () => {
     const fin = evaluar(sec, 3, 1, OPCIONES_INICIALES);
     const p = fin.figuras[0].pose;
     const q = resolverEsqueleto(p);
     expect(p.agachar).toBeGreaterThan(0.55);
     // Las rodillas, abiertas.
     expect(q.rodillaI[0] - q.rodillaD[0]).toBeGreaterThan(0.4);
-    // La dona, debajo de la ingle, con el hueco vertical.
-    const ingle = transformarPunto(PUNTOS.genital, p.agachar, p.inclinar, p.girar, p.atrasar);
-    const dona = fin.esferas[0];
-    expect(dona.dona).toBeCloseTo(1, 5);
-    expect(dist(dona.pos, BAJO_INGLE)).toBeLessThan(1e-6);
-    expect(ingle[1] - dona.pos[1]).toBeGreaterThan(0.03);
-    expect(ingle[1] - dona.pos[1]).toBeLessThan(0.1);
-    // El tubo: completo, de la ingle al piso, pasando por el hueco de la dona.
+    // El tubo, completo: de la boca, en el perineo, al ancla en el piso.
     const tubo = fin.mantos[0];
     expect(tubo.activo).toBe(true);
     expect(tubo.forma).toBe('tubo');
     expect(tubo.cobertura).toBeCloseTo(1, 5);
-    expect(tubo.centro[1]).toBeCloseTo(0, 5);
-    expect(tubo.alto).toBeGreaterThan(dona.pos[1]);
-    expect(Math.hypot(tubo.centro[0] - dona.pos[0], tubo.centro[2] - dona.pos[2])).toBeLessThan(1e-6);
-    expect(TUBO.arriba).toBeGreaterThan(ingle[1] - 0.03);
-    // La mano derecha toca el piso con la punta de los dedos; la izquierda, en la rodilla.
-    const seg = segmentosMano(q.munecaD, q.palmaD.dedos, q.palmaD.normal, 1, p.cierreD);
-    const puntas = [3, 6, 9, 12].map((j) => seg[j].pos[1] + seg[j].dir[1] * seg[j].largo);
-    expect(Math.min(...puntas)).toBeLessThan(0.025);
-    expect(Math.min(...puntas)).toBeGreaterThan(-0.005);
-    expect(dist(q.munecaI, q.rodillaI)).toBeLessThan(0.12);
-    // El tubo crece detrás de la mano: a dos tercios de la bajada todavía no llega al piso.
-    const medio = evaluar(sec, 3, en(I.FASES_TUBO, 'bajar', 2), OPCIONES_INICIALES).mantos[0];
-    expect(medio.cobertura).toBeGreaterThan(0.2);
-    expect(medio.cobertura).toBeLessThan(0.8);
-    // Nace de la parte baja de la ingle: la boca de arriba del tubo está en la piel (apenas adentro).
+    expect(dist(tubo.centro, ANCLA)).toBeLessThan(1e-6);
+    expect(ANCLA[1]).toBe(0);
+    const boca = bocaDe(tubo);
+    expect(dist(boca, BOCA_CUCLILLAS)).toBeLessThan(1e-6);
+    // Nace del perineo: la boca está en la piel (apenas adentro), junto al punto del perineo.
+    const perineo = transformarPunto(PUNTOS.perineo, p.agachar, p.inclinar, p.girar, p.atrasar);
+    expect(dist(boca, perineo)).toBeLessThan(0.03);
     const piel = pielDelCuerpo(fin);
-    expect(distanciaConSigno([TUBO.x, TUBO.arriba, TUBO.z], piel), 'el tubo sale del cuerpo').toBeLessThan(0.005);
-    expect(distanciaConSigno([TUBO.x, TUBO.arriba - 0.03, TUBO.z], piel), 'debajo de la boca, afuera del cuerpo').toBeGreaterThan(0);
-    // La dona, entre la piel y el piso, alrededor del tubo (apenas debajo de la pelvis).
-    expect(TUBO.arriba - dona.pos[1]).toBeGreaterThan(0.03);
-    expect(TUBO.arriba - dona.pos[1]).toBeLessThan(0.08);
+    expect(distanciaConSigno(boca, piel), 'el tubo sale del cuerpo').toBeLessThan(0.005);
+    expect(distanciaConSigno(boca.map((v, i) => v - (tubo.eje as number[])[i] * 0.03), piel), 'debajo de la boca, afuera del cuerpo').toBeGreaterThan(0);
+    // Casi vertical: el ancla queda apenas adelante (hasta donde llega la mano).
+    expect((Math.acos((tubo.eje as number[])[1]) * 180) / Math.PI).toBeLessThan(25);
+    // La dona, apoyada en el piso, con el tubo por su hueco.
+    const dona = fin.esferas[0];
+    expect(dona.dona).toBeCloseTo(1, 5);
+    expect(dona.pos[1]).toBeLessThan(0.05);
+    expect(alEje(dona.pos, boca)).toBeLessThan(1e-6);
+    // La mano bajó con ella: la punta de los dedos en su borde, cerca del piso; la izquierda, en la rodilla.
+    const seg = segmentosMano(q.munecaD, q.palmaD.dedos, q.palmaD.normal, 1, p.cierreD);
+    const puntas = [3, 6, 9, 12].map((j) => seg[j].pos.map((v, i) => v + seg[j].dir[i] * seg[j].largo));
+    expect(Math.min(...puntas.map((c) => c[1]))).toBeLessThan(0.06);
+    expect(Math.min(...puntas.map((c) => dist(c, dona.pos)))).toBeLessThan(R_CIELO + 0.04);
+    expect(dist(q.munecaI, q.rodillaI)).toBeLessThan(0.12);
+    // Mientras baja, la dona va con la mano y el tubo se forma detrás de ella, hasta la dona.
+    let antes = 1e9;
+    for (let k = 0; k <= 20; k++) {
+      const e = evaluar(sec, 3, en(I.FASES_TUBO, 'bajar', 0.8 + (2.6 * k) / 20), OPCIONES_INICIALES);
+      const d = e.esferas[0].pos;
+      expect(d[1]).toBeLessThanOrEqual(antes + 1e-9);
+      antes = d[1];
+      const m = e.mantos[0];
+      const fondo = bocaDe(m)[1] * (1 - m.cobertura);
+      expect(Math.abs(fondo - d[1]), `bajar k ${k}: el tubo llega a la dona`).toBeLessThan(0.035);
+    }
   });
 
   it('la mano baja al costado del tubo, sin meterse en él, y así se lo ve formarse', () => {
     for (let k = 0; k <= 60; k++) {
-      const seg = 0.6 + 2.4 * (k / 60);
+      const seg = 0.6 + 2.8 * (k / 60);
       const e = evaluar(sec, 3, en(I.FASES_TUBO, 'bajar', seg), OPCIONES_INICIALES);
       const p = e.figuras[0].pose;
       const q = resolverEsqueleto(p);
+      const m = e.mantos[0];
+      const boca = bocaDe(m);
+      const fondo = boca[1] * (1 - m.cobertura);
       const mano = segmentosMano(q.munecaD, q.palmaD.dedos, q.palmaD.normal, 1, p.cierreD);
       for (const g of mano)
         for (const u of [0, 0.5, 1]) {
           const c = g.pos.map((v, i) => v + g.dir[i] * g.largo * u);
           // Solo lo que está a la altura del tubo ya formado.
-          const fondo = e.mantos[0].alto * (1 - e.mantos[0].cobertura);
-          if (c[1] > TUBO.arriba || c[1] < fondo) continue;
-          expect(Math.hypot(c[0] - TUBO.x, c[2] - TUBO.z) - g.radio, `bajar ${seg.toFixed(2)} s: la mano en el tubo`).toBeGreaterThan(TUBO.radio);
+          if (c[1] > boca[1] || c[1] < fondo) continue;
+          expect(alEje(c, boca) - g.radio, `bajar ${seg.toFixed(2)} s: la mano en el tubo`).toBeGreaterThan(R_TUBO);
         }
     }
   });
 
-  it('al final se dice la frase y la figura queda de pie; la dona y el tubo se apagan', () => {
+  it('al final se dice la frase y la figura se para: el tubo sigue conectado del perineo al suelo', () => {
     const fin = evaluar(sec, 4, 1, OPCIONES_INICIALES);
-    expect(fin.figuras[0].pose.agachar).toBeLessThan(0.01);
-    expect(fin.figuras[0].pose.inclinar).toBeLessThan(0.02);
-    expect(fin.figuras[0].pose.abrirRodillas).toBeLessThan(0.01);
-    expect(fin.esferas[0].activa).toBe(false);
-    expect(fin.mantos[0].activo).toBe(false);
-    // Mientras se dice la frase, sigue conectado.
-    const frase = evaluar(sec, 4, 0.3, OPCIONES_INICIALES);
-    expect(frase.mantos[0].cobertura).toBeCloseTo(1, 5);
+    const p = fin.figuras[0].pose;
+    expect(p.agachar).toBeLessThan(0.01);
+    expect(p.inclinar).toBeLessThan(0.02);
+    expect(p.abrirRodillas).toBeLessThan(0.01);
+    // El tubo sigue: completo, de la boca en el perineo (ya de pie) al mismo ancla en el piso.
+    const tubo = fin.mantos[0];
+    expect(tubo.activo).toBe(true);
+    expect(tubo.cobertura).toBeCloseTo(1, 5);
+    expect(dist(tubo.centro, ANCLA)).toBeLessThan(1e-6);
+    const boca = bocaDe(tubo);
+    expect(dist(boca, I.bocaTubo(p))).toBeLessThan(1e-6);
+    expect(boca[1]).toBeGreaterThan(0.8);
+    expect(distanciaConSigno(boca, pielDelCuerpo(fin))).toBeLessThan(0.005);
+    // La dona sigue apoyada en el piso.
+    expect(fin.esferas[0].activa).toBe(true);
+    expect(fin.esferas[0].pos[1]).toBeLessThan(0.05);
+    // Mientras se para, la boca acompaña al perineo en todo momento.
+    for (let k = 0; k <= 20; k++) {
+      const t = en(I.FASES_FRASE, 'pararse', (3.6 * k) / 20);
+      const e = evaluar(sec, 4, t, OPCIONES_INICIALES);
+      expect(dist(bocaDe(e.mantos[0]), I.bocaTubo(e.figuras[0].pose))).toBeLessThan(1e-6);
+      expect(e.mantos[0].cobertura).toBeCloseTo(1, 5);
+    }
   });
 
   it('los brazos llegan siempre y nada se mete en el cuerpo ni en las piernas; las manos no se tocan', () => {
