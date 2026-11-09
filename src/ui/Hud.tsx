@@ -58,7 +58,7 @@ export function Hud() {
         resp.current.dataset.visible = String(!!r);
         if (r) {
           if (fase.current && fase.current.textContent !== r.fase) fase.current.textContent = r.fase;
-          const pie = r.etiqueta ?? `× ${r.total} · ritmo 4·3·4·4`;
+          const pie = r.etiqueta ?? `× ${r.total}`;
           if (ciclo.current && ciclo.current.textContent !== pie) ciclo.current.textContent = pie;
           const escala = r.fase === 'Inhala' ? 0.55 + 0.45 * r.k : r.fase === 'Retén' ? 1 : r.fase === 'Exhala' ? 1 - 0.45 * r.k : 0.55;
           if (anillo.current) anillo.current.style.transform = `scale(${escala})`;

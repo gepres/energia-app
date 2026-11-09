@@ -1,8 +1,10 @@
 import { ref } from '../escena/estado';
 import { type V3, arco, campana, clamp, lerp, tramo } from '../escena/mate';
 import { ATAR, BOLSA_IZQUIERDA, CARGA_OMBLIGO, SERENA, SOPLAR, brazoExtendidoD } from '../escena/poses';
-import { TOMAS, apagarFlujos, cargar, flujo, manoCorazonRespirando, manoMundo, pulso, sellarDesdeCielo } from './comunes';
-import { type Secuencia, ciclos, encuadre, fijarPose, posar, puntoMundo, toma } from './motor';
+import { PREVIO_CORAZON, TOMAS, apagarFlujos, cargar, durRespirando, flujo, manoCorazonRespirando, manoMundo, pulso, sellarDesdeCielo } from './comunes';
+import { OPCIONES_INICIALES, type Opciones, type Secuencia, ciclos, encuadre, fijarPose, posar, puntoMundo, toma } from './motor';
+
+const durCorazon = (o: Opciones) => durRespirando(15, PREVIO_CORAZON, o);
 
 const TACHO: V3 = [-2.3, 0, -1.5];
 
@@ -39,12 +41,14 @@ export const liberarCreencias: Secuencia = {
         e.centros.ombligo = (e.centros.ombligo ?? 0) * (1 - tramo(t, 0, 0.3));
       },
     },
-    // 3 · Mano en el corazón y 15 respiraciones (4,3,4,4)
+    // 3 · Mano en el corazón y 15 respiraciones (una de muestra, o todas acompañando con el video)
     {
-      dur: 10,
-      aplicar: (e, t) => {
-        toma(e, TOMAS.pecho, t, 0, 0.25);
-        manoCorazonRespirando(e, t, 15);
+      dur: durCorazon(OPCIONES_INICIALES),
+      durCon: durCorazon,
+      aplicar: (e, t, o) => {
+        const seg = t * durCorazon(o);
+        toma(e, TOMAS.pecho, seg, 0, 2.5);
+        manoCorazonRespirando(e, seg, 15, o);
       },
     },
     // 4 · Sostener una bolsa negra con la mano izquierda

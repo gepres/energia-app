@@ -30,6 +30,11 @@ export interface Paso {
   lectura?: string;
   /** Aclaración confirmada por el taller (resuelve una duda del apunte). */
   aclaracion?: string;
+  /**
+   * Paso de respiraciones conscientes: cuántas son. El panel muestra el selector de ritmo y la
+   * opción de acompañar con el video del taller.
+   */
+  respiraciones?: number;
 }
 
 export interface Bloque {

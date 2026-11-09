@@ -31,6 +31,12 @@ export function fraseOrgano(organo: Organo): string {
   return `QUE ${verbo} LA ENERGÍA ${signo} SUFICIENTE PARA SANAR MI ${organo.nombre.toUpperCase()} Y SUS FUNCIONES`;
 }
 
+/**
+ * El video del taller para las respiraciones conscientes (aclarado en la revisión): se respira
+ * viéndolo y escuchándolo, desde el minuto 5:18.
+ */
+export const VIDEO_RESPIRACION = { id: 'wzBk2_A8_zc', inicio: 318, titulo: 'Ejercicio Energético uno - Pre Taller' };
+
 export const DUDAS: Duda[] = [
   {
     id: 'cubo-ex-pareja',
@@ -623,7 +629,10 @@ export const EJERCICIOS: Ejercicio[] = [
         titulo: 'Mano en el corazón',
         texto: 'Colocar la mano sobre el corazón y hacer 15 respiraciones conscientes (4,3,4,4).',
         cantidad: { valor: 15, unidad: 'respiraciones', pregunta: '¿Cuántas respiraciones conscientes con la mano en el corazón?' },
-        aclaracion: 'Confirmado en el taller: inhalar 4 · retener 3 · exhalar 4 · pausa 4.',
+        respiraciones: 15,
+        aclaracion:
+          'Aclarado en la revisión: hay ritmos variados —4-3-4, 3-3-3 o 5-5-5 (inhalar · retener · exhalar)— y la pausa es de 3 s en todos; se elige uno. Se hace viendo y escuchando el video del taller.',
+        lectura: 'Sin el video se muestra una respiración de muestra al ritmo elegido; acompañando con el video, el paso dura las 15.',
       },
       {
         id: 'sostener-bolsa',
@@ -674,6 +683,10 @@ export const EJERCICIOS: Ejercicio[] = [
         titulo: '30 respiraciones',
         texto: '30 respiraciones conscientes.',
         cantidad: { valor: 30, unidad: 'respiraciones', pregunta: '¿Cuántas respiraciones conscientes antes de equilibrar un órgano?' },
+        respiraciones: 30,
+        aclaracion:
+          'Aclarado en la revisión: hay ritmos variados —4-3-4, 3-3-3 o 5-5-5 (inhalar · retener · exhalar)— y la pausa es de 3 s en todos; se elige uno. Se hace viendo y escuchando el video del taller.',
+        lectura: 'Sin el video se muestra una respiración de muestra al ritmo elegido; acompañando con el video, el paso dura las 30.',
       },
       {
         id: 'unir-bolsas',

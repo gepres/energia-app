@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { Paso } from '../contenido/tipos';
 import { useReproductor } from '../reproductor';
-import { inicios } from '../secuencias/motor';
+import { durPaso, inicios } from '../secuencias/motor';
 
 /**
  * Línea de tiempo segmentada por pasos. Arrastrar hace scrub determinista;
@@ -9,6 +9,7 @@ import { inicios } from '../secuencias/motor';
  */
 export function LineaTiempo({ pasos }: { pasos: Paso[] }) {
   const sec = useReproductor((s) => s.secuencia);
+  const opciones = useReproductor((s) => s.opciones);
   const total = useReproductor((s) => s.total);
   const buscar = useReproductor((s) => s.buscar);
   const pausar = useReproductor((s) => s.pausar);
@@ -18,8 +19,8 @@ export function LineaTiempo({ pasos }: { pasos: Paso[] }) {
 
   useEffect(() => {
     if (!sec) return;
-    const ini = inicios(sec);
-    const duracion = sec.pasos.reduce((a, p) => a + p.dur, 0);
+    const ini = inicios(sec, opciones);
+    const duracion = sec.pasos.reduce((a, p) => a + durPaso(p, opciones), 0);
     let raf = 0;
     let ultimoSegundo = -1;
     const bucle = () => {
@@ -33,7 +34,7 @@ export function LineaTiempo({ pasos }: { pasos: Paso[] }) {
       sec.pasos.forEach((p, i) => {
         const r = rellenos.current[i];
         if (!r) return;
-        const k = Math.max(0, Math.min(1, (tiempo - ini[i]) / p.dur));
+        const k = Math.max(0, Math.min(1, (tiempo - ini[i]) / durPaso(p, opciones)));
         r.style.transform = `scaleX(${k})`;
       });
       raf = requestAnimationFrame(bucle);
@@ -82,7 +83,7 @@ export function LineaTiempo({ pasos }: { pasos: Paso[] }) {
       }}
     >
       {sec.pasos.map((p, i) => (
-        <div key={i} className="linea-seg" style={{ flexGrow: p.dur }} title={pasos[i]?.titulo}>
+        <div key={i} className="linea-seg" style={{ flexGrow: durPaso(p, opciones) }} title={pasos[i]?.titulo}>
           <span className="linea-fondo" />
           <span ref={(r) => void (rellenos.current[i] = r)} className="linea-relleno" />
         </div>

@@ -2,18 +2,39 @@ import { type Pose, transformarPunto, PUNTOS, type PuntoCuerpo, mezclarPose, cop
 import { type Camara, type Estado, crearEstado } from '../escena/estado';
 import { type V3, lerp, lerpV, rotarY, sumaV, tramo, entraSaleCubica } from '../escena/mate';
 
+/** Ritmo de las respiraciones conscientes: inhalar · retener · exhalar (aclarado en la revisión). */
+export type Ritmo = '4-3-4' | '3-3-3' | '5-5-5';
+export const RITMOS: Record<Ritmo, readonly [number, number, number]> = {
+  '4-3-4': [4, 3, 4],
+  '3-3-3': [3, 3, 3],
+  '5-5-5': [5, 5, 5],
+};
+/** La pausa después de exhalar es de 3 s en todos los ritmos (aclarado en la revisión). */
+export const PAUSA_RESPIRACION = 3;
+/** Lo que dura una respiración completa con un ritmo, pausa incluida. */
+export const cicloRespiracion = (r: Ritmo) => RITMOS[r][0] + RITMOS[r][1] + RITMOS[r][2] + PAUSA_RESPIRACION;
+
 export interface Opciones {
   /** Órgano elegido en «Equilibrar la energía de los órganos». */
   organo: string;
+  /** Ritmo elegido para las respiraciones conscientes. */
+  ritmo: Ritmo;
+  /** Acompañar las respiraciones con el video del taller: el paso dura todas, no una de muestra. */
+  video: boolean;
 }
 
-export const OPCIONES_INICIALES: Opciones = { organo: 'corazon' };
+export const OPCIONES_INICIALES: Opciones = { organo: 'corazon', ritmo: '4-3-4', video: false };
 
 export interface Tiempo3D {
-  /** Duración del paso en segundos (a velocidad normal). */
+  /** Duración del paso en segundos (a velocidad normal), con las opciones iniciales. */
   dur: number;
+  /** Si la duración depende de las opciones (p. ej. el ritmo de respiración), la da esta función. */
+  durCon?: (o: Opciones) => number;
   aplicar: (e: Estado, t: number, o: Opciones) => void;
 }
+
+/** Duración de un paso con estas opciones. */
+export const durPaso = (p: Tiempo3D, o: Opciones = OPCIONES_INICIALES) => (p.durCon ? p.durCon(o) : p.dur);
 
 export interface Secuencia {
   inicial: (e: Estado, o: Opciones) => void;
@@ -45,25 +66,25 @@ function limpiarTransitorios(e: Estado) {
   e.hud = { contador: null, respiracion: null, aviso: null, frase: null };
 }
 
-export function duracionTotal(sec: Secuencia) {
-  return sec.pasos.reduce((s, p) => s + p.dur, 0);
+export function duracionTotal(sec: Secuencia, o: Opciones = OPCIONES_INICIALES) {
+  return sec.pasos.reduce((s, p) => s + durPaso(p, o), 0);
 }
 
-export function inicios(sec: Secuencia): number[] {
+export function inicios(sec: Secuencia, o: Opciones = OPCIONES_INICIALES): number[] {
   const r: number[] = [];
   let acc = 0;
   for (const p of sec.pasos) {
     r.push(acc);
-    acc += p.dur;
+    acc += durPaso(p, o);
   }
   return r;
 }
 
 /** Tiempo global (s) → paso y progreso dentro del paso. */
-export function ubicar(sec: Secuencia, tiempo: number): { paso: number; t: number } {
+export function ubicar(sec: Secuencia, tiempo: number, o: Opciones = OPCIONES_INICIALES): { paso: number; t: number } {
   let acc = 0;
   for (let i = 0; i < sec.pasos.length; i++) {
-    const d = sec.pasos[i].dur;
+    const d = durPaso(sec.pasos[i], o);
     if (tiempo < acc + d || i === sec.pasos.length - 1) {
       return { paso: i, t: Math.max(0, Math.min(1, (tiempo - acc) / d)) };
     }

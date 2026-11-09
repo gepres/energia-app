@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { type Opciones, OPCIONES_INICIALES, type Secuencia, duracionTotal, inicios, ubicar } from './secuencias/motor';
+import { type Opciones, OPCIONES_INICIALES, type Secuencia, duracionTotal, durPaso, inicios, ubicar } from './secuencias/motor';
 import { SECUENCIAS } from './secuencias';
 import { escena } from './escena/tienda';
 
@@ -55,7 +55,7 @@ export const useReproductor = create<EstadoReproductor>((set, get) => ({
       ejercicioId: id,
       secuencia: sec,
       tiempo: 0,
-      total: sec ? duracionTotal(sec) : 0,
+      total: sec ? duracionTotal(sec, get().opciones) : 0,
       paso: 0,
       t: 0,
       reproduciendo: !!sec && !escena.reducido,
@@ -80,7 +80,7 @@ export const useReproductor = create<EstadoReproductor>((set, get) => ({
     if (!s.secuencia) return;
     const n = s.secuencia.pasos.length;
     const paso = Math.max(0, Math.min(n - 1, i));
-    const tiempo = inicios(s.secuencia)[paso];
+    const tiempo = inicios(s.secuencia, s.opciones)[paso];
     // Con movimiento reducido solo arranca el botón «Reproducir».
     const arrancar = escena.reducido ? s.reproduciendo : (reproducir ?? s.reproduciendo);
     set({ tiempo, paso, t: 0, reproduciendo: arrancar, camaraLibre: false });
@@ -89,7 +89,7 @@ export const useReproductor = create<EstadoReproductor>((set, get) => ({
     const s = get();
     if (!s.secuencia) return;
     const tt = Math.max(0, Math.min(s.total, tiempo));
-    const u = ubicar(s.secuencia, tt);
+    const u = ubicar(s.secuencia, tt, s.opciones);
     set({ tiempo: tt, paso: u.paso, t: u.t });
   },
   siguiente: () => {
@@ -110,7 +110,20 @@ export const useReproductor = create<EstadoReproductor>((set, get) => ({
     else s.irAPaso(s.paso - 1);
   },
   setVelocidad: (v) => set({ velocidad: v }),
-  setOpciones: (o) => set({ opciones: { ...get().opciones, ...o }, revision: get().revision + 1 }),
+  setOpciones: (o) => {
+    const s = get();
+    const opciones = { ...s.opciones, ...o };
+    if (!s.secuencia) {
+      set({ opciones, revision: s.revision + 1 });
+      return;
+    }
+    // Si cambia la duración del paso (p. ej. el ritmo), se sigue en el mismo segundo del paso.
+    const antes = durPaso(s.secuencia.pasos[s.paso], s.opciones);
+    const ahora = durPaso(s.secuencia.pasos[s.paso], opciones);
+    const t = Math.max(0, Math.min(1, (s.t * antes) / ahora));
+    const tiempo = inicios(s.secuencia, opciones)[s.paso] + t * ahora;
+    set({ opciones, total: duracionTotal(s.secuencia, opciones), tiempo, t, revision: s.revision + 1 });
+  },
   setCamaraLibre: (v) => set({ camaraLibre: v }),
   avanzar: (dt) => {
     const s = get();
@@ -121,7 +134,7 @@ export const useReproductor = create<EstadoReproductor>((set, get) => ({
       tiempo = s.total;
       reproduciendo = false;
     }
-    const u = ubicar(s.secuencia, tiempo);
+    const u = ubicar(s.secuencia, tiempo, s.opciones);
     set({ tiempo, paso: u.paso, t: u.t, reproduciendo });
   },
 }));

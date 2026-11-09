@@ -3,8 +3,12 @@ import { POS_ORGANOS } from '../escena/cuerpo';
 import { type Estado, ref } from '../escena/estado';
 import { type V3, campana, clamp, lerp, lerpV, saleAtras, tramo } from '../escena/mate';
 import { SERENA, esferaEnManosEn, manoAOrgano, palmasArriba } from '../escena/poses';
-import { TOMAS, apagarFlujos, esfera, flujo, pulso, respirar } from './comunes';
-import { type Opciones, type Secuencia, encuadre, fijarPose, posar, puntoMundo, toma } from './motor';
+import { TOMAS, apagarFlujos, durRespirando, esfera, flujo, pulso, respirar } from './comunes';
+import { OPCIONES_INICIALES, type Opciones, type Secuencia, encuadre, fijarPose, posar, puntoMundo, toma } from './motor';
+
+/** Segundos antes de empezar a respirar (la cámara se acerca al pecho). */
+const PREVIO_RESPIRAR = 1.2;
+const durRespirar = (o: Opciones) => durRespirando(30, PREVIO_RESPIRAR, o);
 
 function datosOrgano(o: Opciones) {
   const org = ORGANOS.find((x) => x.id === o.organo) ?? ORGANOS[4];
@@ -42,12 +46,14 @@ export const equilibrarOrganos: Secuencia = {
     e.camara = { ...TOMAS.general };
   },
   pasos: [
-    // 1 · 30 respiraciones conscientes
+    // 1 · 30 respiraciones conscientes (una de muestra, o todas acompañando con el video)
     {
-      dur: 8,
-      aplicar: (e, t) => {
-        toma(e, TOMAS.pecho, t, 0, 0.3);
-        respirar(e, t, 30, 0.12, 0.96);
+      dur: durRespirar(OPCIONES_INICIALES),
+      durCon: durRespirar,
+      aplicar: (e, t, o) => {
+        const seg = t * durRespirar(o);
+        toma(e, TOMAS.pecho, seg, 0, 2.4);
+        respirar(e, seg, 30, o, PREVIO_RESPIRAR);
       },
     },
     // 2 · Tomar dos bolsas de energía, unirlas y darles forma

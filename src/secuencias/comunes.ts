@@ -2,7 +2,7 @@ import { type Pose, PUNTOS, type PuntoCuerpo, resolverEsqueleto } from '../escen
 import { type ColorEnergia, type Estado, type Punto, ref } from '../escena/estado';
 import { type V3, arco, campana, clamp, lerp, lerpV, rotarY, saleAtras, sumaV, tramo } from '../escena/mate';
 import { CARGA_OMBLIGO, DEJAR_EN_PISO, DISPARAR, MANO_CORAZON, MANOS_PECHO, SERENA, TOMAR_ARRIBA, veloMano } from '../escena/poses';
-import { encuadre, posar, puntoMundo } from './motor';
+import { type Opciones, PAUSA_RESPIRACION, RITMOS, cicloRespiracion, encuadre, posar, puntoMundo } from './motor';
 
 // ── Tomas de cámara ─────────────────────────────────────────────────────
 
@@ -199,40 +199,68 @@ export function sellarDesdeCielo(e: Estado, t: number) {
   apagarFlujos(e);
 }
 
-/** Respiración consciente con ritmo 4-3-4-4 (lectura ilustrativa). */
-export function respirar(e: Estado, t: number, total: number, a = 0.18, b = 0.96) {
-  const k = clamp((t - a) / (b - a));
-  // Se muestra un ciclo completo con sus cuatro tiempos.
-  const tiempos = [4, 3, 4, 4];
-  const suma = 15;
-  let acc = 0;
-  let fase: 'Inhala' | 'Retén' | 'Exhala' | 'Pausa' = 'Inhala';
-  let kf = 0;
+/**
+ * Las respiraciones conscientes de un paso: sin video se muestra una de muestra al ritmo real;
+ * acompañando con el video del taller, todas (aclarado en la revisión). `previo`: segundos antes
+ * de empezar a respirar (la cámara o la mano se acomodan).
+ */
+export const respiracionesDelPaso = (total: number, o: Opciones) => (o.video ? total : 1);
+/** Duración de un paso de respiraciones: lo previo, las respiraciones y un respiro al final. */
+export const durRespirando = (total: number, previo: number, o: Opciones) => previo + respiracionesDelPaso(total, o) * cicloRespiracion(o.ritmo) + 0.6;
+
+/** Cómo se escribe el ritmo: «4 · 3 · 4». */
+export const ritmoTexto = (o: Opciones) => RITMOS[o.ritmo].join(' · ');
+
+/**
+ * Respiración consciente con el ritmo elegido (inhalar · retener · exhalar) y pausa de 3 s, en
+ * tiempo real. `seg`: segundos desde que empezó el paso. Devuelve cuánto está lleno el pecho (0–1).
+ */
+export function respirar(e: Estado, seg: number, total: number, o: Opciones, previo: number) {
+  if (seg < previo) return 0;
+  const [inhalar, retener, exhalar] = RITMOS[o.ritmo];
+  const ciclo = cicloRespiracion(o.ritmo);
+  const cuantas = respiracionesDelPaso(total, o);
+  const s = seg - previo;
+  const n = Math.min(cuantas - 1, Math.floor(s / ciclo));
+  const u = Math.min(ciclo, s - n * ciclo);
+  const tiempos = [inhalar, retener, exhalar, PAUSA_RESPIRACION];
   const nombres = ['Inhala', 'Retén', 'Exhala', 'Pausa'] as const;
+  let acc = 0;
+  let fase: (typeof nombres)[number] = 'Pausa';
+  let kf = 1;
   for (let i = 0; i < 4; i++) {
-    const d = tiempos[i] / suma;
-    if (k <= acc + d || i === 3) {
+    if (u < acc + tiempos[i] || i === 3) {
       fase = nombres[i];
-      kf = clamp((k - acc) / d);
+      kf = clamp((u - acc) / tiempos[i]);
       break;
     }
-    acc += d;
+    acc += tiempos[i];
   }
   let amp = 0;
   if (fase === 'Inhala') amp = Math.sin((kf * Math.PI) / 2);
   else if (fase === 'Retén') amp = 1;
   else if (fase === 'Exhala') amp = Math.cos((kf * Math.PI) / 2);
-  if (t > a) e.hud.respiracion = { fase, k: kf, ciclo: 1, total };
-  e.centros.corazon = 0.35 + 0.65 * amp * tramo(t, a, a + 0.05);
+  const ritmo = `ritmo ${ritmoTexto(o)} · pausa ${PAUSA_RESPIRACION} s`;
+  e.hud.respiracion = {
+    fase,
+    k: kf,
+    ciclo: n + 1,
+    total,
+    etiqueta: o.video ? `${n + 1} / ${total} · ${ritmo}` : `× ${total} · ${ritmo}`,
+  };
+  e.centros.corazon = 0.35 + 0.65 * amp * clamp(s / 0.5);
   return amp;
 }
 
-/** Mano en el corazón con respiración. */
-export function manoCorazonRespirando(e: Estado, t: number, total: number) {
-  posar(e, 0, MANO_CORAZON, t, 0, 0.18);
-  const amp = respirar(e, t, total);
+/** Lo previo de la mano en el corazón: la mano llega al pecho. */
+export const PREVIO_CORAZON = 1.8;
+
+/** Mano en el corazón con respiración (`seg`: segundos desde que empezó el paso). */
+export function manoCorazonRespirando(e: Estado, seg: number, total: number, o: Opciones) {
+  posar(e, 0, MANO_CORAZON, seg, 0, PREVIO_CORAZON);
+  const amp = respirar(e, seg, total, o, PREVIO_CORAZON);
   // El pecho «respira»: la mano se adelanta un poco al inhalar.
-  if (t > 0.18) e.figuras[0].pose.manoD[2] += 0.012 * amp;
+  if (seg > PREVIO_CORAZON) e.figuras[0].pose.manoD[2] += 0.012 * amp;
   return amp;
 }
 

@@ -794,6 +794,91 @@ button {
   color: var(--texto);
 }
 
+/* Respiraciones conscientes: ritmo y video del taller (en el panel de un ejercicio). */
+.resp-panel {
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--borde);
+}
+
+.resp-panel h3 {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--texto-3);
+  font-weight: 550;
+}
+
+.resp-nota {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--texto-3);
+}
+
+.boton-video {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--borde-fuerte);
+  background: none;
+  font-size: 13.5px;
+  color: var(--texto-2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.boton-video:hover {
+  color: var(--texto);
+  border-color: color-mix(in oklab, var(--acento) 60%, transparent);
+}
+
+.boton-video[aria-pressed='true'] {
+  background: color-mix(in oklab, var(--acento) 22%, transparent);
+  border-color: var(--acento);
+  color: var(--texto);
+}
+
+.video-guia {
+  display: grid;
+  gap: 6px;
+}
+
+.video-guia-marco {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--borde);
+}
+
+.video-guia-marco iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.video-guia-enlace {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--texto-3);
+  text-decoration: none;
+}
+
+.video-guia-enlace:hover {
+  color: var(--acento);
+}
+
 .enlace-repaso {
   margin-top: auto;
   padding-top: 12px;
@@ -1657,8 +1742,52 @@ a.boton-texto {
   margin: 8px auto 24px;
 }
 
-.resp-duda {
-  margin-top: 12px;
+.resp-subtitulo {
+  margin-top: 6px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--texto-3);
+}
+
+.resp-opciones {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.resp-opciones .resp-metas {
+  margin: 4px 0 0;
+}
+
+.resp-opciones .boton-video {
+  margin-top: 2px;
+}
+
+/* Con el video, la página se ensancha: el video al lado de la guía (arriba en pantallas angostas). */
+.pagina.respiracion[data-video] {
+  max-width: 1180px;
+}
+
+.resp-cuerpo {
+  display: grid;
+  gap: 18px;
+  margin-top: 8px;
+}
+
+@media (min-width: 900px) {
+  .pagina.respiracion[data-video] .resp-cuerpo {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    align-items: center;
+  }
+}
+
+.pagina.respiracion[data-video] .resp-escena {
+  height: min(52vw, 300px);
+}
+
+.pagina.respiracion[data-video] .resp-circulo {
+  width: min(52vw, 300px);
+  height: min(52vw, 300px);
 }
 
 [data-reducido='true'] .resp-circulo {

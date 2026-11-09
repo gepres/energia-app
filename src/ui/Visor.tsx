@@ -15,6 +15,7 @@ import { buscarDuda, buscarEjercicio, fraseOrgano, ORGANOS } from '../contenido/
 import type { Ejercicio, Paso } from '../contenido/tipos';
 import { useReproductor } from '../reproductor';
 import { Frase } from './Frase';
+import { SelectorRespiracion, VideoRespiracion } from './RespiracionPanel';
 import { LineaTiempo } from './LineaTiempo';
 import { marcarVisto } from './progreso';
 import { irA } from './ruta';
@@ -87,6 +88,7 @@ function VisorEjercicio({ ej }: { ej: Ejercicio }) {
   }, [final, ej.id]);
 
   const actual = ej.pasos[paso] ?? ej.pasos[0];
+  const conVideo = useReproductor((s) => s.opciones.video) && !!actual.respiraciones;
 
   return (
     <div className="visor" data-acento={ej.acento}>
@@ -106,7 +108,8 @@ function VisorEjercicio({ ej }: { ej: Ejercicio }) {
         </div>
       </header>
 
-      <aside className="panel" aria-label="Pasos del ejercicio">
+      <aside className="panel" aria-label="Pasos del ejercicio" data-video={conVideo || undefined}>
+        {conVideo && <VideoRespiracion />}
         <div className="panel-cabeza">
           <span className="panel-contador">
             Paso <strong>{paso + 1}</strong> de {ej.pasos.length}
@@ -117,6 +120,7 @@ function VisorEjercicio({ ej }: { ej: Ejercicio }) {
         </div>
         {lista && <ListaPasos ej={ej} actual={paso} />}
         <PasoActual key={`${ej.id}-${paso}`} ej={ej} paso={actual} indice={paso} />
+        {actual.respiraciones && <SelectorRespiracion total={actual.respiraciones} />}
         {ej.id === 'equilibrar-organos' && <SelectorOrgano />}
         {ej.bloques?.map((b) => (
           <section key={b.titulo} className="bloque">

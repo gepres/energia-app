@@ -6,7 +6,7 @@ import { crearManos, huecoPalma, segmentosMano } from '../escena/manos';
 import type { Estado } from '../escena/estado';
 import { largoV, restaV, rotarX } from '../escena/mate';
 import { SECUENCIAS } from './index';
-import { OPCIONES_INICIALES, duracionTotal, evaluar, ubicar } from './motor';
+import { OPCIONES_INICIALES, type Opciones, PAUSA_RESPIRACION, RITMOS, type Ritmo, cicloRespiracion, durPaso, duracionTotal, evaluar, inicios, ubicar } from './motor';
 import { faseSellado } from './sellarCielo';
 import { faseUnir } from './unirBarras';
 import { DUR_CARGAS, SEG_ANTES, SEG_CICLO, DESFASE } from './cargarOmbligo';
@@ -93,7 +93,7 @@ describe('secuencias 3D', () => {
         for (const organo of organos) {
           for (let paso = 0; paso < sec.pasos.length; paso++) {
             for (const t of MUESTRAS) {
-              const e = evaluar(sec, paso, t, { organo });
+              const e = evaluar(sec, paso, t, { ...OPCIONES_INICIALES, organo });
               const malo = buscarNoFinito(e);
               expect(malo, `${organo} paso ${paso + 1} t=${t}: ${malo}`).toBeNull();
               const esq = resolverEsqueleto(e.figuras[0].pose);
@@ -2261,4 +2261,99 @@ describe('Sellado final (uno por uno, descrito en la revisión)', () => {
       }
     }
   }, 120000);
+});
+
+describe('Respiraciones conscientes (aclarado en la revisión): ritmos 4-3-4, 3-3-3 y 5-5-5 con pausa de 3 s', () => {
+  const RITMOS_TODOS: Ritmo[] = ['4-3-4', '3-3-3', '5-5-5'];
+  const CASOS = [
+    { id: 'liberar-creencias', paso: 2, total: 15, previo: 1.8 },
+    { id: 'equilibrar-organos', paso: 0, total: 30, previo: 1.2 },
+  ] as const;
+  const con = (ritmo: Ritmo, video: boolean): Opciones => ({ ...OPCIONES_INICIALES, ritmo, video });
+
+  it('cada ritmo: inhalar · retener · exhalar y la pausa de 3 s en todos', () => {
+    expect(PAUSA_RESPIRACION).toBe(3);
+    expect(RITMOS['4-3-4']).toEqual([4, 3, 4]);
+    expect(RITMOS['3-3-3']).toEqual([3, 3, 3]);
+    expect(RITMOS['5-5-5']).toEqual([5, 5, 5]);
+    expect(cicloRespiracion('4-3-4')).toBe(14);
+    expect(cicloRespiracion('3-3-3')).toBe(12);
+    expect(cicloRespiracion('5-5-5')).toBe(18);
+    expect(OPCIONES_INICIALES.ritmo).toBe('4-3-4');
+    expect(OPCIONES_INICIALES.video).toBe(false);
+  });
+
+  it('sin video el paso muestra una respiración de muestra; con el video dura todas', () => {
+    for (const c of CASOS) {
+      const sec = SECUENCIAS[c.id];
+      const p = sec.pasos[c.paso];
+      const ej = EJERCICIOS.find((x) => x.id === c.id)!;
+      expect(ej.pasos[c.paso].respiraciones, c.id).toBe(c.total);
+      for (const r of RITMOS_TODOS) {
+        expect(durPaso(p, con(r, false)), `${c.id} ${r}`).toBeCloseTo(c.previo + cicloRespiracion(r) + 0.6, 6);
+        expect(durPaso(p, con(r, true)), `${c.id} ${r} con video`).toBeCloseTo(c.previo + c.total * cicloRespiracion(r) + 0.6, 6);
+      }
+      // Los demás pasos no cambian con las opciones; el total sí.
+      sec.pasos.forEach((q, i) => {
+        if (i !== c.paso) expect(durPaso(q, con('5-5-5', true)), `${c.id} paso ${i + 1}`).toBe(q.dur);
+      });
+      expect(duracionTotal(sec, con('4-3-4', true)) - duracionTotal(sec, con('4-3-4', false))).toBeCloseTo((c.total - 1) * 14, 6);
+      // ubicar e inicios usan las mismas duraciones.
+      const o = con('5-5-5', true);
+      const ini = inicios(sec, o);
+      const u = ubicar(sec, ini[c.paso] + c.previo + 20, o);
+      expect(u.paso).toBe(c.paso);
+      expect(u.t * durPaso(p, o)).toBeCloseTo(c.previo + 20, 6);
+    }
+  });
+
+  it('el anillo sigue el ritmo elegido en tiempo real: inhala, retén, exhala y pausa de 3 s', () => {
+    for (const c of CASOS) {
+      const sec = SECUENCIAS[c.id];
+      const p = sec.pasos[c.paso];
+      for (const r of RITMOS_TODOS) {
+        const o = con(r, false);
+        const [i, h, x] = RITMOS[r];
+        const fase = (seg: number) => evaluar(sec, c.paso, seg / durPaso(p, o), o).hud.respiracion?.fase ?? null;
+        expect(fase(c.previo * 0.5), `${c.id} ${r}: antes de empezar`).toBeNull();
+        expect(fase(c.previo + i * 0.5)).toBe('Inhala');
+        expect(fase(c.previo + i + h * 0.5)).toBe('Retén');
+        expect(fase(c.previo + i + h + x * 0.5)).toBe('Exhala');
+        expect(fase(c.previo + i + h + x + 1.5)).toBe('Pausa');
+        const e = evaluar(sec, c.paso, (c.previo + 1) / durPaso(p, o), o);
+        expect(e.hud.respiracion?.etiqueta).toBe(`× ${c.total} · ritmo ${RITMOS[r].join(' · ')} · pausa 3 s`);
+      }
+    }
+  });
+
+  it('acompañando con el video, el anillo cuenta cada respiración hasta la última', () => {
+    for (const c of CASOS) {
+      const sec = SECUENCIAS[c.id];
+      const p = sec.pasos[c.paso];
+      const o = con('3-3-3', true);
+      const en = (seg: number) => evaluar(sec, c.paso, seg / durPaso(p, o), o).hud.respiracion!;
+      expect(en(c.previo + 1).etiqueta).toBe(`1 / ${c.total} · ritmo 3 · 3 · 3 · pausa 3 s`);
+      expect(en(c.previo + 2 * 12 + 1).ciclo).toBe(3);
+      expect(en(c.previo + 2 * 12 + 1).fase).toBe('Inhala');
+      const ultima = en(c.previo + (c.total - 1) * 12 + 4);
+      expect(ultima.ciclo).toBe(c.total);
+      expect(ultima.fase).toBe('Retén');
+      // Al final del paso, la última respiración terminó (en la pausa).
+      const fin = evaluar(sec, c.paso, 1, o).hud.respiracion!;
+      expect(fin.ciclo).toBe(c.total);
+      expect(fin.fase).toBe('Pausa');
+    }
+  });
+
+  it('con cualquier ritmo y con o sin video, los estados son finitos', () => {
+    for (const c of CASOS) {
+      const sec = SECUENCIAS[c.id];
+      for (const r of RITMOS_TODOS)
+        for (const video of [false, true])
+          for (let k = 0; k <= 40; k++) {
+            const e = evaluar(sec, c.paso, k / 40, con(r, video));
+            expect(buscarNoFinito(e), `${c.id} ${r} video ${video} k ${k}`).toBeNull();
+          }
+    }
+  });
 });

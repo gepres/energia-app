@@ -52,7 +52,7 @@ export function Inicio() {
             <Brain size={17} /> Repaso de memoria
           </a>
           <a className="acceso" href="#/respiracion">
-            <Wind size={17} /> Respiración 4·3·4·4
+            <Wind size={17} /> Respiraciones conscientes
           </a>
           <a className="acceso" href="#/dudas">
             <CircleHelp size={17} /> {DUDAS.length === 1 ? '1 duda pendiente' : `${DUDAS.length} dudas del apunte`}
