@@ -9,8 +9,10 @@ import {
   type PointLight,
   type Points,
   type ShaderMaterial,
+  CylinderGeometry,
   SphereGeometry,
   type Sprite,
+  TorusGeometry,
   Vector3,
 } from 'three';
 import { aMundo, posicionPegada, registro, resolver } from './anclas';
@@ -23,21 +25,35 @@ import { crearMaterialCascara, crearMaterialEsfera, crearMaterialParticulas, rel
 import { escena } from './tienda';
 
 const GEO_ESFERA = new SphereGeometry(1, 48, 32);
+/** La dona: radio exterior 1 (como la esfera), con el hueco a lo largo de Z. */
+const GEO_DONA = new TorusGeometry(0.64, 0.36, 24, 56);
 const _ejeX = new Vector3(1, 0, 0);
+const _ejeZ = new Vector3(0, 0, 1);
+const _arribaY = new Vector3(0, 1, 0);
 const _eje = new Vector3();
+
+/** Entre 0 y 1, con borde suave. */
+function paso(a: number, b: number, x: number) {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+}
 
 // ── Esferas ─────────────────────────────────────────────────────────────
 
 function UnaEsfera({ i }: { i: number }) {
   const malla = useRef<Mesh>(null);
+  const dona = useRef<Mesh>(null);
   const halo = useRef<Sprite>(null);
   const mat = useMemo(() => crearMaterialEsfera(), []);
+  const matDona = useMemo(() => crearMaterialEsfera(), []);
   useFrame(() => {
     const s = escena.estado.esferas[i];
     const m = malla.current!;
+    const d = dona.current!;
     const h = halo.current!;
     const visible = s.activa && s.opacidad > 0.005 && s.radio > 0.001;
     m.visible = h.visible = visible;
+    d.visible = visible && s.dona > 0.001;
     if (!visible) return;
     const p = posicionPegada(s.pos, s.ref, s.pegado);
     m.position.set(p[0], p[1], p[2]);
@@ -63,6 +79,23 @@ function UnaEsfera({ i }: { i: number }) {
     u.uOpacidad.value = opacidad;
     u.uAgujero.value = s.agujero;
     u.uSemilla.value = i;
+    if (d.visible) {
+      // La esfera se desvanece mientras aparece la dona, con el hueco a lo largo de `eje` (o vertical).
+      u.uOpacidad.value = opacidad * (1 - paso(0.3, 0.85, s.dona));
+      d.position.copy(m.position);
+      d.scale.setScalar(r * (0.82 + 0.18 * s.dona));
+      d.quaternion.setFromUnitVectors(_ejeZ, s.eje ? _eje.set(s.eje[0], s.eje[1], s.eje[2]).normalize() : _arribaY);
+      const ud = matDona.uniforms;
+      ud.uTiempo.value = reloj.valor;
+      ud.uColor.value.copy(u.uColor.value);
+      ud.uColor2.value.copy(u.uColor2.value);
+      ud.uMezcla.value = u.uMezcla.value;
+      ud.uBrillo.value = u.uBrillo.value;
+      ud.uOpacidad.value = opacidad * paso(0.15, 0.7, s.dona);
+      ud.uAgujero.value = 0;
+      ud.uSemilla.value = i;
+      matDona.depthTest = !atraves;
+    }
     h.position.copy(m.position);
     const tamHalo = r * (3.6 + 1.0 * s.brillo) * Math.max(1, est * 0.8);
     h.scale.set(tamHalo, tamHalo, 1);
@@ -74,6 +107,7 @@ function UnaEsfera({ i }: { i: number }) {
   return (
     <>
       <mesh ref={malla} geometry={GEO_ESFERA} material={mat} renderOrder={5} visible={false} />
+      <mesh ref={dona} geometry={GEO_DONA} material={matDona} renderOrder={5} visible={false} />
       <sprite ref={halo} visible={false} renderOrder={4}>
         <spriteMaterial map={texturaHalo()} blending={AdditiveBlending} depthWrite={false} transparent toneMapped={false} />
       </sprite>
@@ -322,6 +356,8 @@ const GEO_MANTO = (() => {
   const g = new SphereGeometry(1, 64, 48);
   return g;
 })();
+/** El tubo: cilindro abierto de alto 2 (como la esfera del manto), escalado igual. */
+const GEO_TUBO = new CylinderGeometry(1, 1, 2, 40, 24, true);
 
 function UnManto({ i }: { i: number }) {
   const malla = useRef<Mesh>(null);
@@ -331,6 +367,7 @@ function UnManto({ i }: { i: number }) {
     const me = malla.current!;
     me.visible = m.activo && m.opacidad > 0.005 && m.cobertura > 0.001;
     if (!me.visible) return;
+    me.geometry = m.forma === 'tubo' ? GEO_TUBO : GEO_MANTO;
     me.position.set(m.centro[0], m.centro[1] + m.alto / 2, m.centro[2]);
     me.scale.set(m.radio, m.alto / 2, m.radio);
     const u = mat.uniforms;

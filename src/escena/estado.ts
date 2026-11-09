@@ -58,6 +58,11 @@ export interface Esfera {
   estirar: number;
   /** Abertura del agujero inferior (0–1). */
   agujero: number;
+  /**
+   * Cuánto se volvió dona (0–1): con un hueco que la atraviesa, a lo largo de `eje` (o vertical).
+   * La esfera se desvanece mientras aparece el toroide.
+   */
+  dona: number;
   opacidad: number;
   /**
    * Si puede llevarse la luz que ilumina el cuerpo (una sola, para la esfera más
@@ -132,6 +137,8 @@ export interface Manto {
   opacidad: number;
   /** Densidad de las líneas verticales: 1 cúpula marcada, ~0,3 velo suave. */
   lineas: number;
+  /** 'esfera': cúpula alrededor de la figura; 'tubo': cilindro abierto (p. ej. un tubo de energía al piso). */
+  forma: 'esfera' | 'tubo';
 }
 
 /**
@@ -305,6 +312,7 @@ const esfera = (): Esfera => ({
   mezcla: 0,
   estirar: 1,
   agujero: 0,
+  dona: 0,
   opacidad: 1,
   ilumina: true,
   atraves: 0,
@@ -357,6 +365,7 @@ const manto = (): Manto => ({
   color: 'violeta',
   opacidad: 1,
   lineas: 1,
+  forma: 'esfera',
 });
 
 export function crearEstado(): Estado {

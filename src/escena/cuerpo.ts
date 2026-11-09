@@ -172,6 +172,8 @@ export interface Pose {
    * casi verticales (las rodillas no se adelantan).
    */
   atrasar: number;
+  /** Cuánto se abren las rodillas hacia afuera al doblarlas (0–1), como en cuclillas con los pies abiertos. */
+  abrirRodillas: number;
   /** Inclinación del torso hacia delante (rad). */
   inclinar: number;
   /**
@@ -216,6 +218,7 @@ export const NEUTRA: Pose = {
   puntaI: 0,
   agachar: 0,
   atrasar: 0,
+  abrirRodillas: 0,
   inclinar: 0,
   girar: 0,
   adelantarD: 0,
@@ -274,6 +277,7 @@ export function mezclarPose(a: Pose, b: Pose, k: number, arcoManos = 0.06): Pose
     puntaI: lerp(a.puntaI, b.puntaI, k),
     agachar: lerp(a.agachar, b.agachar, k),
     atrasar: lerp(a.atrasar, b.atrasar, k),
+    abrirRodillas: lerp(a.abrirRodillas, b.abrirRodillas, k),
     inclinar: lerp(a.inclinar, b.inclinar, k),
     girar: lerp(a.girar, b.girar, k),
     adelantarD: lerp(a.adelantarD, b.adelantarD, k),
@@ -435,8 +439,9 @@ export function resolverEsqueleto(p: Pose): Esqueleto {
   const caderaI = sumaV([PROP.caderaX, PROP.caderaY, 0], off);
   const tobD = p.pieD;
   const tobI = p.pieI;
-  const pD = ik2(caderaD, tobD, PROP.muslo, PROP.pierna, [-0.18, 0, 1]);
-  const pI = ik2(caderaI, tobI, PROP.muslo, PROP.pierna, [0.18, 0, 1]);
+  const abrir = 0.18 + 0.82 * p.abrirRodillas;
+  const pD = ik2(caderaD, tobD, PROP.muslo, PROP.pierna, [-abrir, 0, 1]);
+  const pI = ik2(caderaI, tobI, PROP.muslo, PROP.pierna, [abrir, 0, 1]);
 
   const antD = normV(restaV(bD.fin, bD.medio));
   const antI = normV(restaV(bI.fin, bI.medio));

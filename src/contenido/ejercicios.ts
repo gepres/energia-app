@@ -432,6 +432,61 @@ export const EJERCICIOS: Ejercicio[] = [
       },
     ],
   },
+  {
+    id: 'enraizar-material',
+    numero: 9,
+    titulo: 'Enraizar',
+    subtitulo: 'generar lo material',
+    origen: 'revision',
+    resumen:
+      'La mano derecha, estirada hacia abajo, agarra energía − de la tierra durante 5 s y se forma una esfera; estirada hacia arriba, agarra energía + del cielo durante 5 s y la esfera se fortalece. Al frente del pecho, la mano izquierda le hace un hueco: queda en forma de dona. En cuclillas, la esfera hueca va a la parte baja de la ingle y la mano baja hasta el piso: se forma un tubo de energía de la ingle al piso. Al final se dice la frase.',
+    acento: 'tierra',
+    pasos: [
+      {
+        id: 'abajo-tierra',
+        titulo: 'Abajo: energía − de la tierra',
+        texto:
+          'Estirar la mano derecha hacia abajo, con la mano en forma de agarrar algo, y durante 5 segundos ir haciendo el movimiento de agarrar: se toma energía − de la tierra y se forma una esfera de energía en la mano.',
+        cantidad: { valor: 5, unidad: 's', pregunta: '¿Cuántos segundos se agarra energía con la mano abajo?' },
+        aclaracion:
+          'Descrito en la revisión: la mano derecha, estirada hacia abajo y con forma de agarrar algo, forma una esfera de energía en la mano durante 5 s. Elegido en la revisión: abajo se toma energía − (de la tierra), como en el ejercicio de referencia.',
+        lectura: 'La palma mira al piso y los dedos al frente; un agarre por segundo, y en cada uno la esfera crece.',
+      },
+      {
+        id: 'arriba-cielo',
+        titulo: 'Arriba: energía + del cielo',
+        texto:
+          'Después levantar la mano derecha y estirarla hacia arriba: la mano hace el efecto de agarrar algo durante 5 segundos, fortaleciendo o recargando la esfera con energía + del cielo.',
+        cantidad: { valor: 5, unidad: 's', pregunta: '¿Cuántos segundos se agarra energía con la mano arriba?' },
+        aclaracion: 'Descrito en la revisión: la mano estirada hacia arriba agarra durante 5 s, fortaleciendo o recargando la esfera. Elegido en la revisión: arriba, energía + del cielo.',
+        lectura: 'La mano sube por delante, con la esfera; arriba la palma mira al cielo.',
+      },
+      {
+        id: 'dona',
+        titulo: 'Un hueco en la esfera: una dona',
+        texto: 'Con la otra mano (la izquierda) le haces un hueco a la esfera, en forma de dona.',
+        aclaracion: 'Descrito en la revisión. Elegido en la revisión: al frente del pecho (la derecha baja la esfera desde arriba).',
+        lectura: 'La izquierda la atraviesa con el índice, de arriba abajo: el hueco queda vertical.',
+      },
+      {
+        id: 'tubo-piso',
+        titulo: 'En cuclillas: un tubo de energía al piso',
+        texto:
+          'Ponerse en cuclillas y, con la mano derecha que tiene la esfera hueca, acercar la esfera a la parte baja de la ingle; con la mano ir bajando hasta conectar con el piso: se forma un tubo de energía de la ingle al piso, por el hueco de la esfera.',
+        aclaracion:
+          'Descrito en la revisión. Elegido en la revisión: el tubo va de la ingle al piso; la esfera hueca queda debajo de la ingle y el tubo baja por el agujero de la dona. Del taller (en el ejercicio de referencia): el agujero va en la ingle y queda conectado con la tierra, el piso de tus pies.',
+        lectura: 'La mano izquierda se apoya en la rodilla.',
+      },
+      {
+        id: 'decir-conectate',
+        titulo: 'Decir la frase',
+        texto: 'Decir la frase.',
+        frase: 'SÁNATE, CONÉCTATE HASTA SANAR',
+        aclaracion: 'Del ejercicio de referencia; se mantiene al final (elegido en la revisión).',
+        lectura: 'Después la figura vuelve de pie.',
+      },
+    ],
+  },
 
   // ───────────────────────── VERSIÓN DE REFERENCIA ─────────────────────────
   // ───────────────────────── MANEJO DE ENERGÍA · SET 2026 ─────────────────────────
