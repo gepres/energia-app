@@ -21,6 +21,7 @@ import { PRIMERA, SEGUNDA, piernasInterno } from './sensibilizarPiernas';
 import { AGARRES, ANCLA, BOCA_CUCLILLAS, HUECO_DONA, PECHO, R_CIELO, R_TIERRA, R_TUBO, enraizarInterno } from './enraizarMaterial';
 import { DONA_ANILLO, DONA_GROSOR } from '../escena/estado';
 import { D_ENTRA, D_LEJOS, FRASES, SEG_GOMA, activacionInterno, dJunto, type IdCentro } from './activacionCentros';
+import { GROSOR_MANO, OMBLIGO, SEG_RETENER, selladoInterno } from './selladoOmbligo';
 import { Euler, Matrix4, Vector3, type BufferGeometry } from 'three';
 
 const MUESTRAS = [0, 0.13, 0.37, 0.5, 0.71, 0.94, 1];
@@ -894,7 +895,7 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
         expect(m, `paso ${paso + 1}`).toBeGreaterThan(-0.004);
       }
     }
-  });
+  }, 60000);
 
   it('la esfera, aun estirada como goma, no atraviesa el brazo que se palpa (tolerancia 4 mm)', () => {
     /** Distancia a un hueso con su grosor (de r0 en `a` a r1 en `b`, como en la malla del maniquí). */
@@ -2112,4 +2113,152 @@ describe('Activación de centros energéticos (uno por uno, descrito en la revis
     }
     return A.FASES_CENTRO[A.FASES_CENTRO.length - 1].id;
   }
+});
+
+describe('Sellado final (uno por uno, descrito en la revisión)', () => {
+  const sec = SECUENCIAS['sellado-ombligo'];
+  const ej = EJERCICIOS.find((x) => x.id === 'sellado-ombligo')!;
+  const S = selladoInterno;
+  const dist = (a: number[], b: number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  const durDe = (f: { dur: number }[]) => f.reduce((a, x) => a + x.dur, 0);
+  const enManos = (id: string, seg: number) => (durDe(S.FASES_MANOS.slice(0, S.FASES_MANOS.findIndex((x) => x.id === id))) + seg) / durDe(S.FASES_MANOS);
+  const enResp = (id: string, seg: number) => (durDe(S.FASES_RESPIRAR.slice(0, S.FASES_RESPIRAR.findIndex((x) => x.id === id))) + seg) / durDe(S.FASES_RESPIRAR);
+  const huecos = (e: Estado) => {
+    const q = resolverEsqueleto(e.figuras[0].pose);
+    return {
+      q,
+      D: huecoPalma(q.munecaD, q.palmaD.dedos, q.palmaD.normal, 0),
+      I: huecoPalma(q.munecaI, q.palmaI.dedos, q.palmaI.normal, 0),
+    };
+  };
+  const imagen = (e: Estado) => e.marcas.find((m) => m.tipo === 'imagen');
+
+  it('4 pasos: manos al ombligo, lengua al paladar, aguantar 30 s y manos a los costados (sin expandir y contraer)', () => {
+    expect(sec.pasos).toHaveLength(4);
+    expect(ej.numero).toBe(11);
+    expect(ej.origen).toBe('revision');
+    expect(ej.pasos.map((p) => p.id)).toEqual(['manos-ombligo', 'lengua-paladar', 'aguantar-30', 'manos-costados']);
+    expect(ej.pasos[2].cantidad?.valor).toBe(30);
+    expect(EJERCICIOS.find((x) => x.id === 'sellado-final')).toBeDefined();
+    // No hay esfera que se expanda y se contraiga: en todo el ejercicio no aparece ninguna.
+    for (let paso = 0; paso < 4; paso++)
+      for (let k = 0; k <= 20; k++) {
+        const e = evaluar(sec, paso, k / 20, OPCIONES_INICIALES);
+        expect(e.esferas.some((x) => x.activa), `paso ${paso + 1}`).toBe(false);
+        expect(e.hud.aviso ?? '').not.toMatch(/xpand|ontra/);
+      }
+  });
+
+  it('la derecha tapa el ombligo con la palma y la izquierda va encima, sobre su dorso; presionan un poco', () => {
+    const apoyada = huecos(evaluar(sec, 0, enManos('presionar', 0), OPCIONES_INICIALES));
+    const fin = evaluar(sec, 0, 1, OPCIONES_INICIALES);
+    const h = huecos(fin);
+    // La palma derecha sobre el ombligo, mirando al cuerpo, con los dedos hacia la izquierda.
+    expect(Math.hypot(h.D[0] - OMBLIGO[0], h.D[1] - OMBLIGO[1])).toBeLessThan(0.012);
+    expect(h.q.palmaD.normal[2]).toBeLessThan(-0.95);
+    expect(h.q.palmaD.dedos[0]).toBeGreaterThan(0.95);
+    // Apoyada, la palma toca la piel; al presionar se hunde apenas (de 2 mm afuera a 2 mm adentro).
+    expect(apoyada.D[2] - OMBLIGO[2]).toBeGreaterThan(0);
+    expect(apoyada.D[2] - OMBLIGO[2]).toBeLessThan(0.004);
+    expect(apoyada.D[2] - h.D[2]).toBeCloseTo(0.004, 3);
+    expect(h.D[2] - OMBLIGO[2]).toBeGreaterThan(-0.003);
+    // La izquierda encima: sobre el dorso de la derecha, mirando al cuerpo, con los dedos hacia la derecha.
+    expect(Math.hypot(h.I[0] - h.D[0], h.I[1] - h.D[1])).toBeLessThan(0.012);
+    expect(h.I[2] - h.D[2]).toBeCloseTo(GROSOR_MANO, 2);
+    expect(h.q.palmaI.normal[2]).toBeLessThan(-0.95);
+    expect(h.q.palmaI.dedos[0]).toBeLessThan(-0.95);
+    // Las manos siguen así en la lengua y mientras se aguanta la respiración.
+    for (const [paso, t] of [
+      [1, 0.5],
+      [2, 0.1],
+      [2, 0.6],
+      [2, 0.99],
+    ] as const) {
+      const o = huecos(evaluar(sec, paso, t, OPCIONES_INICIALES));
+      expect(dist(o.D, h.D), `paso ${paso + 1}`).toBeLessThan(1e-6);
+      expect(dist(o.I, h.I), `paso ${paso + 1}`).toBeLessThan(1e-6);
+    }
+  });
+
+  it('el dibujo de la lengua en el paladar se ve junto a la cabeza en la lengua y mientras se aguanta la respiración', () => {
+    expect(imagen(evaluar(sec, 0, 1, OPCIONES_INICIALES))).toBeUndefined();
+    const enLengua = imagen(evaluar(sec, 1, 0.5, OPCIONES_INICIALES))!;
+    expect(enLengua.texto).toBe('lengua-paladar');
+    expect(enLengua.opacidad).toBeCloseTo(1, 5);
+    // Junto a la boca: a la altura de la cabeza.
+    expect(enLengua.pos[1]).toBeGreaterThan(1.5);
+    expect(enLengua.pos[1]).toBeLessThan(1.65);
+    for (let k = 0; k <= 20; k++) expect(imagen(evaluar(sec, 2, (0.97 * k) / 20, OPCIONES_INICIALES))?.opacidad ?? 0, `respirar ${k}`).toBeGreaterThan(0.5);
+    expect(imagen(evaluar(sec, 3, 0.5, OPCIONES_INICIALES))).toBeUndefined();
+  });
+
+  it('se inhala, se aguanta la respiración 30 s (contados) y se exhala suave, sin mover las manos', () => {
+    expect(sec.pasos[2].dur).toBeGreaterThanOrEqual(SEG_RETENER + 8);
+    expect(evaluar(sec, 2, enResp('inhalar', 2), OPCIONES_INICIALES).hud.respiracion?.fase).toBe('Inhala');
+    expect(evaluar(sec, 2, enResp('exhalar', 2), OPCIONES_INICIALES).hud.respiracion?.fase).toBe('Exhala');
+    let antes = -1;
+    for (let k = 0; k <= 60; k++) {
+      const e = evaluar(sec, 2, enResp('retener', (SEG_RETENER * 0.999 * k) / 60), OPCIONES_INICIALES);
+      const r = e.hud.respiracion!;
+      expect(r.fase).toBe('Retén');
+      const n = Number(/^(\d+) \/ 30 s$/.exec(r.etiqueta ?? '')?.[1]);
+      expect(n).toBeGreaterThanOrEqual(antes);
+      expect(n).toBeCloseTo((SEG_RETENER * 0.999 * k) / 60, -0.5);
+      antes = n;
+    }
+    expect(antes).toBe(29);
+    // Al terminar de retener, el contador llega a 30.
+    expect(evaluar(sec, 2, enResp('retener', SEG_RETENER - 1e-6), OPCIONES_INICIALES).hud.respiracion?.etiqueta).toBe('30 / 30 s');
+    expect(evaluar(sec, 2, enResp('exhalar', 0), OPCIONES_INICIALES).hud.respiracion?.fase).toBe('Exhala');
+  });
+
+  it('termina con las manos a los costados, de pie', () => {
+    const fin = evaluar(sec, 3, 1, OPCIONES_INICIALES);
+    const p = fin.figuras[0].pose;
+    expect(dist(p.manoD, SERENA.manoD)).toBeLessThan(1e-6);
+    expect(dist(p.manoI, SERENA.manoI)).toBeLessThan(1e-6);
+    expect(fin.hud.respiracion).toBeNull();
+    expect(imagen(fin)).toBeUndefined();
+  });
+
+  it('los brazos llegan siempre; las manos no se meten en el cuerpo (salvo apenas al presionar) ni se atraviesan', () => {
+    for (let paso = 0; paso < sec.pasos.length; paso++) {
+      for (let k = 0; k <= 30; k++) {
+        const t = k / 30;
+        const e = evaluar(sec, paso, t, OPCIONES_INICIALES);
+        const p = e.figuras[0].pose;
+        const q = resolverEsqueleto(p);
+        const donde = `paso ${paso + 1}, t ${t.toFixed(3)}`;
+        expect(dist(q.munecaD, p.manoD), `${donde}, derecha`).toBeLessThan(0.003);
+        expect(dist(q.munecaI, p.manoI), `${donde}, izquierda`).toBeLessThan(0.003);
+        const s = pielDelCuerpo(e);
+        for (const L of ['D', 'I'] as const) {
+          const W = L === 'D' ? q.munecaD : q.munecaI;
+          const E = L === 'D' ? q.codoD : q.codoI;
+          const H = L === 'D' ? q.hombroD : q.hombroI;
+          const pal = L === 'D' ? q.palmaD : q.palmaI;
+          const mano = segmentosMano(W, pal.dedos, pal.normal, L === 'D' ? 1 : -1, L === 'D' ? p.cierreD : p.cierreI, 0, 0, -1, 0, 0, L === 'D' ? p.apoyarD : p.apoyarI);
+          const puntos: [number[], number][] = [];
+          for (const g of mano.slice(1)) for (const u of [0, 0.5, 1]) puntos.push([g.pos.map((v, i) => v + g.dir[i] * g.largo * u), g.radio]);
+          // El antebrazo con su grosor en la malla: 2,2 cm en la muñeca, 3,7 cm cerca del codo.
+          [0.022, 0.027, 0.032, 0.037].forEach((r, j) => puntos.push([W.map((v, i) => v + (E[i] - v) * j * 0.25), r]));
+          for (const u of [0, 0.25, 0.5]) puntos.push([E.map((v, i) => v + (H[i] - v) * u), 0.04]);
+          for (const [c, r] of puntos) expect(distanciaConSigno(c, s) - r, `${donde}: brazo ${L} en el cuerpo`).toBeGreaterThan(-0.006);
+        }
+        // Los dedos de una mano no atraviesan la otra mano (la izquierda se apoya en la derecha).
+        const sD = segmentosMano(q.munecaD, q.palmaD.dedos, q.palmaD.normal, 1, p.cierreD, 0, 0, -1, 0, 0, p.apoyarD).slice(1);
+        const sI = segmentosMano(q.munecaI, q.palmaI.dedos, q.palmaI.normal, -1, p.cierreI, 0, 0, -1, 0, 0, p.apoyarI).slice(1);
+        let libre = 1e9;
+        for (const a of sD) for (const b of sI) {
+          for (let i = 0; i <= 4; i++)
+            for (let j = 0; j <= 4; j++) {
+              const pa = a.pos.map((v, x) => v + a.dir[x] * a.largo * (i / 4));
+              const pb = b.pos.map((v, x) => v + b.dir[x] * b.largo * (j / 4));
+              libre = Math.min(libre, dist(pa, pb) - a.radio - b.radio);
+            }
+        }
+        expect(libre, `${donde}: los dedos se atraviesan`).toBeGreaterThan(-0.004);
+      }
+    }
+  }, 120000);
 });

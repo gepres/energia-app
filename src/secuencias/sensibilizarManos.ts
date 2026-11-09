@@ -84,6 +84,8 @@ export interface Mano {
   /** Dedo aislado (0 índice … 3 meñique, 4 pulgar) y cuánto se separa de los demás (0–1). */
   aislado?: number;
   separar?: number;
+  /** Mano apoyada plana: el pulgar en el plano de la palma (0–1). */
+  apoyar?: number;
 }
 export type Manos = Record<Lado, Mano>;
 
@@ -109,6 +111,7 @@ export function mezclarMano(a: Mano, b: Mano, k: number, via?: V3): Mano {
     tipoPinza: (b.pinza ?? 0) > 0 ? (b.tipoPinza ?? 0) : (a.tipoPinza ?? 0),
     aislado: k < 0.5 ? a.aislado : b.aislado,
     separar: lerp(a.separar ?? 0, b.separar ?? 0, k),
+    apoyar: lerp(a.apoyar ?? 0, b.apoyar ?? 0, k),
   };
 }
 
@@ -132,6 +135,8 @@ export function armar(m: Manos, cabezaPitch = 0.38): Pose {
     aisladoI: m.I.aislado ?? -1,
     separarD: m.D.separar ?? 0,
     separarI: m.I.separar ?? 0,
+    apoyarD: m.D.apoyar ?? 0,
+    apoyarI: m.I.apoyar ?? 0,
     cabezaPitch,
   });
 }

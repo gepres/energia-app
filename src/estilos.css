@@ -1068,6 +1068,108 @@ button {
   text-align: center;
 }
 
+/* Tarjeta con un dibujo de referencia junto a un punto del cuerpo (p. ej. la lengua al paladar). */
+.hud-imagen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: min(230px, 42vw);
+  padding: 10px 12px 12px;
+  border-radius: 14px;
+  background: var(--vidrio-fuerte);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+  backdrop-filter: blur(10px);
+  transition: opacity 0.2s linear;
+}
+
+.hud-imagen-pie {
+  margin: 6px 2px 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--texto-2);
+}
+
+.lengua-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lengua-perfil {
+  fill: rgb(255 255 255 / 0.035);
+  stroke: rgb(255 255 255 / 0.8);
+  stroke-width: 1.8;
+}
+
+.lengua-cavidad {
+  fill: rgb(4 6 12 / 0.55);
+}
+
+.lengua-interior,
+.lengua-rasgo {
+  fill: none;
+  stroke: rgb(255 255 255 / 0.36);
+  stroke-width: 1.4;
+}
+
+.lengua-rasgo {
+  stroke: rgb(255 255 255 / 0.7);
+}
+
+.lengua-paladar {
+  fill: rgb(164 192 206 / 0.35);
+  stroke: rgb(206 230 238 / 0.9);
+  stroke-width: 1.6;
+}
+
+.lengua-union {
+  fill: none;
+  stroke: rgb(206 230 238 / 0.45);
+  stroke-width: 1.2;
+}
+
+.lengua-diente {
+  fill: rgb(250 247 239 / 0.95);
+  stroke: rgb(255 255 255 / 0.85);
+  stroke-width: 1.2;
+}
+
+.lengua-cuerpo {
+  fill: rgb(222 143 163 / 0.55);
+  stroke: rgb(250 186 200 / 0.95);
+  stroke-width: 1.6;
+}
+
+.lengua-relieve {
+  fill: none;
+  stroke: rgb(250 186 200 / 0.4);
+  stroke-width: 1.2;
+}
+
+.lengua-toque {
+  fill: var(--acento);
+}
+
+.lengua-toque-halo {
+  fill: color-mix(in oklab, var(--acento) 18%, transparent);
+}
+
+.lengua-guia {
+  fill: none;
+  stroke: var(--acento);
+  stroke-width: 1.3;
+}
+
+.lengua-rotulo {
+  fill: var(--acento);
+  font-size: 17px;
+  font-family: var(--serif);
+  font-style: italic;
+}
+
 .hud-aviso {
   position: absolute;
   left: 50%;

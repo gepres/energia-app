@@ -80,6 +80,8 @@ function amortiguarPose(act: Pose, obj: Pose, l: number, dt: number) {
   act.pinzaI = amortiguar(act.pinzaI, obj.pinzaI, l, dt);
   act.tipoPinzaD = amortiguar(act.tipoPinzaD, obj.tipoPinzaD, l, dt);
   act.tipoPinzaI = amortiguar(act.tipoPinzaI, obj.tipoPinzaI, l, dt);
+  act.apoyarD = amortiguar(act.apoyarD, obj.apoyarD, l, dt);
+  act.apoyarI = amortiguar(act.apoyarI, obj.apoyarI, l, dt);
   // Si cambia el dedo aislado, primero se abre la mano y recién ahí se aísla el otro (sin saltos).
   for (const [ais, cant, sep] of [
     ['aisladoD', 'aislarD', 'separarD'],

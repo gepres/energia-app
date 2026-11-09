@@ -552,6 +552,49 @@ export const EJERCICIOS: Ejercicio[] = [
     ],
   },
 
+  {
+    id: 'sellado-ombligo',
+    numero: 11,
+    titulo: 'Sellado final',
+    origen: 'revision',
+    resumen:
+      'La mano derecha tapa el ombligo y la izquierda va encima, presionando un poco el cuerpo. Se pega la punta de la lengua al paladar de arriba, se inhala y se aguanta la respiración 30 s; al exhalar, se termina con las manos a los costados.',
+    acento: 'violeta',
+    pasos: [
+      {
+        id: 'manos-ombligo',
+        titulo: 'La derecha tapa el ombligo, la izquierda encima',
+        texto: 'Colocar la mano derecha tapando el ombligo y la izquierda encima, y presionar un poco el cuerpo.',
+        aclaracion: 'Descrito en la revisión.',
+        lectura:
+          'Las manos quedan cruzadas: los dedos de la derecha hacia la izquierda y los de la izquierda hacia la derecha. La palma derecha se apoya sobre el ombligo y la izquierda sobre el dorso de la derecha.',
+      },
+      {
+        id: 'lengua-paladar',
+        titulo: 'La lengua al paladar',
+        texto: 'Pegar la lengua al paladar de arriba.',
+        aclaracion:
+          'Descrito en la revisión, con una imagen de referencia. Elegido en la revisión: la punta de la lengua toca el paladar justo detrás de los dientes de arriba, con la boca cerrada; el dibujo se ve junto a la cabeza mientras se hace.',
+        lectura: 'Las manos siguen en el ombligo, presionando.',
+      },
+      {
+        id: 'aguantar-30',
+        titulo: 'Aguantar la respiración 30 s',
+        texto: 'Aguantar la respiración por 30 segundos.',
+        cantidad: { valor: 30, unidad: 'segundos', pregunta: '¿Cuántos segundos se aguanta la respiración en el sellado final?' },
+        aclaracion:
+          'Descrito en la revisión. Elegido en la revisión: se inhala profundo, se retiene 30 s y al final se exhala suave, con las manos en el ombligo y la lengua en el paladar.',
+        lectura: 'Inhalar dura unos 4 s y exhalar unos 5 s.',
+      },
+      {
+        id: 'manos-costados',
+        titulo: 'Las manos a los costados',
+        texto: 'Terminar con las manos a los costados.',
+        aclaracion: 'Descrito en la revisión: no se hace «Expandir y contraer» del ejercicio de referencia.',
+      },
+    ],
+  },
+
   // ───────────────────────── VERSIÓN DE REFERENCIA ─────────────────────────
   // ───────────────────────── MANEJO DE ENERGÍA · SET 2026 ─────────────────────────
   {

@@ -273,6 +273,7 @@ export function segmentosMano(
   aislado = -1,
   aislar = 0,
   separar = 0,
+  apoyar = 0,
 ): Segmento[] {
   const X = normV(cruzV(F, N));
   const T: V3 = [X[0] * s, X[1] * s, X[2] * s];
@@ -353,6 +354,17 @@ export function segmentosMano(
     metaD = normV(lerpV(metaD, dir(d1[0], d1[1], d1[2]), q));
     proxD = normV(lerpV(proxD, dir(d2[0], d2[1], d2[2]), q));
     distD = normV(lerpV(distD, dir(d3[0], d3[1], d3[2]), q));
+  }
+  if (apoyar > 0) {
+    // Mano apoyada: el pulgar queda en el plano de la palma (apenas hacia el dorso), sin hundirse.
+    const a = clamp(apoyar);
+    const aplanar = (v: V3): V3 => {
+      const n = puntoV(v, N) + 0.06;
+      return normV([v[0] - N[0] * n * a, v[1] - N[1] * n * a, v[2] - N[2] * n * a]);
+    };
+    metaD = aplanar(metaD);
+    proxD = aplanar(proxD);
+    distD = aplanar(distD);
   }
   let p = local(PULGAR.base[0], PULGAR.base[1], PULGAR.base[2]);
   [metaD, proxD, distD].forEach((dj, j) => {
@@ -462,16 +474,16 @@ export function crearManos(material: Material): Manos {
   malla.bind(esqueleto, new Matrix4());
   malla.frustumCulled = false;
 
-  function mano(h0: number, s: number, muneca: V3, F: V3, N: V3, cierre: number, pinza: number, tipo: number, aislado: number, aislar: number, separar: number) {
-    segmentosMano(muneca, F, N, s, cierre, pinza, tipo, aislado, aislar, separar).forEach((g, j) => colocar(huesos[h0 + j], g.pos, g.dir, g.z));
+  function mano(h0: number, s: number, muneca: V3, F: V3, N: V3, cierre: number, pinza: number, tipo: number, aislado: number, aislar: number, separar: number, apoyar: number) {
+    segmentosMano(muneca, F, N, s, cierre, pinza, tipo, aislado, aislar, separar, apoyar).forEach((g, j) => colocar(huesos[h0 + j], g.pos, g.dir, g.z));
   }
 
   return {
     malla,
     raiz,
     actualizar(e, p) {
-      mano(LADOS[0].h0, LADOS[0].s, e.munecaD, e.palmaD.dedos, e.palmaD.normal, p.cierreD, p.pinzaD, p.tipoPinzaD, p.aisladoD, p.aislarD, p.separarD);
-      mano(LADOS[1].h0, LADOS[1].s, e.munecaI, e.palmaI.dedos, e.palmaI.normal, p.cierreI, p.pinzaI, p.tipoPinzaI, p.aisladoI, p.aislarI, p.separarI);
+      mano(LADOS[0].h0, LADOS[0].s, e.munecaD, e.palmaD.dedos, e.palmaD.normal, p.cierreD, p.pinzaD, p.tipoPinzaD, p.aisladoD, p.aislarD, p.separarD, p.apoyarD);
+      mano(LADOS[1].h0, LADOS[1].s, e.munecaI, e.palmaI.dedos, e.palmaI.normal, p.cierreI, p.pinzaI, p.tipoPinzaI, p.aisladoI, p.aislarI, p.separarI, p.apoyarI);
     },
   };
 }

@@ -235,7 +235,8 @@ export interface Marca {
   pos: V3;
   texto: string;
   opacidad: number;
-  tipo: 'distancia' | 'nombre' | 'brujula';
+  /** `imagen`: una tarjeta con un dibujo de referencia (su id en `texto`) junto al punto. */
+  tipo: 'distancia' | 'nombre' | 'brujula' | 'imagen';
 }
 
 export interface Cota {
@@ -247,7 +248,14 @@ export interface Cota {
 
 export interface Hud {
   contador: { valor: number; total: number; etiqueta: string } | null;
-  respiracion: { fase: 'Inhala' | 'Retén' | 'Exhala' | 'Pausa'; k: number; ciclo: number; total: number } | null;
+  respiracion: {
+    fase: 'Inhala' | 'Retén' | 'Exhala' | 'Pausa';
+    k: number;
+    ciclo: number;
+    total: number;
+    /** Texto bajo el anillo; sin él, «× total · ritmo 4·3·4·4». */
+    etiqueta?: string;
+  } | null;
   aviso: string | null;
   /**
    * Cuánto de la frase del paso ya se dijo (0–1), cuando la frase va en un momento del paso. Sin

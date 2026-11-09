@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { escena } from '../escena/tienda';
+import { LenguaPaladar } from './LenguaPaladar';
 
 /**
  * Indicadores sobre la escena (contador, respiración, aviso). Leen el estado de
@@ -16,6 +17,7 @@ export function Hud() {
   const ciclo = useRef<HTMLSpanElement>(null);
   const aviso = useRef<HTMLDivElement>(null);
   const marcas = useRef<(HTMLDivElement | null)[]>([]);
+  const imagen = useRef<HTMLDivElement>(null);
   const anuncio = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -56,7 +58,8 @@ export function Hud() {
         resp.current.dataset.visible = String(!!r);
         if (r) {
           if (fase.current && fase.current.textContent !== r.fase) fase.current.textContent = r.fase;
-          if (ciclo.current) ciclo.current.textContent = `× ${r.total} · ritmo 4·3·4·4`;
+          const pie = r.etiqueta ?? `× ${r.total} · ritmo 4·3·4·4`;
+          if (ciclo.current && ciclo.current.textContent !== pie) ciclo.current.textContent = pie;
           const escala = r.fase === 'Inhala' ? 0.55 + 0.45 * r.k : r.fase === 'Retén' ? 1 : r.fase === 'Exhala' ? 1 - 0.45 * r.k : 0.55;
           if (anillo.current) anillo.current.style.transform = `scale(${escala})`;
         }
@@ -65,10 +68,24 @@ export function Hud() {
         aviso.current.dataset.visible = String(!!h.aviso);
         if (h.aviso && aviso.current.textContent !== h.aviso) aviso.current.textContent = h.aviso;
       }
+      // La tarjeta con el dibujo de referencia: a la izquierda del punto, sin salirse de la escena.
+      const img = escena.marcasPantalla.find((m) => m.tipo === 'imagen');
+      if (imagen.current) {
+        const t = imagen.current;
+        if (!img || img.opacidad < 0.01) t.style.opacity = '0';
+        else {
+          const ancho = t.offsetWidth;
+          const alto = t.offsetHeight;
+          const x = Math.max(12, img.x - ancho - 18);
+          const y = Math.min(Math.max(img.y - alto / 2, 76), (t.parentElement?.clientHeight ?? 800) - alto - 150);
+          t.style.opacity = String(img.opacidad);
+          t.style.transform = `translate(${x}px, ${y}px)`;
+        }
+      }
       marcas.current.forEach((d, i) => {
         if (!d) return;
         const m = escena.marcasPantalla[i];
-        if (!m || m.opacidad < 0.01) {
+        if (!m || m.opacidad < 0.01 || m.tipo === 'imagen') {
           d.style.opacity = '0';
           return;
         }
@@ -104,6 +121,10 @@ export function Hud() {
         <span ref={ciclo} className="hud-resp-ciclo" />
       </div>
       <div ref={aviso} className="hud-aviso" data-visible="false" />
+      <div ref={imagen} className="hud-imagen" style={{ opacity: 0 }}>
+        <LenguaPaladar />
+        <p className="hud-imagen-pie">La punta de la lengua toca el paladar, detrás de los dientes de arriba</p>
+      </div>
       {Array.from({ length: 6 }, (_, i) => (
         <div key={i} ref={(d) => void (marcas.current[i] = d)} className="marca3d" style={{ opacity: 0 }} />
       ))}

@@ -156,6 +156,12 @@ export interface Pose {
   separarD: number;
   separarI: number;
   /**
+   * Mano apoyada plana sobre algo (0–1): el pulgar queda en el plano de la palma, junto al
+   * índice, en vez de cruzar hacia el lado de la palma (si no, se hundiría en lo que toca).
+   */
+  apoyarD: number;
+  apoyarI: number;
+  /**
    * Dónde va cada tobillo (espacio del cuerpo). De pie, apoyados en el piso; una pierna puede
    * estirarse hacia adelante (el IK de la pierna llega al tobillo desde la cadera).
    */
@@ -212,6 +218,8 @@ export const NEUTRA: Pose = {
   aislarI: 0,
   separarD: 0,
   separarI: 0,
+  apoyarD: 0,
+  apoyarI: 0,
   pieD: [-PROP.tobilloX, PROP.tobilloY, 0],
   pieI: [PROP.tobilloX, PROP.tobilloY, 0],
   puntaD: 0,
@@ -271,6 +279,8 @@ export function mezclarPose(a: Pose, b: Pose, k: number, arcoManos = 0.06): Pose
     aislarI: lerp(a.aislarI, b.aislarI, k),
     separarD: lerp(a.separarD, b.separarD, k),
     separarI: lerp(a.separarI, b.separarI, k),
+    apoyarD: lerp(a.apoyarD, b.apoyarD, k),
+    apoyarI: lerp(a.apoyarI, b.apoyarI, k),
     pieD: lerpV(a.pieD, b.pieD, k),
     pieI: lerpV(a.pieI, b.pieI, k),
     puntaD: lerp(a.puntaD, b.puntaD, k),
