@@ -4,7 +4,8 @@ import { escena } from '../escena/tienda';
 
 /**
  * Frase que se dice en voz alta. Las palabras aparecen con el progreso del paso
- * (así el scrub también la revela); con movimiento reducido se muestra entera.
+ * (así el scrub también la revela), o cuando la secuencia la dice (`hud.frase`);
+ * con movimiento reducido se muestra entera.
  */
 export function Frase({ texto, paso }: { texto: string; paso: number }) {
   const palabras = useMemo(() => texto.split(/\s+/), [texto]);
@@ -14,8 +15,9 @@ export function Frase({ texto, paso }: { texto: string; paso: number }) {
     let raf = 0;
     const bucle = () => {
       const s = useReproductor.getState();
-      const k = s.paso > paso ? 1 : s.paso < paso ? 0 : s.t;
-      const visibles = escena.reducido ? palabras.length : Math.min(1, k / 0.6) * palabras.length;
+      const dicha = escena.estado.hud.frase;
+      const k = s.paso > paso ? 1 : s.paso < paso ? 0 : dicha != null ? dicha : Math.min(1, s.t / 0.6);
+      const visibles = escena.reducido ? palabras.length : k * palabras.length;
       refs.current.forEach((r, i) => {
         if (!r) return;
         const a = Math.max(0, Math.min(1, visibles - i));

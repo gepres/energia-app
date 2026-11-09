@@ -42,7 +42,7 @@ function limpiarTransitorios(e: Estado) {
   e.pulsos = [];
   e.cotas = [];
   e.marcas = e.marcas.filter((m) => m.tipo === 'brujula');
-  e.hud = { contador: null, respiracion: null, aviso: null };
+  e.hud = { contador: null, respiracion: null, aviso: null, frase: null };
 }
 
 export function duracionTotal(sec: Secuencia) {

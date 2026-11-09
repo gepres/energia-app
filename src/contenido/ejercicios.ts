@@ -489,6 +489,69 @@ export const EJERCICIOS: Ejercicio[] = [
     ],
   },
 
+  {
+    id: 'activacion-centros',
+    numero: 10,
+    titulo: 'Activación de centros energéticos',
+    origen: 'revision',
+    resumen:
+      'Se empieza con las barras de energía: se juntan las esferas, se forma una esfera de energía, se juega como goma y la sostiene la mano derecha. La mano la acerca al pecho, con la palma hacia él, y durante 5 s hace goma: la esfera queda pegada al centro y se estira hacia la palma. Con la esfera quieta se dice la frase y la mano la introduce sin tocar el cuerpo, a unos 10 cm. Lo mismo para la garganta y la frente, empezando cada vez con las barras.',
+    acento: 'jade',
+    pasos: [
+      {
+        id: 'barras-pecho',
+        titulo: 'Barras: formar la esfera',
+        texto:
+          'Empezar con las barras de energía: juntar las esferas y formar una esfera de energía, jugar con ella como goma y sostenerla con la mano derecha.',
+        aclaracion: 'Descrito en la revisión.',
+        lectura:
+          'Igual que el paso 1 de «Sensibilización de manos»: cada mano toma energía de su barra, las esferas se unen en una, se juega como goma, se baja al frente y la derecha se queda con ella.',
+      },
+      {
+        id: 'pecho',
+        titulo: 'Pecho: goma, la frase y la esfera entra',
+        texto:
+          'Acercar la esfera al pecho, con la mano mirando al pecho, y junto con la esfera hacer goma al pecho. Después de 5 segundos, decir la frase y, con ayuda de la mano, introducir la esfera sin tocar el cuerpo, con la mano a unos 10 cm.',
+        frase: 'CON ESTA ESFERA DE LUZ ACTIVO EL PODER DEL AMOR QUE RADICA EN MÍ',
+        cantidad: { valor: 10, unidad: 'cm de la mano al cuerpo al introducirla', pregunta: '¿A qué distancia del cuerpo queda la mano al introducir la esfera?' },
+        aclaracion:
+          'Descrito en la revisión: goma al pecho durante 5 s, la frase y la esfera entra sin tocar el cuerpo, con la mano a unos 10 cm. Elegido en la revisión: la esfera queda pegada al centro y se estira hacia la palma, y mientras se dice la frase la mano la sostiene quieta frente al centro.',
+        lectura:
+          'La palma mira al pecho, con los dedos hacia la izquierda. La mano se aleja hasta 13 cm dos veces y media y termina lejos; después empuja hasta quedar a 10 cm, la esfera se suelta de la palma, se hunde en el pecho y el centro se enciende.',
+      },
+      {
+        id: 'barras-garganta',
+        titulo: 'Otra vez las barras',
+        texto: 'Empezar de nuevo con las barras de energía: formar la esfera, jugar como goma y sostenerla con la mano derecha.',
+        aclaracion: 'Descrito en la revisión: para cada centro se comienza con las barras de energía.',
+      },
+      {
+        id: 'garganta',
+        titulo: 'Garganta: goma, la frase y la esfera entra',
+        texto:
+          'Lo mismo en la garganta: acercar la esfera con la mano mirando a la garganta, hacer goma durante 5 segundos, decir la frase e introducir la esfera sin tocar el cuerpo, con la mano a unos 10 cm.',
+        frase: 'CON ESTA ESFERA DE LUZ ACTIVO EL PODER DE LA PALABRA QUE RADICA EN MI VOZ',
+        aclaracion: 'Descrito en la revisión: es lo mismo para la garganta. Elegido en la revisión: la frase del ejercicio de referencia.',
+        lectura: 'La esfera toca la garganta abajo, donde el cuello se ensancha, sin llegar al mentón.',
+      },
+      {
+        id: 'barras-frente',
+        titulo: 'Otra vez las barras',
+        texto: 'Empezar de nuevo con las barras de energía: formar la esfera, jugar como goma y sostenerla con la mano derecha.',
+        aclaracion: 'Descrito en la revisión: para cada centro se comienza con las barras de energía.',
+      },
+      {
+        id: 'frente',
+        titulo: 'Frente: goma, la frase y la esfera entra',
+        texto:
+          'Lo mismo en la frente: acercar la esfera con la mano mirando a la frente, hacer goma durante 5 segundos, decir la frase e introducir la esfera sin tocar el cuerpo, con la mano a unos 10 cm.',
+        frase: 'CON ESTA ESFERA DE LUZ ACTIVO EL PODER DE LA CLARIVIDENCIA EN MÍ',
+        aclaracion: 'Descrito en la revisión: es lo mismo para la frente. Elegido en la revisión: la frase del ejercicio de referencia.',
+        lectura: 'La mano sube frente a la frente, con los dedos hacia la izquierda y el codo afuera.',
+      },
+    ],
+  },
+
   // ───────────────────────── VERSIÓN DE REFERENCIA ─────────────────────────
   // ───────────────────────── MANEJO DE ENERGÍA · SET 2026 ─────────────────────────
   {

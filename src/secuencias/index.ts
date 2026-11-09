@@ -11,6 +11,7 @@ import { recorridoPorChakras } from './recorridoPorChakras';
 import { sensibilizacionManos } from './sensibilizarManos';
 import { sensibilizacionPiernas } from './sensibilizarPiernas';
 import { enraizarMaterial } from './enraizarMaterial';
+import { activacionCentros } from './activacionCentros';
 import { enraizar } from './enraizar';
 import { liberarCreencias } from './liberar';
 import { activarCentros, cargaYSellado, recorridoChakras, selladoFinal, sensibilizarManos } from './notas';
@@ -42,6 +43,7 @@ const PROPIAS: Record<string, Secuencia> = {
   'sensibilizacion-manos': sensibilizacionManos,
   'sensibilizacion-piernas': sensibilizacionPiernas,
   'enraizar-material': enraizarMaterial,
+  'activacion-centros': activacionCentros,
   'cargar-ingles': cargarIngles,
   'liberar-creencias': liberarCreencias,
   'equilibrar-organos': equilibrarOrganos,

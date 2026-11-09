@@ -20,6 +20,7 @@ import { PERFIL_MUSLO, PERFIL_PIERNA, PLANO_MUSLO, PLANO_PIERNA, altoPie, bajoPi
 import { PRIMERA, SEGUNDA, piernasInterno } from './sensibilizarPiernas';
 import { AGARRES, ANCLA, BOCA_CUCLILLAS, HUECO_DONA, PECHO, R_CIELO, R_TIERRA, R_TUBO, enraizarInterno } from './enraizarMaterial';
 import { DONA_ANILLO, DONA_GROSOR } from '../escena/estado';
+import { D_ENTRA, D_LEJOS, FRASES, SEG_GOMA, activacionInterno, dJunto, type IdCentro } from './activacionCentros';
 import { Euler, Matrix4, Vector3, type BufferGeometry } from 'three';
 
 const MUESTRAS = [0, 0.13, 0.37, 0.5, 0.71, 0.94, 1];
@@ -1912,4 +1913,203 @@ describe('Enraizar · generar lo material (uno por uno, descrito en la revisión
       }
     }
   }, 120000);
+});
+
+describe('Activación de centros energéticos (uno por uno, descrito en la revisión)', () => {
+  const sec = SECUENCIAS['activacion-centros'];
+  const ej = EJERCICIOS.find((x) => x.id === 'activacion-centros')!;
+  const A = activacionInterno;
+  const dist = (a: number[], b: number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  const durDe = (f: { dur: number }[]) => f.reduce((a, x) => a + x.dur, 0);
+  /** Instante (t del paso de un centro) a `seg` segundos del comienzo de la fase `id`. */
+  const en = (id: string, seg: number) => (durDe(A.FASES_CENTRO.slice(0, A.FASES_CENTRO.findIndex((x) => x.id === id))) + seg) / durDe(A.FASES_CENTRO);
+  const durFase = (id: string) => A.FASES_CENTRO.find((x) => x.id === id)!.dur;
+  const PASOS: [number, IdCentro][] = [
+    [1, 'pecho'],
+    [3, 'garganta'],
+    [5, 'frente'],
+  ];
+  const huecoD = (q: ReturnType<typeof resolverEsqueleto>) => huecoPalma(q.munecaD, q.palmaD.dedos, q.palmaD.normal, 0);
+  /** Puntos de la superficie de la esfera, estirada a lo largo de su eje como la dibuja la escena. */
+  const superficie = (e: Estado) => {
+    const d = e.esferas[0];
+    const ej3 = d.eje ?? [1, 0, 0];
+    const u = Math.abs(ej3[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0];
+    const p1 = [ej3[1] * u[2] - ej3[2] * u[1], ej3[2] * u[0] - ej3[0] * u[2], ej3[0] * u[1] - ej3[1] * u[0]];
+    const n1 = Math.hypot(p1[0], p1[1], p1[2]);
+    const a1 = p1.map((v) => v / n1);
+    const a2 = [ej3[1] * a1[2] - ej3[2] * a1[1], ej3[2] * a1[0] - ej3[0] * a1[2], ej3[0] * a1[1] - ej3[1] * a1[0]];
+    const largo = d.radio * d.estirar;
+    const ancho = d.radio / Math.sqrt(d.estirar);
+    const out: number[][] = [];
+    for (let i = 0; i <= 12; i++)
+      for (let j = 0; j < 16; j++) {
+        const th = (Math.PI * i) / 12;
+        const ph = (2 * Math.PI * j) / 16;
+        out.push([0, 1, 2].map((x) => d.pos[x] + ej3[x] * largo * Math.cos(th) + (a1[x] * Math.cos(ph) + a2[x] * Math.sin(ph)) * ancho * Math.sin(th)));
+      }
+    return out;
+  };
+
+  it('6 pasos: barras y centro, tres veces (pecho, garganta y frente), con las frases de referencia', () => {
+    expect(sec.pasos).toHaveLength(6);
+    expect(ej.numero).toBe(10);
+    expect(ej.origen).toBe('revision');
+    expect(ej.pasos.map((p) => p.id)).toEqual(['barras-pecho', 'pecho', 'barras-garganta', 'garganta', 'barras-frente', 'frente']);
+    expect(ej.pasos[1].frase).toBe(FRASES.pecho);
+    expect(ej.pasos[3].frase).toBe(FRASES.garganta);
+    expect(ej.pasos[5].frase).toBe(FRASES.frente);
+    expect(FRASES.pecho).toBe('CON ESTA ESFERA DE LUZ ACTIVO EL PODER DEL AMOR QUE RADICA EN MÍ');
+    // Las frases de garganta y frente son las del ejercicio de referencia, que se conserva aparte.
+    const ref = EJERCICIOS.find((x) => x.id === 'activar-centros')!;
+    expect(ref.pasos.map((p) => p.frase).filter(Boolean)).toEqual([FRASES.pecho, FRASES.garganta, FRASES.frente]);
+  });
+
+  it('después de cada carga de las barras, la mano derecha sostiene la esfera', () => {
+    for (const paso of [0, 2, 4]) {
+      const e = evaluar(sec, paso, 1, OPCIONES_INICIALES);
+      const q = resolverEsqueleto(e.figuras[0].pose);
+      expect(e.esferas[0].activa, `paso ${paso + 1}`).toBe(true);
+      expect(dist(e.esferas[0].pos, huecoD(q)), `paso ${paso + 1}`).toBeLessThan(0.06);
+    }
+  });
+
+  it('goma (5 s): la esfera queda pegada al centro y se estira hacia la palma, que mira al cuerpo y nunca lo toca', () => {
+    for (const [paso, id] of PASOS) {
+      const c = A.CENTROS[id];
+      let min = 1e9;
+      let max = 0;
+      let redonda = 0;
+      let antes = 0;
+      let subiendo = true;
+      for (let k = 0; k <= 50; k++) {
+        const e = evaluar(sec, paso, en('goma', (SEG_GOMA * k) / 50), OPCIONES_INICIALES);
+        const q = resolverEsqueleto(e.figuras[0].pose);
+        const donde = `${id}, goma k ${k}`;
+        // Pegada al centro: la esfera toca la piel sin meterse. En la garganta la piel baja en
+        // pendiente hacia el pecho: al estirarse, la esfera se afina y queda a unos 6 mm.
+        const piel = pielDelCuerpo(e);
+        const toca = Math.min(...superficie(e).map((p) => distanciaConSigno(p, piel)));
+        expect(toca, `${donde}: se mete en el cuerpo`).toBeGreaterThan(0);
+        expect(toca, `${donde}: despegada del centro`).toBeLessThan(0.007);
+        // La palma mira al cuerpo y queda delante de la esfera; nunca toca el cuerpo.
+        expect(q.palmaD.normal[2], donde).toBeLessThan(-0.95);
+        const h = huecoD(q);
+        const d = h[2] - c.piel;
+        expect(d, `${donde}: la palma toca el cuerpo`).toBeGreaterThan(0.07);
+        // La esfera llega a la palma: su punta está en el hueco de la mano.
+        const punta = e.esferas[0].pos[2] + e.esferas[0].radio * e.esferas[0].estirar;
+        expect(Math.abs(punta - h[2]), `${donde}: la esfera se separa de la palma`).toBeLessThan(0.006);
+        min = Math.min(min, d);
+        max = Math.max(max, d);
+        const est = e.esferas[0].estirar;
+        if (k > 0 && subiendo && est < antes) subiendo = false;
+        if (k > 0 && !subiendo && est > antes) {
+          redonda++;
+          subiendo = true;
+        }
+        antes = est;
+      }
+      expect(min, id).toBeCloseTo(dJunto(c), 2);
+      expect(max, id).toBeGreaterThan(D_LEJOS - 0.005);
+      // Se aleja y vuelve dos veces (la esfera vuelve a quedar redonda) y termina lejos.
+      expect(redonda, id).toBe(2);
+      const fin = evaluar(sec, paso, en('goma', SEG_GOMA - 1e-6), OPCIONES_INICIALES);
+      expect(fin.esferas[0].estirar, id).toBeGreaterThan(1.6);
+      expect(fin.hud.contador?.valor, id).toBeGreaterThanOrEqual(4);
+      expect(evaluar(sec, paso, en('frase', 0), OPCIONES_INICIALES).hud.contador, id).toBeNull();
+    }
+  }, 120000);
+
+  it('la frase se dice con la esfera quieta frente al centro, después de la goma', () => {
+    for (const [paso, id] of PASOS) {
+      // Antes no se dice (no se revela), y después queda entera.
+      expect(evaluar(sec, paso, en('acercar', 1), OPCIONES_INICIALES).hud.frase, id).toBe(0);
+      expect(evaluar(sec, paso, en('goma', 2), OPCIONES_INICIALES).hud.frase, id).toBe(0);
+      expect(evaluar(sec, paso, en('introducir', 1), OPCIONES_INICIALES).hud.frase, id).toBe(1);
+      const ini = evaluar(sec, paso, en('frase', 0.01), OPCIONES_INICIALES);
+      const w0 = resolverEsqueleto(ini.figuras[0].pose).munecaD;
+      let antes = -1;
+      for (let k = 0; k <= 20; k++) {
+        const e = evaluar(sec, paso, en('frase', (durFase('frase') * 0.999 * k) / 20), OPCIONES_INICIALES);
+        expect(dist(resolverEsqueleto(e.figuras[0].pose).munecaD, w0), `${id}: la mano se mueve`).toBeLessThan(1e-6);
+        expect(dist(e.esferas[0].pos, ini.esferas[0].pos), `${id}: la esfera se mueve`).toBeLessThan(1e-6);
+        const f = e.hud.frase ?? -1;
+        expect(f).toBeGreaterThanOrEqual(antes);
+        antes = f;
+      }
+      expect(antes, id).toBe(1);
+    }
+  });
+
+  it('la mano empuja hasta quedar a 10 cm, sin tocar el cuerpo: la esfera entra y el centro se enciende', () => {
+    for (const [paso, id] of PASOS) {
+      const c = A.CENTROS[id];
+      let min = 1e9;
+      for (let k = 0; k <= 30; k++) {
+        const e = evaluar(sec, paso, en('introducir', (durFase('introducir') * k) / 30), OPCIONES_INICIALES);
+        const d = huecoD(resolverEsqueleto(e.figuras[0].pose))[2] - c.piel;
+        min = Math.min(min, d);
+        // La esfera, mientras está, se aleja de la palma hacia el centro.
+        if (e.esferas[0].activa && k > 15) expect(e.esferas[0].pos[2] + e.esferas[0].radio * e.esferas[0].estirar).toBeLessThan(huecoD(resolverEsqueleto(e.figuras[0].pose))[2] - 0.01);
+      }
+      expect(min, `${id}: la mano se acerca a menos de 10 cm`).toBeGreaterThan(D_ENTRA - 0.003);
+      const fin = evaluar(sec, paso, en('introducir', durFase('introducir')), OPCIONES_INICIALES);
+      expect(huecoD(resolverEsqueleto(fin.figuras[0].pose))[2] - c.piel, id).toBeCloseTo(D_ENTRA, 2);
+      expect(fin.esferas[0].activa, `${id}: la esfera sigue afuera`).toBe(false);
+      expect(fin.centros[c.punto] ?? 0, id).toBeGreaterThan(1);
+      // Al terminar el paso, la mano vuelve a su costado y el centro queda encendido.
+      const despues = evaluar(sec, paso, 1, OPCIONES_INICIALES);
+      expect(despues.centros[c.punto] ?? 0, id).toBeGreaterThan(0.7);
+      expect(dist(despues.figuras[0].pose.manoD, SERENA.manoD), id).toBeLessThan(1e-6);
+    }
+    // Al final, los tres centros encendidos.
+    const fin = evaluar(sec, 5, 1, OPCIONES_INICIALES);
+    for (const [, id] of PASOS) expect(fin.centros[A.CENTROS[id].punto] ?? 0, id).toBeGreaterThan(0.7);
+  });
+
+  it('los brazos llegan siempre; ni las manos ni la esfera se meten en el cuerpo; las manos no se tocan', () => {
+    for (let paso = 0; paso < sec.pasos.length; paso++) {
+      for (let k = 0; k <= 40; k++) {
+        const t = k / 40;
+        const e = evaluar(sec, paso, t, OPCIONES_INICIALES);
+        const p = e.figuras[0].pose;
+        const q = resolverEsqueleto(p);
+        const donde = `paso ${paso + 1}, t ${t.toFixed(3)}`;
+        expect(dist(q.munecaD, p.manoD), `${donde}, derecha`).toBeLessThan(0.003);
+        expect(dist(q.munecaI, p.manoI), `${donde}, izquierda`).toBeLessThan(0.003);
+        const s = pielDelCuerpo(e);
+        for (const L of ['D', 'I'] as const) {
+          const W = L === 'D' ? q.munecaD : q.munecaI;
+          const E = L === 'D' ? q.codoD : q.codoI;
+          const H = L === 'D' ? q.hombroD : q.hombroI;
+          const pal = L === 'D' ? q.palmaD : q.palmaI;
+          const mano = segmentosMano(W, pal.dedos, pal.normal, L === 'D' ? 1 : -1, L === 'D' ? p.cierreD : p.cierreI);
+          const puntos: [number[], number][] = [];
+          for (const g of mano.slice(1)) for (const u of [0, 0.5, 1]) puntos.push([g.pos.map((v, i) => v + g.dir[i] * g.largo * u), g.radio]);
+          for (const u of [0, 0.25, 0.5, 0.75]) puntos.push([W.map((v, i) => v + (E[i] - v) * u), 0.03]);
+          for (const u of [0, 0.25, 0.5]) puntos.push([E.map((v, i) => v + (H[i] - v) * u), 0.04]);
+          for (const [c, r] of puntos) expect(distanciaConSigno(c, s) - r, `${donde}: brazo ${L} en el cuerpo`).toBeGreaterThan(-0.005);
+        }
+        // La esfera no se mete en el cuerpo, salvo cuando entra en el centro.
+        const fase = paso % 2 === 1 ? activacionFase(t) : '';
+        if (e.esferas[0].activa && fase !== 'introducir') for (const c of superficie(e)) expect(distanciaConSigno(c, s), `${donde}: la esfera en el cuerpo`).toBeGreaterThan(-0.002);
+        const sD = segmentosMano(q.munecaD, q.palmaD.dedos, q.palmaD.normal, 1, p.cierreD);
+        const sI = segmentosMano(q.munecaI, q.palmaI.dedos, q.palmaI.normal, -1, p.cierreI);
+        let libre = 1e9;
+        for (const a of sD) for (const b of sI) libre = Math.min(libre, dist(a.pos, b.pos) - a.radio - b.radio);
+        expect(libre, `${donde}: las manos se tocan`).toBeGreaterThan(0);
+      }
+    }
+  }, 120000);
+
+  /** La fase de un paso de centro en el instante `t`. */
+  function activacionFase(t: number) {
+    let x = t * durDe(A.FASES_CENTRO);
+    for (const f of A.FASES_CENTRO) {
+      if (x < f.dur) return f.id;
+      x -= f.dur;
+    }
+    return A.FASES_CENTRO[A.FASES_CENTRO.length - 1].id;
+  }
 });

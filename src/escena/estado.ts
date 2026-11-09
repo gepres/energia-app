@@ -249,6 +249,11 @@ export interface Hud {
   contador: { valor: number; total: number; etiqueta: string } | null;
   respiracion: { fase: 'Inhala' | 'Retén' | 'Exhala' | 'Pausa'; k: number; ciclo: number; total: number } | null;
   aviso: string | null;
+  /**
+   * Cuánto de la frase del paso ya se dijo (0–1), cuando la frase va en un momento del paso. Sin
+   * valor, la frase se revela con el avance del paso.
+   */
+  frase?: number | null;
 }
 
 export interface Camara {
@@ -421,7 +426,7 @@ export function crearEstado(): Estado {
     cielo: 0,
     tierra: 0,
     penumbra: 0,
-    hud: { contador: null, respiracion: null, aviso: null },
+    hud: { contador: null, respiracion: null, aviso: null, frase: null },
   };
 }
 
