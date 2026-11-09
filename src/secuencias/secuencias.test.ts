@@ -1729,10 +1729,35 @@ describe('Enraizar · generar lo material (uno por uno, descrito en la revisión
     expect(Math.min(...puntas)).toBeLessThan(0.025);
     expect(Math.min(...puntas)).toBeGreaterThan(-0.005);
     expect(dist(q.munecaI, q.rodillaI)).toBeLessThan(0.12);
-    // El tubo crece con la mano: a mitad de la bajada todavía no llega al piso.
-    const medio = evaluar(sec, 3, en(I.FASES_TUBO, 'bajar', 1.5), OPCIONES_INICIALES).mantos[0];
+    // El tubo crece detrás de la mano: a dos tercios de la bajada todavía no llega al piso.
+    const medio = evaluar(sec, 3, en(I.FASES_TUBO, 'bajar', 2), OPCIONES_INICIALES).mantos[0];
     expect(medio.cobertura).toBeGreaterThan(0.2);
     expect(medio.cobertura).toBeLessThan(0.8);
+    // Nace de la parte baja de la ingle: la boca de arriba del tubo está en la piel (apenas adentro).
+    const piel = pielDelCuerpo(fin);
+    expect(distanciaConSigno([TUBO.x, TUBO.arriba, TUBO.z], piel), 'el tubo sale del cuerpo').toBeLessThan(0.005);
+    expect(distanciaConSigno([TUBO.x, TUBO.arriba - 0.03, TUBO.z], piel), 'debajo de la boca, afuera del cuerpo').toBeGreaterThan(0);
+    // La dona, entre la piel y el piso, alrededor del tubo (apenas debajo de la pelvis).
+    expect(TUBO.arriba - dona.pos[1]).toBeGreaterThan(0.03);
+    expect(TUBO.arriba - dona.pos[1]).toBeLessThan(0.08);
+  });
+
+  it('la mano baja al costado del tubo, sin meterse en él, y así se lo ve formarse', () => {
+    for (let k = 0; k <= 60; k++) {
+      const seg = 0.6 + 2.4 * (k / 60);
+      const e = evaluar(sec, 3, en(I.FASES_TUBO, 'bajar', seg), OPCIONES_INICIALES);
+      const p = e.figuras[0].pose;
+      const q = resolverEsqueleto(p);
+      const mano = segmentosMano(q.munecaD, q.palmaD.dedos, q.palmaD.normal, 1, p.cierreD);
+      for (const g of mano)
+        for (const u of [0, 0.5, 1]) {
+          const c = g.pos.map((v, i) => v + g.dir[i] * g.largo * u);
+          // Solo lo que está a la altura del tubo ya formado.
+          const fondo = e.mantos[0].alto * (1 - e.mantos[0].cobertura);
+          if (c[1] > TUBO.arriba || c[1] < fondo) continue;
+          expect(Math.hypot(c[0] - TUBO.x, c[2] - TUBO.z) - g.radio, `bajar ${seg.toFixed(2)} s: la mano en el tubo`).toBeGreaterThan(TUBO.radio);
+        }
+    }
   });
 
   it('al final se dice la frase y la figura queda de pie; la dona y el tubo se apagan', () => {
