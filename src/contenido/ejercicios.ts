@@ -631,7 +631,7 @@ export const EJERCICIOS: Ejercicio[] = [
         cantidad: { valor: 15, unidad: 'respiraciones', pregunta: '¿Cuántas respiraciones conscientes con la mano en el corazón?' },
         respiraciones: 15,
         aclaracion:
-          'Aclarado en la revisión: hay ritmos variados —4-3-4, 3-3-3 o 5-5-5 (inhalar · retener · exhalar)— y la pausa es de 3 s en todos; se elige uno. Se hace viendo y escuchando el video del taller.',
+          'Aclarado en la revisión: hay ritmos variados —4-3-4, 3-3-3 o 5-5-5 (inhalar · retener · exhalar)— y la pausa es de 1 s en todos; se elige uno. Se hace viendo y escuchando el video del taller.',
         lectura: 'Sin el video se muestra una respiración de muestra al ritmo elegido; acompañando con el video, el paso dura las 15.',
       },
       {
@@ -685,7 +685,7 @@ export const EJERCICIOS: Ejercicio[] = [
         cantidad: { valor: 30, unidad: 'respiraciones', pregunta: '¿Cuántas respiraciones conscientes antes de equilibrar un órgano?' },
         respiraciones: 30,
         aclaracion:
-          'Aclarado en la revisión: hay ritmos variados —4-3-4, 3-3-3 o 5-5-5 (inhalar · retener · exhalar)— y la pausa es de 3 s en todos; se elige uno. Se hace viendo y escuchando el video del taller.',
+          'Aclarado en la revisión: hay ritmos variados —4-3-4, 3-3-3 o 5-5-5 (inhalar · retener · exhalar)— y la pausa es de 1 s en todos; se elige uno. Se hace viendo y escuchando el video del taller.',
         lectura: 'Sin el video se muestra una respiración de muestra al ritmo elegido; acompañando con el video, el paso dura las 30.',
       },
       {

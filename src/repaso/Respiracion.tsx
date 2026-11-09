@@ -5,7 +5,7 @@ import { PAUSA_RESPIRACION, RITMOS, type Ritmo, cicloRespiracion } from '../secu
 import { BotonVideo, SelectorRitmo, VideoRespiracion } from '../ui/RespiracionPanel';
 import { irA } from '../ui/ruta';
 
-/** Las fases de una respiración con un ritmo: inhalar · retener · exhalar y la pausa de 3 s. */
+/** Las fases de una respiración con un ritmo: inhalar · retener · exhalar y la pausa de 1 s. */
 export const fasesDe = (r: Ritmo) =>
   [
     { nombre: 'Inhala', seg: RITMOS[r][0] },

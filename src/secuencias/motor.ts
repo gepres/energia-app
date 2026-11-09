@@ -9,8 +9,8 @@ export const RITMOS: Record<Ritmo, readonly [number, number, number]> = {
   '3-3-3': [3, 3, 3],
   '5-5-5': [5, 5, 5],
 };
-/** La pausa después de exhalar es de 3 s en todos los ritmos (aclarado en la revisión). */
-export const PAUSA_RESPIRACION = 3;
+/** La pausa después de exhalar es de 1 s en todos los ritmos (aclarado en la revisión). */
+export const PAUSA_RESPIRACION = 1;
 /** Lo que dura una respiración completa con un ritmo, pausa incluida. */
 export const cicloRespiracion = (r: Ritmo) => RITMOS[r][0] + RITMOS[r][1] + RITMOS[r][2] + PAUSA_RESPIRACION;
 

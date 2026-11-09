@@ -2263,7 +2263,7 @@ describe('Sellado final (uno por uno, descrito en la revisión)', () => {
   }, 120000);
 });
 
-describe('Respiraciones conscientes (aclarado en la revisión): ritmos 4-3-4, 3-3-3 y 5-5-5 con pausa de 3 s', () => {
+describe('Respiraciones conscientes (aclarado en la revisión): ritmos 4-3-4, 3-3-3 y 5-5-5 con pausa de 1 s', () => {
   const RITMOS_TODOS: Ritmo[] = ['4-3-4', '3-3-3', '5-5-5'];
   const CASOS = [
     { id: 'liberar-creencias', paso: 2, total: 15, previo: 1.8 },
@@ -2271,14 +2271,14 @@ describe('Respiraciones conscientes (aclarado en la revisión): ritmos 4-3-4, 3-
   ] as const;
   const con = (ritmo: Ritmo, video: boolean): Opciones => ({ ...OPCIONES_INICIALES, ritmo, video });
 
-  it('cada ritmo: inhalar · retener · exhalar y la pausa de 3 s en todos', () => {
-    expect(PAUSA_RESPIRACION).toBe(3);
+  it('cada ritmo: inhalar · retener · exhalar y la pausa de 1 s en todos', () => {
+    expect(PAUSA_RESPIRACION).toBe(1);
     expect(RITMOS['4-3-4']).toEqual([4, 3, 4]);
     expect(RITMOS['3-3-3']).toEqual([3, 3, 3]);
     expect(RITMOS['5-5-5']).toEqual([5, 5, 5]);
-    expect(cicloRespiracion('4-3-4')).toBe(14);
-    expect(cicloRespiracion('3-3-3')).toBe(12);
-    expect(cicloRespiracion('5-5-5')).toBe(18);
+    expect(cicloRespiracion('4-3-4')).toBe(12);
+    expect(cicloRespiracion('3-3-3')).toBe(10);
+    expect(cicloRespiracion('5-5-5')).toBe(16);
     expect(OPCIONES_INICIALES.ritmo).toBe('4-3-4');
     expect(OPCIONES_INICIALES.video).toBe(false);
   });
@@ -2297,7 +2297,7 @@ describe('Respiraciones conscientes (aclarado en la revisión): ritmos 4-3-4, 3-
       sec.pasos.forEach((q, i) => {
         if (i !== c.paso) expect(durPaso(q, con('5-5-5', true)), `${c.id} paso ${i + 1}`).toBe(q.dur);
       });
-      expect(duracionTotal(sec, con('4-3-4', true)) - duracionTotal(sec, con('4-3-4', false))).toBeCloseTo((c.total - 1) * 14, 6);
+      expect(duracionTotal(sec, con('4-3-4', true)) - duracionTotal(sec, con('4-3-4', false))).toBeCloseTo((c.total - 1) * 12, 6);
       // ubicar e inicios usan las mismas duraciones.
       const o = con('5-5-5', true);
       const ini = inicios(sec, o);
@@ -2307,7 +2307,7 @@ describe('Respiraciones conscientes (aclarado en la revisión): ritmos 4-3-4, 3-
     }
   });
 
-  it('el anillo sigue el ritmo elegido en tiempo real: inhala, retén, exhala y pausa de 3 s', () => {
+  it('el anillo sigue el ritmo elegido en tiempo real: inhala, retén, exhala y pausa de 1 s', () => {
     for (const c of CASOS) {
       const sec = SECUENCIAS[c.id];
       const p = sec.pasos[c.paso];
@@ -2319,9 +2319,9 @@ describe('Respiraciones conscientes (aclarado en la revisión): ritmos 4-3-4, 3-
         expect(fase(c.previo + i * 0.5)).toBe('Inhala');
         expect(fase(c.previo + i + h * 0.5)).toBe('Retén');
         expect(fase(c.previo + i + h + x * 0.5)).toBe('Exhala');
-        expect(fase(c.previo + i + h + x + 1.5)).toBe('Pausa');
+        expect(fase(c.previo + i + h + x + 0.5)).toBe('Pausa');
         const e = evaluar(sec, c.paso, (c.previo + 1) / durPaso(p, o), o);
-        expect(e.hud.respiracion?.etiqueta).toBe(`× ${c.total} · ritmo ${RITMOS[r].join(' · ')} · pausa 3 s`);
+        expect(e.hud.respiracion?.etiqueta).toBe(`× ${c.total} · ritmo ${RITMOS[r].join(' · ')} · pausa 1 s`);
       }
     }
   });
@@ -2332,10 +2332,10 @@ describe('Respiraciones conscientes (aclarado en la revisión): ritmos 4-3-4, 3-
       const p = sec.pasos[c.paso];
       const o = con('3-3-3', true);
       const en = (seg: number) => evaluar(sec, c.paso, seg / durPaso(p, o), o).hud.respiracion!;
-      expect(en(c.previo + 1).etiqueta).toBe(`1 / ${c.total} · ritmo 3 · 3 · 3 · pausa 3 s`);
-      expect(en(c.previo + 2 * 12 + 1).ciclo).toBe(3);
-      expect(en(c.previo + 2 * 12 + 1).fase).toBe('Inhala');
-      const ultima = en(c.previo + (c.total - 1) * 12 + 4);
+      expect(en(c.previo + 1).etiqueta).toBe(`1 / ${c.total} · ritmo 3 · 3 · 3 · pausa 1 s`);
+      expect(en(c.previo + 2 * 10 + 1).ciclo).toBe(3);
+      expect(en(c.previo + 2 * 10 + 1).fase).toBe('Inhala');
+      const ultima = en(c.previo + (c.total - 1) * 10 + 4);
       expect(ultima.ciclo).toBe(c.total);
       expect(ultima.fase).toBe('Retén');
       // Al final del paso, la última respiración terminó (en la pausa).

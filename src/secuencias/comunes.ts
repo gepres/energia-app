@@ -212,7 +212,7 @@ export const durRespirando = (total: number, previo: number, o: Opciones) => pre
 export const ritmoTexto = (o: Opciones) => RITMOS[o.ritmo].join(' · ');
 
 /**
- * Respiración consciente con el ritmo elegido (inhalar · retener · exhalar) y pausa de 3 s, en
+ * Respiración consciente con el ritmo elegido (inhalar · retener · exhalar) y pausa de 1 s, en
  * tiempo real. `seg`: segundos desde que empezó el paso. Devuelve cuánto está lleno el pecho (0–1).
  */
 export function respirar(e: Estado, seg: number, total: number, o: Opciones, previo: number) {

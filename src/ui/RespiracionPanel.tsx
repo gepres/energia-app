@@ -7,7 +7,7 @@ const ORDEN: Ritmo[] = ['4-3-4', '3-3-3', '5-5-5'];
 
 /**
  * Las respiraciones conscientes (aclarado en la revisión): se elige un ritmo —inhalar · retener ·
- * exhalar— con una pausa de 3 s en todos. El ritmo elegido vale para la página de respiración y
+ * exhalar— con una pausa de 1 s en todos. El ritmo elegido vale para la página de respiración y
  * para los pasos de respiración de los ejercicios.
  */
 export function SelectorRitmo() {
