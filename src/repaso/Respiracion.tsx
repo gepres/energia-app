@@ -2,7 +2,10 @@ import { ArrowLeft, Pause, Play, RotateCcw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useReproductor } from '../reproductor';
 import { PAUSA_RESPIRACION, RITMOS, type Ritmo, cicloRespiracion } from '../secuencias/motor';
+import { BarraRutina, FinParte } from '../rutinas/BarraRutina';
+import type { EnRutina } from '../rutinas/rutinas';
 import { BotonVideo, SelectorRitmo, VideoRespiracion } from '../ui/RespiracionPanel';
+import { BotonTema } from '../ui/Tema';
 import { irA } from '../ui/ruta';
 
 /** Las fases de una respiración con un ritmo: inhalar · retener · exhalar y la pausa de 1 s. */
@@ -26,10 +29,11 @@ export function faseEn(seg: number, r: Ritmo = '4-3-4') {
   return { fase: 'Pausa' as const, k: 1, restante: 0, ciclo };
 }
 
-export function Respiracion() {
+/** La página de respiraciones; en una rutina, con la cantidad fija y «Siguiente» al terminar. */
+export function Respiracion({ rutina, metaFija }: { rutina?: EnRutina; metaFija?: 15 | 30 } = {}) {
   const ritmo = useReproductor((s) => s.opciones.ritmo);
   const video = useReproductor((s) => s.opciones.video);
-  const [meta, setMeta] = useState(15);
+  const [meta, setMeta] = useState<number>(metaFija ?? 15);
   const [corriendo, setCorriendo] = useState(false);
   const [seg, setSeg] = useState(0);
   const ultimo = useRef<number | null>(null);
@@ -67,7 +71,7 @@ export function Respiracion() {
   return (
     <main className="pagina respiracion" data-acento="cielo" data-video={video || undefined}>
       <header className="pagina-cabecera">
-        <button className="boton-icono" onClick={() => irA('#/')} aria-label="Volver al inicio">
+        <button className="boton-icono" onClick={() => (rutina ? rutina.salir() : irA('#/'))} aria-label={rutina ? 'Salir de la rutina' : 'Volver al inicio'}>
           <ArrowLeft size={18} />
         </button>
         <div>
@@ -76,27 +80,33 @@ export function Respiracion() {
           <p className="resp-subtitulo">
             inhalar · retener · exhalar · pausa {PAUSA_RESPIRACION} s
           </p>
+          {rutina && <BarraRutina rutina={rutina} />}
         </div>
+        <span className="pagina-herramientas">
+          <BotonTema />
+        </span>
       </header>
 
       <section className="resp-opciones" aria-label="Opciones de la respiración">
         <SelectorRitmo />
-        <div className="resp-metas" role="group" aria-label="Cantidad de respiraciones">
-          {[15, 30].map((n) => (
-            <button
-              key={n}
-              className="chip"
-              aria-pressed={meta === n}
-              onClick={() => {
-                setMeta(n);
-                setSeg(0);
-                setCorriendo(false);
-              }}
-            >
-              {n} respiraciones · {n === 15 ? 'liberar creencias' : 'equilibrar órganos'}
-            </button>
-          ))}
-        </div>
+        {!metaFija && (
+          <div className="resp-metas" role="group" aria-label="Cantidad de respiraciones">
+            {[15, 30].map((n) => (
+              <button
+                key={n}
+                className="chip"
+                aria-pressed={meta === n}
+                onClick={() => {
+                  setMeta(n);
+                  setSeg(0);
+                  setCorriendo(false);
+                }}
+              >
+                {n} respiraciones · {n === 15 ? 'liberar creencias' : 'equilibrar órganos'}
+              </button>
+            ))}
+          </div>
+        )}
         <BotonVideo />
       </section>
 
@@ -115,6 +125,7 @@ export function Respiracion() {
             Respiración <strong>{Math.min(ciclo + (fin ? 0 : 1), meta)}</strong> de {meta}
           </p>
 
+          {rutina && fin && <FinParte rutina={rutina} que={`las ${meta} respiraciones`} />}
           <div className="transporte-botones resp-controles">
             <button className="boton-icono" onClick={() => setSeg(0)} aria-label="Reiniciar">
               <RotateCcw size={17} />

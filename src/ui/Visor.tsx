@@ -16,13 +16,15 @@ import type { Ejercicio, Paso } from '../contenido/tipos';
 import { useReproductor } from '../reproductor';
 import { Frase } from './Frase';
 import { SelectorRespiracion, VideoRespiracion } from './RespiracionPanel';
+import { BarraRutina, FinParte } from '../rutinas/BarraRutina';
+import type { EnRutina } from '../rutinas/rutinas';
 import { LineaTiempo } from './LineaTiempo';
 import { marcarVisto } from './progreso';
-import { irA } from './ruta';
+import { esOld, irA } from './ruta';
 
 const VELOCIDADES = [0.5, 0.75, 1, 1.5, 2];
 
-export function Visor({ id, paso }: { id: string; paso?: number }) {
+export function Visor({ id, paso, rutina }: { id: string; paso?: number; rutina?: EnRutina }) {
   const ej = buscarEjercicio(id);
   const abrir = useReproductor((s) => s.abrir);
   const cerrar = useReproductor((s) => s.cerrar);
@@ -50,7 +52,7 @@ export function Visor({ id, paso }: { id: string; paso?: number }) {
       </div>
     );
   }
-  return <VisorEjercicio ej={ej} />;
+  return <VisorEjercicio ej={ej} rutina={rutina} />;
 }
 
 function useAtajos() {
@@ -78,9 +80,11 @@ function useAtajos() {
   }, []);
 }
 
-function VisorEjercicio({ ej }: { ej: Ejercicio }) {
+function VisorEjercicio({ ej, rutina }: { ej: Ejercicio; rutina?: EnRutina }) {
   const paso = useReproductor((s) => s.paso);
   const final = useReproductor((s) => s.paso === ej.pasos.length - 1 && s.t > 0.95);
+  // En una rutina, al terminar el ejercicio se espera a que se toque «Siguiente».
+  const termino = useReproductor((s) => s.paso === ej.pasos.length - 1 && s.t >= 0.999 && !s.reproduciendo);
   const [lista, setLista] = useState(false);
 
   useEffect(() => {
@@ -93,7 +97,11 @@ function VisorEjercicio({ ej }: { ej: Ejercicio }) {
   return (
     <div className="visor" data-acento={ej.acento}>
       <header className="visor-cabecera">
-        <button className="boton-icono" onClick={() => irA('#/')} aria-label="Volver a la lista de ejercicios">
+        <button
+          className="boton-icono"
+          onClick={() => (rutina ? rutina.salir() : irA('#/'))}
+          aria-label={rutina ? 'Salir de la rutina' : 'Volver a la lista de ejercicios'}
+        >
           <ArrowLeft size={18} />
         </button>
         <div className="visor-titulo">
@@ -105,8 +113,10 @@ function VisorEjercicio({ ej }: { ej: Ejercicio }) {
             {ej.titulo}
             {ej.subtitulo && <em> · {ej.subtitulo}</em>}
           </h1>
+          {rutina && <BarraRutina rutina={rutina} />}
         </div>
       </header>
+      {rutina && termino && <FinParte rutina={rutina} que={ej.titulo} />}
 
       <aside className="panel" aria-label="Pasos del ejercicio" data-video={conVideo || undefined}>
         {conVideo && <VideoRespiracion />}
@@ -132,9 +142,12 @@ function VisorEjercicio({ ej }: { ej: Ejercicio }) {
             </ul>
           </section>
         ))}
-        <a className="enlace-repaso" href={`#/repaso/${ej.id}`}>
-          Repasar este ejercicio de memoria →
-        </a>
+        {/* El repaso de memoria queda en la versión de trabajo (/old), como pidió la revisión. */}
+        {esOld() && (
+          <a className="enlace-repaso" href={`#/repaso/${ej.id}`}>
+            Repasar este ejercicio de memoria →
+          </a>
+        )}
       </aside>
 
       <Transporte pasos={ej.pasos} />

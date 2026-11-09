@@ -5,7 +5,11 @@ export type Ruta =
   | { nombre: 'ejercicio'; id: string; paso?: number }
   | { nombre: 'repaso'; id?: string }
   | { nombre: 'dudas' }
-  | { nombre: 'respiracion' };
+  | { nombre: 'respiracion' }
+  /** Reproducir una rutina: el ítem `indice` (desde 1). */
+  | { nombre: 'rutina'; id: string; indice: number }
+  /** Crear una rutina (`id` vacío, opcionalmente copiando `base`) o editar una propia. */
+  | { nombre: 'editar-rutina'; id?: string; base?: string };
 
 export function leerRuta(hash = window.location.hash): Ruta {
   const partes = hash.replace(/^#\/?/, '').split('/').filter(Boolean);
@@ -16,7 +20,22 @@ export function leerRuta(hash = window.location.hash): Ruta {
   if (partes[0] === 'repaso') return { nombre: 'repaso', id: partes[1] ? decodeURIComponent(partes[1]) : undefined };
   if (partes[0] === 'dudas') return { nombre: 'dudas' };
   if (partes[0] === 'respiracion') return { nombre: 'respiracion' };
+  if (partes[0] === 'rutina' && partes[1]) {
+    const indice = Number(partes[2]);
+    return { nombre: 'rutina', id: decodeURIComponent(partes[1]), indice: Number.isInteger(indice) && indice > 0 ? indice : 1 };
+  }
+  if (partes[0] === 'rutinas' && partes[1] === 'nueva') return { nombre: 'editar-rutina', base: partes[2] ? decodeURIComponent(partes[2]) : undefined };
+  if (partes[0] === 'rutinas' && partes[1]) return { nombre: 'editar-rutina', id: decodeURIComponent(partes[1]) };
   return { nombre: 'inicio' };
+}
+
+/**
+ * La versión de trabajo: el home anterior, con todos los ejercicios (también los de referencia),
+ * el repaso de memoria y las dudas, para seguir revisando. Vive en /old; adentro las rutas son
+ * las mismas (con #).
+ */
+export function esOld(pathname = typeof window === 'undefined' ? '/' : window.location.pathname): boolean {
+  return /\/old\/?$/.test(pathname);
 }
 
 export function irA(hash: string) {
