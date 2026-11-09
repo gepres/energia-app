@@ -474,7 +474,7 @@ export const EJERCICIOS: Ejercicio[] = [
         texto:
           'Ponerse en cuclillas y, con la mano derecha que tiene la esfera hueca, acercar la esfera a la parte baja de la ingle, el perineo; con la mano ir bajando la esfera hasta conectar con el piso: se forma un tubo de energía del perineo al piso, por el hueco de la esfera.',
         aclaracion:
-          'Descrito en la revisión: el tubo nace en el perineo y baja recto al piso; cuando la mano baja hasta el piso, la esfera hueca baja con ella y el tubo pasa por el agujero de la dona. Del taller (en el ejercicio de referencia): el agujero va en la ingle y queda conectado con la tierra, el piso de tus pies.',
+          'Descrito en la revisión: el tubo nace en el perineo y baja recto al piso; la esfera hueca arranca pegada al perineo y baja con la mano hasta el piso, y el tubo pasa por el agujero de la dona, que se sigue viendo alrededor del tubo. Del taller (en el ejercicio de referencia): el agujero va en la ingle y queda conectado con la tierra, el piso de tus pies.',
         lectura:
           'La mano lleva la dona tomándola por el borde y la izquierda se apoya en la rodilla. El tubo toca el piso justo debajo del perineo.',
       },

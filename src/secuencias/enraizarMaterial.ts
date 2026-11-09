@@ -1,5 +1,5 @@
 import { type Pose, PROP, PUNTOS, mezclarPose, resolverEsqueleto, transformarPunto } from '../escena/cuerpo';
-import type { Estado } from '../escena/estado';
+import { DONA_ANILLO, DONA_GROSOR, type Estado } from '../escena/estado';
 import { segmentosMano } from '../escena/manos';
 import { type V3, clamp, entraSaleSeno, escalaV, lerp, lerpV, normV, restaV, rotarX, sumaV, tramo } from '../escena/mate';
 import { SERENA } from '../escena/poses';
@@ -335,11 +335,20 @@ export const BOCA_CUCLILLAS: V3 = bocaTubo({ ...SERENA, agachar: CUCLILLAS.agach
 export const ANCLA: V3 = [BOCA_CUCLILLAS[0], 0, BOCA_CUCLILLAS[2]];
 /** Donde el tubo toca el piso: justo debajo de la boca. */
 const baseTubo = (boca: V3): V3 => [boca[0], 0, boca[2]];
-export const R_TUBO = 0.04;
+/**
+ * El tubo pasa por el hueco de la dona (descrito en la revisión): más fino que el hueco, así la dona
+ * se ve alrededor del tubo y no queda tapada por él.
+ */
+export const R_TUBO = 0.016;
+/** El radio del hueco de la dona. */
+export const HUECO_DONA = (DONA_ANILLO - DONA_GROSOR) * R_CIELO;
 /** La altura de la dona apoyada en el piso (su centro), con el tubo pasando por el hueco. */
 const Y_DONA_PISO = 0.03;
-/** De dónde arranca la dona: en el tubo, justo debajo del perineo. */
-const Y_DONA_ARRIBA = BOCA_CUCLILLAS[1] - 0.075;
+/**
+ * De dónde arranca la dona: pegada al perineo (descrito en la revisión). Su cara de arriba toca la
+ * piel, que queda METIDO más abajo que la boca del tubo.
+ */
+const Y_DONA_ARRIBA = BOCA_CUCLILLAS[1] - METIDO - DONA_GROSOR * R_CIELO + 0.002;
 
 /** El punto del tubo (recto, de la boca `boca` al piso) a la altura `y`. */
 const enElTubo = (boca: V3, y: number): V3 => [boca[0], clamp(y, 0, boca[1]), boca[2]];
@@ -469,7 +478,8 @@ function cuclillas(e: Estado, seg: number) {
     // La lleva al perineo, entre las rodillas, y la toma por el borde (adelante a la derecha) para
     // bajarla; el hueco de la dona se alinea con el tubo que va a nacer.
     const s = entraSaleSeno(k);
-    const c = bezier(FRENTE, [0, 0.3, 0.1], DONA_ARRIBA, s);
+    // Pasa por debajo del perineo y sube hasta tocarlo.
+    const c = bezier(FRENTE, [DONA_ARRIBA[0], DONA_ARRIBA[1] - 0.09, DONA_ARRIBA[2] + 0.06], DONA_ARRIBA, s);
     const a = sostener(FRENTE, r, ARRIBA, normV([0.3, 0, 1]), 0.18, enTorso(normV(CODO_CUCLILLAS), CUCLILLAS.inclinar));
     const b = empujando(DONA_ARRIBA, CUCLILLAS.inclinar);
     const d = mezclarMano(a, b, s, [1, 0, 0]);
@@ -550,6 +560,11 @@ function frase(e: Estado, seg: number) {
 
 /** De frente, baja, apenas desde la izquierda: el tubo entre las piernas, del perineo al piso. */
 const CAM_TUBO = encuadre([0, 0.36, -0.08], 1.15, 0.22, 0.1);
+/**
+ * De pie, entero y algo desde arriba: los pies quedan por encima del aviso y de los controles,
+ * así se ve la dona en el piso, alrededor del tubo.
+ */
+const CAM_DE_PIE = encuadre([0, 0.72, 0], 2.7, 0.32, 0.2);
 const durDe = (f: { dur: number }[]) => f.reduce((a, x) => a + x.dur, 0);
 
 function paso<T extends string>(fases: Fase<T>[], aplicar: (e: Estado, seg: number) => void, camara: (e: Estado, t: number) => void) {
@@ -586,7 +601,7 @@ export const enraizarMaterial: Secuencia = {
     // 5 · SÁNATE, CONÉCTATE HASTA SANAR, y de pie
     paso(FASES_FRASE, frase, (e, t) => {
       toma(e, CAM_TUBO, t, 0, 0.01);
-      toma(e, TOMAS.general, t, 0.65, 1);
+      toma(e, CAM_DE_PIE, t, 0.65, 1);
     }),
   ],
 };

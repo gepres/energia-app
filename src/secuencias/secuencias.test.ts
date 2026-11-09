@@ -18,7 +18,8 @@ import { DIST_MANOS, PIEL_CENTRO, R_UNIDA, SEG } from './unirBarras';
 import { SERENA } from '../escena/poses';
 import { PERFIL_MUSLO, PERFIL_PIERNA, PLANO_MUSLO, PLANO_PIERNA, altoPie, bajoPie, crearGeometrias, crearTorso, radioMiembro } from '../escena/cuerpoGeo';
 import { PRIMERA, SEGUNDA, piernasInterno } from './sensibilizarPiernas';
-import { AGARRES, ANCLA, BOCA_CUCLILLAS, PECHO, R_CIELO, R_TIERRA, R_TUBO, enraizarInterno } from './enraizarMaterial';
+import { AGARRES, ANCLA, BOCA_CUCLILLAS, HUECO_DONA, PECHO, R_CIELO, R_TIERRA, R_TUBO, enraizarInterno } from './enraizarMaterial';
+import { DONA_ANILLO, DONA_GROSOR } from '../escena/estado';
 import { Euler, Matrix4, Vector3, type BufferGeometry } from 'three';
 
 const MUESTRAS = [0, 0.13, 0.37, 0.5, 0.71, 0.94, 1];
@@ -1700,15 +1701,8 @@ describe('Enraizar · generar lo material (uno por uno, descrito en la revisión
     expect(q.munecaI[1]).toBeLessThan(1.0);
   });
 
-  /** Distancia de un punto al eje del tubo (la recta del ancla a la boca `boca`). */
-  const alEje = (c: number[], boca: number[]) => {
-    const d = boca.map((v, i) => v - ANCLA[i]);
-    const L = Math.hypot(d[0], d[1], d[2]);
-    const u = d.map((v) => v / L);
-    const w = c.map((v, i) => v - ANCLA[i]);
-    const a = w.reduce((x, v, i) => x + v * u[i], 0);
-    return Math.hypot(w[0] - a * u[0], w[1] - a * u[1], w[2] - a * u[2]);
-  };
+  /** Distancia de un punto al eje del tubo, que baja recto de la boca `boca` al piso. */
+  const alEje = (c: number[], boca: number[]) => Math.hypot(c[0] - boca[0], c[2] - boca[2]);
   /** La boca del tubo según el manto: su base más el eje por el largo. */
   const bocaDe = (m: { centro: number[]; eje: number[] | null; alto: number }) => m.centro.map((v, i) => v + (m.eje ? m.eje[i] : i === 1 ? 1 : 0) * m.alto);
 
@@ -1808,6 +1802,52 @@ describe('Enraizar · generar lo material (uno por uno, descrito en la revisión
       expect((e.mantos[0].eje as number[])[1], 'recto también al pararse').toBeCloseTo(1, 6);
     }
   });
+
+  it('la dona arranca pegada al perineo y el tubo pasa por su hueco: la dona se ve alrededor del tubo hasta el final', () => {
+    /** Puntos de la superficie de la dona (el hueco a lo largo del tubo, vertical). */
+    const anillo = (c: number[], r: number) => {
+      const out: number[][] = [];
+      for (let a = 0; a < 24; a++)
+        for (let b = 0; b < 8; b++) {
+          const th = (2 * Math.PI * a) / 24;
+          const ph = (2 * Math.PI * b) / 8;
+          const R = (DONA_ANILLO + DONA_GROSOR * Math.cos(ph)) * r;
+          out.push([c[0] + R * Math.cos(th), c[1] + DONA_GROSOR * r * Math.sin(ph), c[2] + R * Math.sin(th)]);
+        }
+      return out;
+    };
+    // El tubo es más fino que el hueco: pasa por él y no tapa la dona.
+    expect(R_TUBO).toBeLessThan(HUECO_DONA - 0.002);
+    // Al empezar a bajar, la dona toca la piel del perineo, sin meterse.
+    const e0 = evaluar(sec, 3, en(I.FASES_TUBO, 'bajar', 0), OPCIONES_INICIALES);
+    const d0 = e0.esferas[0];
+    const toca = Math.min(...anillo(d0.pos, d0.radio).map((c) => distanciaConSigno(c, pielDelCuerpo(e0))));
+    expect(toca, 'pegada al perineo').toBeLessThan(0.005);
+    expect(toca, 'sin meterse en el cuerpo').toBeGreaterThan(0);
+    expect(alEje(d0.pos, bocaDe(e0.mantos[0]))).toBeLessThan(1e-6);
+    // Desde que llega al perineo hasta el final, de pie: la dona sigue entera y a la vista,
+    // alrededor del tubo, sin meterse en el cuerpo ni en las piernas.
+    const instantes: [number, number][] = [];
+    for (let k = 0; k <= 30; k++) instantes.push([3, en(I.FASES_TUBO, 'llevar', 1 + (k / 30) * 1)]);
+    for (let k = 0; k <= 30; k++) instantes.push([3, en(I.FASES_TUBO, 'bajar', (k / 30) * 3.4)]);
+    for (let k = 0; k <= 10; k++) instantes.push([3, en(I.FASES_TUBO, 'sostener', (k / 10) * 2.2)]);
+    for (let k = 0; k <= 20; k++) instantes.push([4, k / 20]);
+    for (const [paso, t] of instantes) {
+      const e = evaluar(sec, paso, t, OPCIONES_INICIALES);
+      const d = e.esferas[0];
+      const donde = `paso ${paso + 1}, t ${t.toFixed(3)}`;
+      expect(d.activa, donde).toBe(true);
+      expect(d.dona, donde).toBeCloseTo(1, 5);
+      expect(d.opacidad, donde).toBeCloseTo(1, 5);
+      expect(d.radio, donde).toBeCloseTo(R_CIELO, 5);
+      const q = resolverEsqueleto(e.figuras[0].pose);
+      const piel = pielDelCuerpo(e);
+      for (const c of anillo(d.pos, d.radio)) expect(distanciaConSigno(c, piel), `${donde}: la dona en el cuerpo`).toBeGreaterThan(0);
+      // De pie, la dona cabe justo entre los pies (los roza): se admiten 2 mm.
+      for (const c of anillo(d.pos, d.radio - 0.002)) expect(distanciaPiernas(c, q), `${donde}: la dona en las piernas`).toBeGreaterThan(0);
+      if (e.mantos[0].activo && e.mantos[0].cobertura > 0.001) expect(alEje(d.pos, bocaDe(e.mantos[0])), `${donde}: la dona en el tubo`).toBeLessThan(1e-6);
+    }
+  }, 120000);
 
   it('los brazos llegan siempre y nada se mete en el cuerpo ni en las piernas; las manos no se tocan', () => {
     for (let paso = 0; paso < sec.pasos.length; paso++) {

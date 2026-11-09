@@ -42,6 +42,13 @@ export interface Figura {
   agilidad: number;
 }
 
+/**
+ * La dona, en radios de la esfera: el círculo del anillo y su grosor (radio exterior 1). El hueco
+ * mide DONA_ANILLO − DONA_GROSOR: por ahí pasa el tubo del ejercicio 09.
+ */
+export const DONA_ANILLO = 0.7;
+export const DONA_GROSOR = 0.3;
+
 export interface Esfera {
   activa: boolean;
   pos: V3;

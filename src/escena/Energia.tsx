@@ -18,7 +18,7 @@ import {
 import { aMundo, posicionPegada, registro, resolver } from './anclas';
 import { POS_ORGANOS, PUNTOS, transformarPunto } from './cuerpo';
 import { ORGANOS } from '../contenido/ejercicios';
-import { MAX_ESFERAS, MAX_FLUJOS } from './estado';
+import { DONA_ANILLO, DONA_GROSOR, MAX_ESFERAS, MAX_FLUJOS } from './estado';
 import { type V3, azar } from './mate';
 import { colorEnergia } from './paleta';
 import { crearMaterialCascara, crearMaterialEsfera, crearMaterialParticulas, reloj, texturaHalo } from './shaders';
@@ -26,7 +26,7 @@ import { escena } from './tienda';
 
 const GEO_ESFERA = new SphereGeometry(1, 48, 32);
 /** La dona: radio exterior 1 (como la esfera), con el hueco a lo largo de Z. */
-const GEO_DONA = new TorusGeometry(0.64, 0.36, 24, 56);
+const GEO_DONA = new TorusGeometry(DONA_ANILLO, DONA_GROSOR, 24, 56);
 const _ejeX = new Vector3(1, 0, 0);
 const _ejeZ = new Vector3(0, 0, 1);
 const _arribaY = new Vector3(0, 1, 0);
