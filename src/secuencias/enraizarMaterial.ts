@@ -329,20 +329,22 @@ function bocaTubo(p: Pose): V3 {
 /** La boca del tubo en cuclillas. */
 export const BOCA_CUCLILLAS: V3 = bocaTubo({ ...SERENA, agachar: CUCLILLAS.agachar, atrasar: CUCLILLAS.atrasar });
 /**
- * Donde el tubo se conecta con el piso: hasta donde llega la mano, 11 cm adelante del perineo
- * (justo debajo, en cuclillas, el brazo no alcanza). Ahí queda conectado, también al pararse.
+ * El tubo baja recto (descrito en la revisión): se conecta con el piso justo debajo del perineo,
+ * también al pararse (su base sigue debajo del perineo). En cuclillas, aquí.
  */
-export const ANCLA: V3 = [0, 0, BOCA_CUCLILLAS[2] + 0.11];
+export const ANCLA: V3 = [BOCA_CUCLILLAS[0], 0, BOCA_CUCLILLAS[2]];
+/** Donde el tubo toca el piso: justo debajo de la boca. */
+const baseTubo = (boca: V3): V3 => [boca[0], 0, boca[2]];
 export const R_TUBO = 0.04;
 /** La altura de la dona apoyada en el piso (su centro), con el tubo pasando por el hueco. */
 const Y_DONA_PISO = 0.03;
 /** De dónde arranca la dona: en el tubo, justo debajo del perineo. */
 const Y_DONA_ARRIBA = BOCA_CUCLILLAS[1] - 0.075;
 
-/** El punto del tubo (de la boca `boca` al ancla) a la altura `y`. */
-const enElTubo = (boca: V3, y: number): V3 => lerpV(ANCLA, boca, clamp(y / boca[1]));
-/** El eje del tubo, de la base (en el piso) a la boca. */
-const ejeTubo = (boca: V3): V3 => normV(restaV(boca, ANCLA));
+/** El punto del tubo (recto, de la boca `boca` al piso) a la altura `y`. */
+const enElTubo = (boca: V3, y: number): V3 => [boca[0], clamp(y, 0, boca[1]), boca[2]];
+/** El eje del tubo: recto, vertical. */
+const ejeTubo = (): V3 => [0, 1, 0];
 
 /** La mano se pone adelante a la derecha de la dona (lejos de la cadera y sin tapar el tubo). */
 const AL_COSTADO = normV([-0.6, 0, 1.2]);
@@ -402,14 +404,13 @@ function enCuclillas(d: Mano, i: Mano, k = 1, piso = 0, cabeza = -0.5): Pose {
  * la altura `hasta` (0 = completo hasta el piso).
  */
 function tubo(e: Estado, boca: V3, hasta: number, opacidad = 1) {
-  const largo = Math.hypot(boca[0] - ANCLA[0], boca[1] - ANCLA[1], boca[2] - ANCLA[2]);
   Object.assign(e.mantos[0], {
     activo: true,
     forma: 'tubo',
-    centro: enMundo(e, 0, ANCLA),
-    eje: ejeTubo(boca),
+    centro: enMundo(e, 0, baseTubo(boca)),
+    eje: ejeTubo(),
     radio: R_TUBO,
-    alto: largo,
+    alto: boca[1],
     cobertura: clamp((boca[1] - hasta) / boca[1]),
     desdeArriba: true,
     banda: -1,
@@ -422,7 +423,7 @@ function tubo(e: Estado, boca: V3, hasta: number, opacidad = 1) {
 
 /** Las partículas que bajan por dentro del tubo, del perineo al piso. */
 function flujoTubo(e: Estado, boca: V3, cabeza: number, intensidad: number) {
-  flujo(e, 0, ([boca, lerpV(boca, ANCLA, 0.5), sumaV(ANCLA, [0, 0.01, 0])] as V3[]).map((p) => enMundo(e, 0, p)), {
+  flujo(e, 0, ([boca, lerpV(boca, baseTubo(boca), 0.5), sumaV(baseTubo(boca), [0, 0.01, 0])] as V3[]).map((p) => enMundo(e, 0, p)), {
     cabeza,
     cola: 1,
     color: 'tierra',
@@ -433,8 +434,8 @@ function flujoTubo(e: Estado, boca: V3, cabeza: number, intensidad: number) {
 }
 
 /** La dona en el tubo (su hueco a lo largo del tubo). */
-function donaEn(e: Estado, c: V3, boca: V3, r = R_CIELO) {
-  esferaEn(e, c, r, 0.55, 1.5, 1, ejeTubo(boca));
+function donaEn(e: Estado, c: V3, r = R_CIELO) {
+  esferaEn(e, c, r, 0.55, 1.5, 1, ejeTubo());
 }
 
 /** Al frente de las rodillas, por donde pasa la dona al agacharse. */
@@ -476,7 +477,7 @@ function cuclillas(e: Estado, seg: number) {
     const enLaPalma = lerpV(enLaMano(a, r), sumaV(b.mano, escalaV(b.dedos, PROP.mano - 0.005)), s);
     d.mano = sumaV(d.mano, restaV(lerpV(c, sumaV(c, escalaV(AL_COSTADO, R_CIELO + 0.02)), s), enLaPalma));
     e.figuras[0].pose = enCuclillas(d, izquierda);
-    esferaEn(e, c, r, 0.55, 1.5, 1, normV(lerpV([0, 1, 0], ejeTubo(boca), s)));
+    esferaEn(e, c, r, 0.55, 1.5, 1, ejeTubo());
     e.hud.aviso = 'La esfera hueca, al perineo';
     return;
   }
@@ -487,7 +488,7 @@ function cuclillas(e: Estado, seg: number) {
   const c = enElTubo(boca, lerp(Y_DONA_ARRIBA, Y_DONA_PISO, baja));
   const inclinar = lerp(CUCLILLAS.inclinar, CUCLILLAS.inclinarPiso, baja);
   e.figuras[0].pose = enCuclillas(empujando(c, inclinar), izquierda, 1, baja);
-  donaEn(e, c, boca);
+  donaEn(e, c);
   const hasta = id === 'bajar' ? Math.max(lerp(boca[1], c[1], asoma), c[1] - Y_DONA_PISO * baja) : 0;
   tubo(e, boca, hasta);
   flujoTubo(e, boca, 1 - hasta / boca[1], 0.9);
@@ -515,7 +516,7 @@ function frase(e: Estado, seg: number) {
   e.centros.perineo = 1;
   if (id === 'frase') {
     e.figuras[0].pose = abajo;
-    donaEn(e, DONA_PISO, BOCA_CUCLILLAS);
+    donaEn(e, DONA_PISO);
     tubo(e, BOCA_CUCLILLAS, 0);
     flujoTubo(e, BOCA_CUCLILLAS, 1, 0.9);
     [0.1, 0.45, 0.8].forEach((a) => pulso(e, enMundo(e, 0, sumaV(ANCLA, [0, 0.01, 0])), clamp((k - a) / 0.3), 0.45, 'tierra'));
@@ -537,7 +538,8 @@ function frase(e: Estado, seg: number) {
   const pose = enCuclillas(mano, mi, 1 - sube, 1 - s);
   e.figuras[0].pose = k > 0.7 ? mezclarPose(pose, SERENA, entraSaleSeno((k - 0.7) / 0.3), 0.02) : pose;
   const boca = bocaTubo(e.figuras[0].pose);
-  donaEn(e, DONA_PISO, boca);
+  // La dona sigue apoyada en el piso, en la base del tubo.
+  donaEn(e, enElTubo(boca, Y_DONA_PISO));
   tubo(e, boca, 0);
   flujoTubo(e, boca, 1, 0.9);
   e.tierra = 0.4 - 0.15 * s;

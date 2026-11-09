@@ -1734,8 +1734,8 @@ describe('Enraizar · generar lo material (uno por uno, descrito en la revisión
     const piel = pielDelCuerpo(fin);
     expect(distanciaConSigno(boca, piel), 'el tubo sale del cuerpo').toBeLessThan(0.005);
     expect(distanciaConSigno(boca.map((v, i) => v - (tubo.eje as number[])[i] * 0.03), piel), 'debajo de la boca, afuera del cuerpo').toBeGreaterThan(0);
-    // Casi vertical: el ancla queda apenas adelante (hasta donde llega la mano).
-    expect((Math.acos((tubo.eje as number[])[1]) * 180) / Math.PI).toBeLessThan(25);
+    // Recto: vertical, del perineo al piso justo debajo.
+    expect((tubo.eje as number[])[1]).toBeCloseTo(1, 6);
     // La dona, apoyada en el piso, con el tubo por su hueco.
     const dona = fin.esferas[0];
     expect(dona.dona).toBeCloseTo(1, 5);
@@ -1780,17 +1780,18 @@ describe('Enraizar · generar lo material (uno por uno, descrito en la revisión
     }
   });
 
-  it('al final se dice la frase y la figura se para: el tubo sigue conectado del perineo al suelo', () => {
+  it('al final se dice la frase y la figura se para: el tubo sigue recto y conectado del perineo al suelo', () => {
     const fin = evaluar(sec, 4, 1, OPCIONES_INICIALES);
     const p = fin.figuras[0].pose;
     expect(p.agachar).toBeLessThan(0.01);
     expect(p.inclinar).toBeLessThan(0.02);
     expect(p.abrirRodillas).toBeLessThan(0.01);
-    // El tubo sigue: completo, de la boca en el perineo (ya de pie) al mismo ancla en el piso.
+    // El tubo sigue: completo y recto, de la boca en el perineo (ya de pie) al piso justo debajo.
     const tubo = fin.mantos[0];
     expect(tubo.activo).toBe(true);
     expect(tubo.cobertura).toBeCloseTo(1, 5);
-    expect(dist(tubo.centro, ANCLA)).toBeLessThan(1e-6);
+    expect(tubo.centro[1]).toBeCloseTo(0, 6);
+    expect((tubo.eje as number[])[1]).toBeCloseTo(1, 6);
     const boca = bocaDe(tubo);
     expect(dist(boca, I.bocaTubo(p))).toBeLessThan(1e-6);
     expect(boca[1]).toBeGreaterThan(0.8);
@@ -1804,6 +1805,7 @@ describe('Enraizar · generar lo material (uno por uno, descrito en la revisión
       const e = evaluar(sec, 4, t, OPCIONES_INICIALES);
       expect(dist(bocaDe(e.mantos[0]), I.bocaTubo(e.figuras[0].pose))).toBeLessThan(1e-6);
       expect(e.mantos[0].cobertura).toBeCloseTo(1, 5);
+      expect((e.mantos[0].eje as number[])[1], 'recto también al pararse').toBeCloseTo(1, 6);
     }
   });
 
