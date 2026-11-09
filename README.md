@@ -2,8 +2,15 @@
 
 Repaso en 3D, para web y móvil, de los ejercicios del taller **Manejo de energía · set 2026**.
 Cada ejercicio se ve paso a paso con un maniquí, esferas de energía, rosas de luz y el cubo;
-se puede pausar, arrastrar la línea de tiempo y girar la cámara. Después, un repaso de memoria
-pregunta el orden de los pasos, las frases exactas, las cantidades y la tabla tierra/cielo.
+se puede pausar, arrastrar la línea de tiempo y girar la cámara.
+
+Publicado en **https://energia.genaropretill.com/** (Netlify, desde `main` de
+[gepres/energia-app](https://github.com/gepres/energia-app)).
+
+- **`/`** — el home: respiraciones conscientes, **rutinas** (la completa por defecto y las propias,
+  guardadas en el navegador) y los 11 ejercicios «uno por uno», con modo claro y oscuro.
+- **`/old`** — la versión de trabajo: el home anterior, con los ejercicios de referencia, el repaso
+  de memoria y las dudas, para seguir revisando (no se indexa).
 
 Fuentes (en esta carpeta, sin modificar):
 
@@ -22,7 +29,7 @@ izquierda (2 barras de energía frente a las manos estiradas).
 ```bash
 npm install
 npm run dev        # http://localhost:5173 (con --host para abrirlo desde el móvil en la misma red)
-npm test           # 58 tests: contenido, coreografías y repaso
+npm test           # 189 pruebas: contenido, coreografías, choques, respiraciones, rutinas y repaso
 npm run build      # dist/ estático, instalable y offline (PWA)
 npm run preview
 ```
@@ -30,8 +37,19 @@ npm run preview
 En el móvil: abrir la URL publicada y «Añadir a pantalla de inicio». Funciona sin conexión
 después de la primera visita (requiere https; por la IP local de la red se ve, pero no se instala).
 
-Publicar: `dist/` es estático y usa `base: './'`, así que sirve en cualquier hosting o
-subcarpeta. `netlify.toml` ya trae el build y las cabeceras de caché del service worker.
+Publicar: `dist/` es estático, con `base: '/'` (la app vive en la raíz del dominio y en `/old`).
+`netlify.toml` trae el build (`npm run build` → `dist`, Node 22), la redirección de `/old`, las
+cabeceras de seguridad y de caché, y `X-Robots-Tag: noindex` para `/old`. En Netlify:
+
+1. «Add new site» → «Import an existing project» → GitHub → `gepres/energia-app`, rama `main`
+   (el build y la carpeta salen de `netlify.toml`).
+2. «Domain management» → agregar `energia.genaropretill.com`; en el DNS del dominio, un registro
+   `CNAME` de `energia` hacia `<sitio>.netlify.app`. Netlify emite el certificado https solo.
+3. Cada push a `main` publica una versión nueva.
+
+SEO: título y descripción, URL canónica, Open Graph y Twitter con `public/og.png` (1200×630),
+datos estructurados (`WebApplication`), `robots.txt` y `sitemap.xml`, y un contenido inicial en
+`index.html` para buscadores y para quien no tiene JavaScript (la app lo reemplaza al cargar).
 
 Atajos en el visor: espacio (reproducir/pausar), ← → (paso anterior/siguiente), Esc (volver).
 En el repaso: 1–4 para elegir opción.
@@ -47,7 +65,9 @@ En el repaso: 1–4 para elegir opción.
 | Energía | `src/escena/Energia.tsx`, `shaders.ts` | Esferas (núcleo HDR + Fresnel + ruido), flujos de partículas por curvas, pulsos, mantos, órganos y centros. |
 | Objetos | `src/escena/Objetos.tsx` | Rosa de luz, bolsa, tacho, foto/dibujo, recipiente, llama, cubo y haces de cielo/tierra. |
 | Escenario | `src/escena/Escenario.tsx` | Canvas, luces, piso con rumbos, bloom + AgX, calidad adaptativa (DPR, MSAA/SMAA, partículas). |
-| Repaso | `src/repaso/` | Preguntas generadas del contenido (`preguntas.ts`) y respiración guiada 4·3·4·4. |
+| Repaso | `src/repaso/` | Preguntas generadas del contenido (`preguntas.ts`) y respiraciones conscientes guiadas (ritmos 4-3-4, 3-3-3 o 5-5-5, pausa de 1 s, con el video del taller). |
+| Rutinas | `src/rutinas/` | La rutina por defecto, las propias (en `localStorage`), el editor y el reproductor (espera «Siguiente» al terminar cada parte). |
+| Tema | `src/ui/Tema.tsx` | Claro u oscuro (se guarda; la primera vez sigue al sistema). La escena 3D queda siempre oscura. |
 
 Decisiones técnicas e investigación (hecha con Codex): [docs/03-investigacion-tecnica.md](docs/03-investigacion-tecnica.md).
 

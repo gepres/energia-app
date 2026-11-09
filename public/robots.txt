@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+# La versión de trabajo, para revisar ejercicios: no se indexa.
+Disallow: /old
+
+Sitemap: https://energia.genaropretill.com/sitemap.xml

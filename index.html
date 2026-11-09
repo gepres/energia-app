@@ -3,14 +3,80 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Repaso energético · los ejercicios del taller de manejo de energía, paso a paso en 3D</title>
+    <meta
+      name="description"
+      content="Repasa en 3D, paso a paso, los ejercicios del taller de manejo de energía: cargar el ombligo, sellar desde el cielo, sensibilizar manos y piernas, enraizar, activar los centros y respiraciones conscientes. Arma tu rutina y practícala."
+    />
+    <link rel="canonical" href="https://energia.genaropretill.com/" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="color-scheme" content="dark light" />
     <meta name="theme-color" content="#07080d" />
-    <meta name="description" content="Repaso en 3D de los ejercicios del taller Manejo de energía · set 2026." />
-    <link rel="icon" type="image/svg+xml" href="./icono.svg" />
-    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
-    <title>Repaso energético</title>
+    <link rel="icon" type="image/svg+xml" href="/icono.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_PE" />
+    <meta property="og:site_name" content="Repaso energético" />
+    <meta property="og:title" content="Repaso energético · el taller de manejo de energía, paso a paso en 3D" />
+    <meta
+      property="og:description"
+      content="Cada ejercicio del taller en 3D: míralo, detenlo, arrástralo y arma tu rutina. Con respiraciones conscientes guiadas."
+    />
+    <meta property="og:url" content="https://energia.genaropretill.com/" />
+    <meta property="og:image" content="https://energia.genaropretill.com/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Repaso energético: un maniquí en 3D con una esfera de energía entre las manos" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Repaso energético · el taller de manejo de energía, paso a paso en 3D" />
+    <meta
+      name="twitter:description"
+      content="Cada ejercicio del taller en 3D: míralo, detenlo, arrástralo y arma tu rutina. Con respiraciones conscientes guiadas."
+    />
+    <meta name="twitter:image" content="https://energia.genaropretill.com/og.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Repaso energético",
+        "url": "https://energia.genaropretill.com/",
+        "inLanguage": "es",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "Web",
+        "description": "Repaso en 3D, paso a paso, de los ejercicios del taller de manejo de energía, con rutinas y respiraciones conscientes guiadas.",
+        "image": "https://energia.genaropretill.com/og.png",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
+
+    <!-- El tema (claro u oscuro) antes de pintar, para que no parpadee. -->
+    <script>
+      try {
+        var t = localStorage.getItem('repaso-energetico:tema');
+        if (t !== 'claro' && t !== 'oscuro') t = matchMedia('(prefers-color-scheme: light)').matches ? 'claro' : 'oscuro';
+        document.documentElement.dataset.tema = t;
+      } catch (e) {}
+    </script>
   </head>
   <body>
-    <div id="raiz"></div>
+    <div id="raiz">
+      <!-- Contenido para buscadores y para quien no tiene JavaScript; la app lo reemplaza al cargar. -->
+      <main class="inicio">
+        <header class="inicio-cabecera">
+          <p class="inicio-antetitulo">Taller · set 2026</p>
+          <h1>Repaso energético</h1>
+          <p class="inicio-intro">
+            Cada ejercicio del taller de manejo de energía, paso a paso y en 3D: masaje de manos y dedos, cargar el ombligo,
+            colocar energía en los 3 puntos, sensibilización de manos y de piernas, recorrido por chakras, cargar las ingles,
+            enraizar, activación de centros energéticos, sellar desde el cielo y sellado final. Con rutinas y respiraciones
+            conscientes guiadas.
+          </p>
+          <noscript><p>Para ver los ejercicios en 3D hace falta activar JavaScript.</p></noscript>
+        </header>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -1,22 +1,24 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  base: './',
+  // Absoluta: la app vive en la raíz del dominio y también en /old (la versión de trabajo).
+  base: '/',
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
-      includeAssets: ['icono.svg', 'apple-touch-icon.png'],
+      includeAssets: ['icono.svg', 'apple-touch-icon.png', 'og.png', 'robots.txt', 'sitemap.xml'],
       manifest: {
         name: 'Repaso energético',
         short_name: 'Repaso',
-        description: 'Repaso en 3D de los ejercicios del taller Manejo de energía · set 2026.',
+        description: 'Los ejercicios del taller de manejo de energía, paso a paso en 3D, con rutinas y respiraciones conscientes.',
         lang: 'es',
-        start_url: './',
-        scope: './',
+        start_url: '/',
+        scope: '/',
         display: 'standalone',
         orientation: 'any',
         background_color: '#07080d',
@@ -34,6 +36,10 @@ export default defineConfig({
       },
     }),
   ],
+  // Las pruebas de choques recorren muchos instantes: con todas en paralelo pasan de los 5 s por defecto.
+  test: {
+    testTimeout: 60000,
+  },
   build: {
     target: 'es2022',
     chunkSizeWarningLimit: 1600,
