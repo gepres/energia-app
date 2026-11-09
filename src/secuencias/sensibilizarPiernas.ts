@@ -490,15 +490,15 @@ const FASES_RECORRIDO: Fase<IdRecorrido>[] = [
 
 /** Cuánto se hunde la esfera en el muslo antes de desaparecer dentro. */
 const HUNDIR = 0.03;
-/** Al introducirla, la palma se acerca a la piel, sin tocarla (queda a 3,5 cm, el radio de la esfera más la luz). */
+/** Al introducirla, la palma se acerca a la piel lo que mide el radio de la esfera, sin tocarla: queda a 4 cm. */
 const ACERCAR = R;
 
 function recorrido(e: Estado, A: Lado, seg: number) {
   const { id, k } = enFase(FASES_RECORRIDO, seg);
   e.hud.contador = null;
   if (id === 'recorrer' || id === 'volver' || id === 'quieto') {
-    // La mano ahuecada pasa sin tocar, a 5–10 cm, por toda la pierna y el pie: del muslo a los
-    // dedos del pie y de vuelta al muslo, como cubriéndolos.
+    // La mano ahuecada pasa sin tocar, a 5–10 cm, por toda la pierna y el pie: del muslo hasta
+    // pasar el empeine y de vuelta al muslo, como cubriéndolos.
     const u = id === 'recorrer' ? entraSaleSeno(k) : id === 'volver' ? 1 - entraSaleSeno(k) : 0;
     const { P, q, pp } = puntoEn(A, u * DEDOS_PIE);
     const cierre = id === 'recorrer' ? lerp(0.15, CIERRE_RECORRER, tramo(k, 0, 0.15)) : id === 'volver' ? CIERRE_RECORRER : lerp(CIERRE_RECORRER, 0.15, masSuave(k));
