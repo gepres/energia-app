@@ -439,7 +439,7 @@ export const EJERCICIOS: Ejercicio[] = [
     subtitulo: 'generar lo material',
     origen: 'revision',
     resumen:
-      'La mano derecha, estirada hacia abajo, agarra energía − de la tierra durante 5 s y se forma una esfera; estirada hacia arriba, agarra energía + del cielo durante 5 s y la esfera se fortalece. Al frente del pecho, la mano izquierda le hace un hueco: queda en forma de dona. En cuclillas, la esfera hueca va al perineo y la mano la baja hasta el piso: se forma un tubo de energía del perineo al piso. Al final se dice la frase y, de pie, el tubo sigue conectado al suelo.',
+      'La mano derecha, estirada hacia abajo, agarra energía − de la tierra durante 5 s y se forma una esfera; estirada hacia arriba, agarra energía + del cielo durante 5 s y la esfera se fortalece. Al frente del pecho, la mano izquierda le hace un hueco: queda en forma de dona. En cuclillas, la esfera hueca arranca pegada al perineo y la mano la baja hasta el piso: se forma un tubo de energía, recto, del perineo al piso, y la dona desaparece. Al final se dice la frase y, de pie, el tubo sigue conectado al suelo.',
     acento: 'tierra',
     pasos: [
       {

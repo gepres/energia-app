@@ -28,9 +28,11 @@ import {
  *     la esfera se fortalece.
  *  3. Al frente del pecho, la mano izquierda le hace un hueco a la esfera: queda en forma
  *     de dona.
- *  4. En cuclillas, la mano derecha lleva la esfera hueca a la parte baja de la ingle y
- *     baja hasta el piso: se forma un tubo de energía de la ingle al piso, por el hueco.
- *  5. Se dice la frase «SÁNATE, CONÉCTATE HASTA SANAR» y la figura vuelve de pie.
+ *  4. En cuclillas, la mano derecha lleva la esfera hueca al perineo (pegada a él) y la baja
+ *     hasta el piso: se forma un tubo de energía recto del perineo al piso, por el hueco.
+ *     Formado el tubo, la dona desaparece y el tubo se mantiene.
+ *  5. Se dice la frase «SÁNATE, CONÉCTATE HASTA SANAR» y la figura se para: el tubo sigue
+ *     conectado al suelo.
  */
 
 const ABAJO: V3 = [0, -1, 0];
@@ -598,11 +600,11 @@ export const enraizarMaterial: Secuencia = {
     paso(FASES_ARRIBA, arriba, (e, t) => toma(e, encuadre([-0.1, 1.2, 0.1], 2.5, -0.45, 0.08), t, 0, 0.3)),
     // 3 · Al frente del pecho, la izquierda le hace el hueco: una dona
     paso(FASES_DONA, dona, (e, t) => toma(e, encuadre([-0.02, 1.25, 0.3], 0.75, -0.35, 0.22), t, 0, 0.3)),
-    // 4 · En cuclillas: la dona debajo de la ingle y el tubo de energía al piso
+    // 4 · En cuclillas: la dona baja del perineo al piso y forma el tubo de energía
     paso(FASES_TUBO, cuclillas, (e, t) => {
       toma(e, encuadre([0, 0.48, 0.15], 1.5, -0.7, 0.14), t, 0, 0.25);
       // De frente y baja (apenas desde la izquierda, así el brazo derecho no tapa el tubo): se ve
-      // la dona debajo de la ingle y el tubo que baja entre las piernas.
+      // la dona en el perineo y el tubo que baja entre las piernas.
       const llevar = durDe(FASES_TUBO.slice(0, 1)) / durDe(FASES_TUBO);
       toma(e, CAM_TUBO, t, llevar - 0.02, llevar + 0.15);
     }),
