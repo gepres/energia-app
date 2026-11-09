@@ -84,7 +84,7 @@ const conManos = (d: Mano, i: Mano, cabeza: number, yaw = 0): Pose => ({ ...arma
 /** Centro de la esfera en la mano (debajo de la palma si mira al piso, encima si mira al cielo). */
 const enLaMano = (m: Mano, r: number) => enPalma(m, r);
 
-function esferaEn(e: Estado, c: V3, r: number, mezcla: number, brillo: number, dona = 0, eje: V3 | null = null) {
+function esferaEn(e: Estado, c: V3, r: number, mezcla: number, brillo: number, dona = 0, eje: V3 | null = null, opacidad = 1) {
   esfera(e, 0, {
     ref: null,
     pegado: 0,
@@ -97,7 +97,7 @@ function esferaEn(e: Estado, c: V3, r: number, mezcla: number, brillo: number, d
     color2: 'cielo',
     mezcla,
     dona,
-    opacidad: 1,
+    opacidad,
   });
 }
 
@@ -443,9 +443,14 @@ function flujoTubo(e: Estado, boca: V3, cabeza: number, intensidad: number) {
 }
 
 /** La dona en el tubo (su hueco a lo largo del tubo). */
-function donaEn(e: Estado, c: V3, r = R_CIELO) {
-  esferaEn(e, c, r, 0.55, 1.5, 1, ejeTubo());
+function donaEn(e: Estado, c: V3, r = R_CIELO, opacidad = 1) {
+  esferaEn(e, c, r, 0.55, 1.5, 1, ejeTubo(), opacidad);
 }
+/**
+ * Cuando el tubo queda formado, la dona desaparece y el tubo se mantiene (descrito en la revisión).
+ * Se desvanece en el piso en este tramo de 'sostener' (lectura: cómo desaparece).
+ */
+const DESVANECER_DONA: [number, number] = [0, 0.45];
 
 /** Al frente de las rodillas, por donde pasa la dona al agacharse. */
 const FRENTE: V3 = [-0.02, 0.45, 0.3];
@@ -498,8 +503,12 @@ function cuclillas(e: Estado, seg: number) {
   const c = enElTubo(boca, lerp(Y_DONA_ARRIBA, Y_DONA_PISO, baja));
   const inclinar = lerp(CUCLILLAS.inclinar, CUCLILLAS.inclinarPiso, baja);
   e.figuras[0].pose = enCuclillas(empujando(c, inclinar), izquierda, 1, baja);
-  donaEn(e, c);
-  const hasta = id === 'bajar' ? Math.max(lerp(boca[1], c[1], asoma), c[1] - Y_DONA_PISO * baja) : 0;
+  // Ya formado el tubo, la dona se desvanece en el piso (se abre apenas mientras se apaga).
+  const seVa = id === 'sostener' ? tramo(k, DESVANECER_DONA[0], DESVANECER_DONA[1], entraSaleSeno) : 0;
+  if (seVa < 1) donaEn(e, c, R_CIELO * (1 + 0.15 * seVa), 1 - seVa);
+  else e.esferas[0].activa = false;
+  // El tubo llega hasta la dona y, al apoyarse ella en el piso, hasta el piso: queda formado al terminar de bajar.
+  const hasta = id === 'bajar' ? lerp(boca[1], c[1] - Y_DONA_PISO * baja, asoma) : 0;
   tubo(e, boca, hasta);
   flujoTubo(e, boca, 1 - hasta / boca[1], 0.9);
   if (id === 'sostener') {
@@ -524,9 +533,10 @@ function frase(e: Estado, seg: number) {
   const izquierda = enRodilla(enCuclillas(bajoLaDona(DONA_ARRIBA, r, CUCLILLAS.inclinar), izquierdaSuelta()));
   const abajo = enCuclillas(empujando(DONA_PISO, CUCLILLAS.inclinarPiso), izquierda, 1, 1);
   e.centros.perineo = 1;
+  // La dona ya desapareció: queda solo el tubo.
+  e.esferas[0].activa = false;
   if (id === 'frase') {
     e.figuras[0].pose = abajo;
-    donaEn(e, DONA_PISO);
     tubo(e, BOCA_CUCLILLAS, 0);
     flujoTubo(e, BOCA_CUCLILLAS, 1, 0.9);
     [0.1, 0.45, 0.8].forEach((a) => pulso(e, enMundo(e, 0, sumaV(ANCLA, [0, 0.01, 0])), clamp((k - a) / 0.3), 0.45, 'tierra'));
@@ -535,7 +545,7 @@ function frase(e: Estado, seg: number) {
     return;
   }
   // Se pone de pie (los pies vuelven a su lugar). El tubo sigue conectado al suelo: su boca
-  // acompaña al perineo mientras sube y la base queda en el piso, con la dona apoyada.
+  // acompaña al perineo mientras sube y el tubo baja recto hasta el piso.
   const s = entraSaleSeno(k);
   const alFrente: Mano = { ...sostener(FRENTE, 0.03, [-1, 0, 0], ABAJO, 0.25, enTorso(normV(CODO_CUCLILLAS), CUCLILLAS.inclinar)) };
   const mano =
@@ -548,8 +558,6 @@ function frase(e: Estado, seg: number) {
   const pose = enCuclillas(mano, mi, 1 - sube, 1 - s);
   e.figuras[0].pose = k > 0.7 ? mezclarPose(pose, SERENA, entraSaleSeno((k - 0.7) / 0.3), 0.02) : pose;
   const boca = bocaTubo(e.figuras[0].pose);
-  // La dona sigue apoyada en el piso, en la base del tubo.
-  donaEn(e, enElTubo(boca, Y_DONA_PISO));
   tubo(e, boca, 0);
   flujoTubo(e, boca, 1, 0.9);
   e.tierra = 0.4 - 0.15 * s;
@@ -562,7 +570,7 @@ function frase(e: Estado, seg: number) {
 const CAM_TUBO = encuadre([0, 0.36, -0.08], 1.15, 0.22, 0.1);
 /**
  * De pie, entero y algo desde arriba: los pies quedan por encima del aviso y de los controles,
- * así se ve la dona en el piso, alrededor del tubo.
+ * así se ve dónde el tubo se conecta con el piso.
  */
 const CAM_DE_PIE = encuadre([0, 0.72, 0], 2.7, 0.32, 0.2);
 const durDe = (f: { dur: number }[]) => f.reduce((a, x) => a + x.dur, 0);

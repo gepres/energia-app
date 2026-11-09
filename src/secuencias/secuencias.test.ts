@@ -1730,11 +1730,15 @@ describe('Enraizar · generar lo material (uno por uno, descrito en la revisión
     expect(distanciaConSigno(boca.map((v, i) => v - (tubo.eje as number[])[i] * 0.03), piel), 'debajo de la boca, afuera del cuerpo').toBeGreaterThan(0);
     // Recto: vertical, del perineo al piso justo debajo.
     expect((tubo.eje as number[])[1]).toBeCloseTo(1, 6);
-    // La dona, apoyada en el piso, con el tubo por su hueco.
-    const dona = fin.esferas[0];
+    // Cuando el tubo queda formado, la dona ya desapareció.
+    expect(fin.esferas[0].activa).toBe(false);
+    // Al llegar al piso, la dona estaba apoyada en él, con el tubo por su hueco.
+    const llega = evaluar(sec, 3, en(I.FASES_TUBO, 'bajar', 3.4), OPCIONES_INICIALES);
+    const dona = llega.esferas[0];
     expect(dona.dona).toBeCloseTo(1, 5);
     expect(dona.pos[1]).toBeLessThan(0.05);
     expect(alEje(dona.pos, boca)).toBeLessThan(1e-6);
+    expect(llega.mantos[0].cobertura).toBeCloseTo(1, 5);
     // La mano bajó con ella: la punta de los dedos en su borde, cerca del piso; la izquierda, en la rodilla.
     const seg = segmentosMano(q.munecaD, q.palmaD.dedos, q.palmaD.normal, 1, p.cierreD);
     const puntas = [3, 6, 9, 12].map((j) => seg[j].pos.map((v, i) => v + seg[j].dir[i] * seg[j].largo));
@@ -1790,9 +1794,8 @@ describe('Enraizar · generar lo material (uno por uno, descrito en la revisión
     expect(dist(boca, I.bocaTubo(p))).toBeLessThan(1e-6);
     expect(boca[1]).toBeGreaterThan(0.8);
     expect(distanciaConSigno(boca, pielDelCuerpo(fin))).toBeLessThan(0.005);
-    // La dona sigue apoyada en el piso.
-    expect(fin.esferas[0].activa).toBe(true);
-    expect(fin.esferas[0].pos[1]).toBeLessThan(0.05);
+    // La dona ya no está: queda solo el tubo.
+    expect(fin.esferas.some((s) => s.activa)).toBe(false);
     // Mientras se para, la boca acompaña al perineo en todo momento.
     for (let k = 0; k <= 20; k++) {
       const t = en(I.FASES_FRASE, 'pararse', (3.6 * k) / 20);
@@ -1803,7 +1806,7 @@ describe('Enraizar · generar lo material (uno por uno, descrito en la revisión
     }
   });
 
-  it('la dona arranca pegada al perineo y el tubo pasa por su hueco: la dona se ve alrededor del tubo hasta el final', () => {
+  it('la dona arranca pegada al perineo, baja con la mano por el tubo y, formado el tubo, desaparece: el tubo se mantiene', () => {
     /** Puntos de la superficie de la dona (el hueco a lo largo del tubo, vertical). */
     const anillo = (c: number[], r: number) => {
       const out: number[][] = [];
@@ -1816,7 +1819,7 @@ describe('Enraizar · generar lo material (uno por uno, descrito en la revisión
         }
       return out;
     };
-    // El tubo es más fino que el hueco: pasa por él y no tapa la dona.
+    // El tubo es más fino que el hueco: pasa por él.
     expect(R_TUBO).toBeLessThan(HUECO_DONA - 0.002);
     // Al empezar a bajar, la dona toca la piel del perineo, sin meterse.
     const e0 = evaluar(sec, 3, en(I.FASES_TUBO, 'bajar', 0), OPCIONES_INICIALES);
@@ -1825,27 +1828,45 @@ describe('Enraizar · generar lo material (uno por uno, descrito en la revisión
     expect(toca, 'pegada al perineo').toBeLessThan(0.005);
     expect(toca, 'sin meterse en el cuerpo').toBeGreaterThan(0);
     expect(alEje(d0.pos, bocaDe(e0.mantos[0]))).toBeLessThan(1e-6);
-    // Desde que llega al perineo hasta el final, de pie: la dona sigue entera y a la vista,
-    // alrededor del tubo, sin meterse en el cuerpo ni en las piernas.
-    const instantes: [number, number][] = [];
-    for (let k = 0; k <= 30; k++) instantes.push([3, en(I.FASES_TUBO, 'llevar', 1 + (k / 30) * 1)]);
-    for (let k = 0; k <= 30; k++) instantes.push([3, en(I.FASES_TUBO, 'bajar', (k / 30) * 3.4)]);
-    for (let k = 0; k <= 10; k++) instantes.push([3, en(I.FASES_TUBO, 'sostener', (k / 10) * 2.2)]);
-    for (let k = 0; k <= 20; k++) instantes.push([4, k / 20]);
-    for (const [paso, t] of instantes) {
-      const e = evaluar(sec, paso, t, OPCIONES_INICIALES);
+    // Del perineo al piso, la dona sigue entera y a la vista, en el tubo, sin meterse en el cuerpo ni en las piernas.
+    const instantes: number[] = [];
+    for (let k = 0; k <= 30; k++) instantes.push(en(I.FASES_TUBO, 'llevar', 1 + (k / 30) * 1));
+    for (let k = 0; k <= 30; k++) instantes.push(en(I.FASES_TUBO, 'bajar', (k / 30) * 3.4));
+    for (const t of instantes) {
+      const e = evaluar(sec, 3, t, OPCIONES_INICIALES);
       const d = e.esferas[0];
-      const donde = `paso ${paso + 1}, t ${t.toFixed(3)}`;
+      const donde = `paso 4, t ${t.toFixed(3)}`;
       expect(d.activa, donde).toBe(true);
       expect(d.dona, donde).toBeCloseTo(1, 5);
       expect(d.opacidad, donde).toBeCloseTo(1, 5);
-      expect(d.radio, donde).toBeCloseTo(R_CIELO, 5);
       const q = resolverEsqueleto(e.figuras[0].pose);
       const piel = pielDelCuerpo(e);
-      for (const c of anillo(d.pos, d.radio)) expect(distanciaConSigno(c, piel), `${donde}: la dona en el cuerpo`).toBeGreaterThan(0);
-      // De pie, la dona cabe justo entre los pies (los roza): se admiten 2 mm.
-      for (const c of anillo(d.pos, d.radio - 0.002)) expect(distanciaPiernas(c, q), `${donde}: la dona en las piernas`).toBeGreaterThan(0);
+      for (const c of anillo(d.pos, d.radio)) {
+        expect(distanciaConSigno(c, piel), `${donde}: la dona en el cuerpo`).toBeGreaterThan(0);
+        expect(distanciaPiernas(c, q), `${donde}: la dona en las piernas`).toBeGreaterThan(0);
+      }
       if (e.mantos[0].activo && e.mantos[0].cobertura > 0.001) expect(alEje(d.pos, bocaDe(e.mantos[0])), `${donde}: la dona en el tubo`).toBeLessThan(1e-6);
+    }
+    // Formado el tubo, la dona se desvanece en el piso y desaparece; el tubo queda completo.
+    let antes = 1;
+    for (let k = 0; k <= 20; k++) {
+      const e = evaluar(sec, 3, en(I.FASES_TUBO, 'sostener', (k / 20) * 2.2), OPCIONES_INICIALES);
+      const d = e.esferas[0];
+      const op = d.activa ? d.opacidad : 0;
+      expect(op, `sostener k ${k}: se apaga`).toBeLessThanOrEqual(antes + 1e-9);
+      antes = op;
+      if (d.activa) expect(d.pos[1]).toBeLessThan(0.05);
+      expect(e.mantos[0].activo).toBe(true);
+      expect(e.mantos[0].cobertura, `sostener k ${k}: tubo completo`).toBeCloseTo(1, 5);
+    }
+    expect(evaluar(sec, 3, en(I.FASES_TUBO, 'sostener', 0.2), OPCIONES_INICIALES).esferas[0].activa, 'empieza a apagarse visible').toBe(true);
+    expect(evaluar(sec, 3, en(I.FASES_TUBO, 'sostener', 1.1), OPCIONES_INICIALES).esferas[0].activa, 'al segundo ya no está').toBe(false);
+    // En la frase y al pararse, solo el tubo.
+    for (let k = 0; k <= 20; k++) {
+      const e = evaluar(sec, 4, k / 20, OPCIONES_INICIALES);
+      expect(e.esferas.some((s) => s.activa), `paso 5, t ${k / 20}: sin dona`).toBe(false);
+      expect(e.mantos[0].activo).toBe(true);
+      expect(e.mantos[0].cobertura, `paso 5, t ${k / 20}: tubo completo`).toBeCloseTo(1, 5);
     }
   }, 120000);
 
