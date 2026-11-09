@@ -155,6 +155,15 @@ export interface Pose {
    */
   separarD: number;
   separarI: number;
+  /**
+   * Dónde va cada tobillo (espacio del cuerpo). De pie, apoyados en el piso; una pierna puede
+   * estirarse hacia adelante (el IK de la pierna llega al tobillo desde la cadera).
+   */
+  pieD: V3;
+  pieI: V3;
+  /** Cuánto se estira cada pie en punta (rad): gira alrededor del tobillo, los dedos hacia abajo. */
+  puntaD: number;
+  puntaI: number;
   /** Descenso de la pelvis (m): 0 de pie, ~0,6 en cuclillas. */
   agachar: number;
   /**
@@ -201,6 +210,10 @@ export const NEUTRA: Pose = {
   aislarI: 0,
   separarD: 0,
   separarI: 0,
+  pieD: [-PROP.tobilloX, PROP.tobilloY, 0],
+  pieI: [PROP.tobilloX, PROP.tobilloY, 0],
+  puntaD: 0,
+  puntaI: 0,
   agachar: 0,
   atrasar: 0,
   inclinar: 0,
@@ -255,6 +268,10 @@ export function mezclarPose(a: Pose, b: Pose, k: number, arcoManos = 0.06): Pose
     aislarI: lerp(a.aislarI, b.aislarI, k),
     separarD: lerp(a.separarD, b.separarD, k),
     separarI: lerp(a.separarI, b.separarI, k),
+    pieD: lerpV(a.pieD, b.pieD, k),
+    pieI: lerpV(a.pieI, b.pieI, k),
+    puntaD: lerp(a.puntaD, b.puntaD, k),
+    puntaI: lerp(a.puntaI, b.puntaI, k),
     agachar: lerp(a.agachar, b.agachar, k),
     atrasar: lerp(a.atrasar, b.atrasar, k),
     inclinar: lerp(a.inclinar, b.inclinar, k),
@@ -277,6 +294,8 @@ export function copiarPose(p: Pose): Pose {
     palmaI: [...p.palmaI],
     dedosD: p.dedosD ? [...p.dedosD] : null,
     dedosI: p.dedosI ? [...p.dedosI] : null,
+    pieD: [...p.pieD],
+    pieI: [...p.pieI],
   };
 }
 
@@ -334,6 +353,9 @@ export interface Esqueleto {
   rodillaI: V3;
   tobilloD: V3;
   tobilloI: V3;
+  /** Cuánto está estirado cada pie en punta (rad). */
+  puntaD: number;
+  puntaI: number;
 }
 
 /** Desplazamiento de la pelvis según cuánto se agacha (hacia atrás para equilibrar). */
@@ -411,8 +433,8 @@ export function resolverEsqueleto(p: Pose): Esqueleto {
 
   const caderaD = sumaV([-PROP.caderaX, PROP.caderaY, 0], off);
   const caderaI = sumaV([PROP.caderaX, PROP.caderaY, 0], off);
-  const tobD: V3 = [-PROP.tobilloX, PROP.tobilloY, 0];
-  const tobI: V3 = [PROP.tobilloX, PROP.tobilloY, 0];
+  const tobD = p.pieD;
+  const tobI = p.pieI;
   const pD = ik2(caderaD, tobD, PROP.muslo, PROP.pierna, [-0.18, 0, 1]);
   const pI = ik2(caderaI, tobI, PROP.muslo, PROP.pierna, [0.18, 0, 1]);
 
@@ -444,5 +466,7 @@ export function resolverEsqueleto(p: Pose): Esqueleto {
     rodillaI: pI.medio,
     tobilloD: pD.fin,
     tobilloI: pI.fin,
+    puntaD: p.puntaD,
+    puntaI: p.puntaI,
   };
 }

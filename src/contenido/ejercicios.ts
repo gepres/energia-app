@@ -357,7 +357,7 @@ export const EJERCICIOS: Ejercicio[] = [
     subtitulo: 'como goma, de la pierna al pie',
     origen: 'revision',
     resumen:
-      'Como «Sensibilización de manos», pero con las piernas: se generan las esferas con las manos desde las barras, se juntan en una y se pasa de una mano a otra jugando como goma. Con la mano que tiene la esfera se pasa por la pierna, la rodilla, el tobillo y la parte alta del pie, en 6 puntos, jugando como goma en cada uno, y se regresa de la misma forma; el cuerpo se agacha a medida que la mano baja. Después la mano pasa a 5–10 cm, sin tocar, por toda la pierna y el pie, de ida y vuelta, y la esfera se introduce en el muslo. Luego, lo mismo con la otra pierna, empezando otra vez desde las barras.',
+      'Como «Sensibilización de manos», pero con las piernas: se generan las esferas con las manos desde las barras, se juntan en una y se pasa de una mano a otra jugando como goma. La pierna que se va a tocar se pone estirada hacia adelante, a 45° y un poco abierta hacia su lado, pisando el piso, y la otra rodilla se dobla. Con la mano que tiene la esfera se pasa por la pierna, la rodilla, el tobillo y la parte alta del pie, en 6 puntos, jugando como goma en cada uno, y se regresa de la misma forma; el cuerpo se inclina a medida que la mano baja. Después la mano pasa a 5–10 cm, sin tocar, por toda la pierna y el pie, de ida y vuelta, y la esfera se introduce en el muslo. Luego, lo mismo con la otra pierna, empezando otra vez desde las barras.',
     acento: 'oro',
     pasos: [
       {
@@ -380,25 +380,26 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'derecha-puntos',
         titulo: 'Pierna derecha: goma en 6 puntos, de ida y vuelta',
         texto:
-          'La mano izquierda da vuelta la esfera sin soltarla y la lleva a la pierna derecha. Pasa por la pierna en 6 puntos (arriba del muslo, mitad del muslo, rodilla, mitad de la canilla, tobillo y empeine, la parte alta del pie) y en cada uno juega como goma: la mano sube y baja, y la esfera se estira con ella. Después regresa de la misma forma, del empeine al muslo. A medida que la mano baja, el cuerpo se agacha: flexiona las rodillas y dobla la cintura.',
+          'La pierna derecha da un paso y queda estirada hacia adelante, a 45° y un poco abierta hacia la derecha, con el pie estirado, pisando el piso; la otra rodilla se dobla. La mano izquierda da vuelta la esfera sin soltarla y la lleva a la pierna derecha. Pasa por la pierna en 6 puntos (arriba del muslo, mitad del muslo, rodilla, mitad de la canilla, tobillo y empeine, la parte alta del pie) y en cada uno juega como goma: la mano sube y baja, y la esfera se estira con ella. Después regresa de la misma forma, del empeine al muslo. A medida que la mano baja, el cuerpo se inclina hacia la pierna.',
         cantidad: { valor: 6, unidad: 'puntos en cada pierna, al bajar y al volver', pregunta: '¿En cuántos puntos de la pierna se juega como goma?' },
         aclaracion:
-          'Descrito en el taller: con la mano que tiene la esfera se pasa por la pierna, la rodilla, el tobillo y la parte alta del pie, y se regresa de la misma forma; la pierna y el pie se dividen en varios puntos y en cada uno se juega como goma, como en «Sensibilización de manos». Elegido en la revisión: 6 puntos; primero la pierna derecha, con la mano izquierda; de pie, agachándose.',
+          'Descrito en el taller: con la mano que tiene la esfera se pasa por la pierna, la rodilla, el tobillo y la parte alta del pie, y se regresa de la misma forma; la pierna y el pie se dividen en varios puntos y en cada uno se juega como goma, como en «Sensibilización de manos». En la revisión: la pierna que se toca se pone a 45° hacia adelante con el pie estirado, un poco abierta hacia su lado, sin levantarla (sigue pisando el piso) y con la otra rodilla doblada; 6 puntos; primero la pierna derecha, con la mano izquierda.',
         lectura:
-          'La mano pasa por delante de la pierna, con la palma hacia ella, a 7,5 cm de la piel. La cintura se dobla primero y las rodillas se flexionan para llegar a la canilla, el tobillo y el pie. La otra mano cuelga relajada.',
+          'La mano pasa por encima de la pierna, con la palma hacia ella, a 7,5 cm de la piel; de la canilla al pie, sus dedos van a lo largo de la pierna. Con la pierna abierta, para llegar al empeine el torso se dobla mucho y gira hacia la pierna (unos 40°). La otra mano cuelga relajada.',
       },
       {
         id: 'derecha-recorrido',
         titulo: 'Pierna derecha: a 5–10 cm, ida y vuelta, y la esfera entra en el muslo',
         texto:
-          'Después la mano, ahuecada, pasa por toda la pierna y el pie sin tocarlos, a 5–10 cm de la piel, como cubriéndolos: del muslo hasta los dedos del pie y de vuelta al muslo. Al terminar, la esfera se introduce en el muslo y el cuerpo se endereza.',
+          'Después la mano, ahuecada, pasa por toda la pierna y el pie sin tocarlos, a 5–10 cm de la piel, como cubriéndolos: del muslo hasta la parte delantera del pie y de vuelta al muslo. Al terminar, la esfera se introduce en el muslo, el cuerpo se endereza y la pierna vuelve a su lugar.',
         cantidad: {
           valor: 10,
           unidad: 'cm de la piel como máximo (5–10 cm)',
           pregunta: '¿A qué distancia de la piel pasa la mano por la pierna y el pie? (máximo)',
         },
         aclaracion: 'Descrito en el taller: después se pasa la mano a 5–10 cm, como en «Sensibilización de manos»; al terminar, se introduce la esfera en la pierna. Elegido en la revisión: en el muslo.',
-        lectura: 'El recorrido va por toda la pierna y el pie, de ida y vuelta, como en «Sensibilización de manos».',
+        lectura:
+          'El recorrido va por toda la pierna y el pie, de ida y vuelta, como en «Sensibilización de manos». Llega justo pasando el empeine: con la pierna a 45° y abierta, los dedos quedan fuera del alcance de la mano sin apoyar el pecho en la pierna.',
       },
       {
         id: 'otra-pierna-barras',
@@ -419,14 +420,14 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'izquierda-puntos',
         titulo: 'Pierna izquierda: goma en 6 puntos, de ida y vuelta',
         texto:
-          'La mano derecha lleva la esfera a la pierna izquierda y pasa por los mismos 6 puntos, jugando como goma en cada uno, hasta el empeine y de vuelta al muslo, agachándose a medida que baja.',
+          'La pierna izquierda se estira hacia adelante a 45°, un poco abierta hacia la izquierda, pisando el piso, y la mano derecha lleva la esfera por los mismos 6 puntos, jugando como goma en cada uno, hasta el empeine y de vuelta al muslo, inclinándose a medida que baja.',
         aclaracion: 'Descrito en el taller: lo mismo con la otra pierna.',
       },
       {
         id: 'izquierda-recorrido',
         titulo: 'Pierna izquierda: a 5–10 cm y la esfera entra en el muslo',
         texto:
-          'La mano pasa a 5–10 cm por toda la pierna y el pie, sin tocarlos, de ida y vuelta; al terminar, la esfera se introduce en el muslo y el cuerpo se endereza.',
+          'La mano pasa a 5–10 cm por toda la pierna y el pie, sin tocarlos, de ida y vuelta; al terminar, la esfera se introduce en el muslo, el cuerpo se endereza y la pierna vuelve a su lugar.',
         aclaracion: 'Descrito en el taller.',
       },
     ],

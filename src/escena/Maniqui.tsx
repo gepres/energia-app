@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import { type Group, type InstancedMesh, Matrix4, type Mesh, Quaternion, Vector3 } from 'three';
 import { publicarFigura } from './anclas';
-import { type Pose, copiarPose, resolverEsqueleto } from './cuerpo';
+import { PROP, type Pose, copiarPose, resolverEsqueleto } from './cuerpo';
 import { crearGeometrias, crearTorso } from './cuerpoGeo';
 import { crearManos } from './manos';
 import { crearMaterialCuerpo, TONOS, type MaterialCuerpo } from './materiales';
@@ -21,11 +21,24 @@ const _p = new Vector3();
 const _s = new Vector3();
 const _dir = new Vector3();
 const _up = new Vector3(0, 1, 0);
+const _eje = new Vector3(1, 0, 0);
+const _t = new Vector3();
 
 function matrizSegmento(a: V3, b: V3) {
   _p.set(a[0], a[1], a[2]);
   _dir.set(b[0] - a[0], b[1] - a[1], b[2] - a[2]).normalize();
   _q.setFromUnitVectors(_up, _dir);
+  _s.set(1, 1, 1);
+  return _m.compose(_p, _q, _s);
+}
+
+/**
+ * El pie se modela apoyado en el piso, con el tobillo a PROP.tobilloY sobre su origen: se lo
+ * lleva al tobillo y se lo gira `punta` (rad) alrededor de él (los dedos hacia abajo).
+ */
+function matrizPie(tobillo: V3, punta: number) {
+  _q.setFromAxisAngle(_eje, punta);
+  _p.set(0, -PROP.tobilloY, 0).applyQuaternion(_q).add(_t.set(tobillo[0], tobillo[1], tobillo[2]));
   _s.set(1, 1, 1);
   return _m.compose(_p, _q, _s);
 }
@@ -81,6 +94,10 @@ function amortiguarPose(act: Pose, obj: Pose, l: number, dt: number) {
       act[sep] = amortiguar(act[sep], obj[sep], l, dt);
     }
   }
+  amortiguarV(act.pieD, obj.pieD, l, dt);
+  amortiguarV(act.pieI, obj.pieI, l, dt);
+  act.puntaD = amortiguar(act.puntaD, obj.puntaD, l, dt);
+  act.puntaI = amortiguar(act.puntaI, obj.puntaI, l, dt);
   act.agachar = amortiguar(act.agachar, obj.agachar, l, dt);
   act.atrasar = amortiguar(act.atrasar, obj.atrasar, l, dt);
   act.inclinar = amortiguar(act.inclinar, obj.inclinar, l, dt);
@@ -231,10 +248,10 @@ export function Maniqui({ indice }: { indice: 0 | 1 }) {
     // Manos con dedos articulados
     manos.actualizar(e, p);
 
-    // Pies (fijos en el piso)
+    // Pies: debajo de cada tobillo; estirados en punta, giran alrededor del tobillo.
     const pie = refs.pie.current!;
-    pie.setMatrixAt(0, matrizEsfera([e.tobilloD[0], 0, e.tobilloD[2]], 1));
-    pie.setMatrixAt(1, matrizEsfera([e.tobilloI[0], 0, e.tobilloI[2]], 1));
+    pie.setMatrixAt(0, matrizPie(e.tobilloD, e.puntaD));
+    pie.setMatrixAt(1, matrizPie(e.tobilloI, e.puntaI));
     pie.instanceMatrix.needsUpdate = true;
   }, -20);
 

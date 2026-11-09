@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { DUDAS, EJERCICIOS, ORGANOS, fraseOrgano } from '../contenido/ejercicios';
 import { MeshBasicMaterial } from 'three';
-import { NEUTRA, PUNTOS, ik2, resolverEsqueleto } from '../escena/cuerpo';
+import { NEUTRA, PROP, PUNTOS, ik2, resolverEsqueleto } from '../escena/cuerpo';
 import { crearManos, huecoPalma, segmentosMano } from '../escena/manos';
 import type { Estado } from '../escena/estado';
-import { largoV, restaV } from '../escena/mate';
+import { largoV, restaV, rotarX } from '../escena/mate';
 import { SECUENCIAS } from './index';
 import { OPCIONES_INICIALES, duracionTotal, evaluar, ubicar } from './motor';
 import { faseSellado } from './sellarCielo';
@@ -16,7 +16,7 @@ import { chakrasInterno } from './recorridoPorChakras';
 import { sensibilizarInterno } from './sensibilizarManos';
 import { DIST_MANOS, PIEL_CENTRO, R_UNIDA, SEG } from './unirBarras';
 import { SERENA } from '../escena/poses';
-import { PERFIL_MUSLO, PERFIL_PIERNA, PLANO_MUSLO, PLANO_PIERNA, altoPie, crearGeometrias, crearTorso, radioMiembro } from '../escena/cuerpoGeo';
+import { PERFIL_MUSLO, PERFIL_PIERNA, PLANO_MUSLO, PLANO_PIERNA, altoPie, bajoPie, crearGeometrias, crearTorso, radioMiembro } from '../escena/cuerpoGeo';
 import { PRIMERA, SEGUNDA, piernasInterno } from './sensibilizarPiernas';
 import { Euler, Matrix4, Vector3, type BufferGeometry } from 'three';
 
@@ -1357,14 +1357,14 @@ describe('Cargar las ingles (descrito en el taller)', () => {
 
 /**
  * Distancia con signo de un punto a las piernas (muslo y canilla con su perfil, y el pie por
- * encima de su contorno): negativa si está adentro.
+ * encima de su contorno, girado con la punta): negativa si está adentro.
  */
 function distanciaPiernas(c: number[], q: ReturnType<typeof resolverEsqueleto>) {
   let peor = 1e9;
-  for (const [C, K, T] of [
-    [q.caderaD, q.rodillaD, q.tobilloD],
-    [q.caderaI, q.rodillaI, q.tobilloI],
-  ]) {
+  for (const [C, K, T, punta] of [
+    [q.caderaD, q.rodillaD, q.tobilloD, q.puntaD],
+    [q.caderaI, q.rodillaI, q.tobilloI, q.puntaI],
+  ] as const) {
     for (const [a, b, f, pl] of [
       [C, K, PERFIL_MUSLO, PLANO_MUSLO],
       [K, T, PERFIL_PIERNA, PLANO_PIERNA],
@@ -1375,10 +1375,18 @@ function distanciaPiernas(c: number[], q: ReturnType<typeof resolverEsqueleto>) 
       const p = [a[0] + ab[0] * u, a[1] + ab[1] * u, a[2] + ab[2] * u];
       peor = Math.min(peor, Math.hypot(c[0] - p[0], c[1] - p[1], c[2] - p[2]) - radioMiembro(f, u) * pl);
     }
-    const zr = c[2] - T[2];
-    if (Math.abs(c[0] - T[0]) < 0.05 && zr > -0.07 && zr < 0.19) peor = Math.min(peor, c[1] - altoPie(zr));
+    // El pie, en su propio marco (sin la punta): apoyado en el piso, debajo del tobillo.
+    const l = rotarX([c[0] - T[0], c[1] - T[1], c[2] - T[2]], -punta, [0, 0, 0]);
+    if (Math.abs(l[0]) < 0.05 && l[2] > -0.07 && l[2] < 0.19) peor = Math.min(peor, l[1] + PROP.tobilloY - altoPie(l[2]));
   }
   return peor;
+}
+
+/** La parte más baja de un pie (con su punta), en el mundo. */
+function bajoDelPie(T: number[], punta: number) {
+  let m = 1e9;
+  for (let z = -0.07; z <= 0.19; z += 0.0025) m = Math.min(m, T[1] + rotarX([0, bajoPie(z) - PROP.tobilloY, z], punta, [0, 0, 0])[1]);
+  return m;
 }
 
 describe('Sensibilización de piernas (descrito en el taller)', () => {
@@ -1464,10 +1472,10 @@ describe('Sensibilización de piernas (descrito en el taller)', () => {
     }
   });
 
-  it('después la mano recorre la pierna y el pie a 5–10 cm de la piel, de ida y vuelta, hasta los dedos del pie', () => {
+  it('después la mano recorre la pierna y el pie a 5–10 cm de la piel, de ida y vuelta, hasta la parte delantera del pie', () => {
     for (const A of [PRIMERA, SEGUNDA]) {
       const B = A === 'D' ? 'I' : 'D';
-      let llega = 0;
+      let sobrePie = 1e9;
       for (let k = 0; k <= 80; k++) {
         const t = ((k / 80) * 11) / durRecorrido;
         const e = evaluar(sec, pasoPuntos(A) + 1, t, OPCIONES_INICIALES);
@@ -1477,24 +1485,61 @@ describe('Sensibilización de piernas (descrito en el taller)', () => {
         const d = distanciaPiernas(hueco, q);
         expect(d, `${A} t ${t.toFixed(3)}`).toBeGreaterThan(0.05);
         expect(d, `${A} t ${t.toFixed(3)}`).toBeLessThan(0.1);
-        llega = Math.max(llega, hueco[2] - (A === 'D' ? q.tobilloD[2] : q.tobilloI[2]));
+        const empeine = P.pielEn(A, q, P.N_PUNTOS - 1);
+        sobrePie = Math.min(sobrePie, dist(hueco, empeine.piel));
       }
-      // Llega por encima de los dedos del pie.
-      expect(llega).toBeGreaterThan(0.12);
+      // Pasa por encima del pie: sobre el empeine, a la misma distancia que en los puntos.
+      expect(sobrePie).toBeLessThan(P.DIST + 0.015);
     }
   });
 
-  it('se agacha a medida que la mano baja (la cintura y las rodillas, con la cadera atrás) y al final queda de pie', () => {
+  it('la pierna que se trabaja va estirada adelante a 45° y sigue pisando el piso (el pie apoyado); la otra rodilla se dobla', () => {
+    for (const A of [PRIMERA, SEGUNDA]) {
+      const paso = pasoPuntos(A);
+      for (const [p, t0, t1] of [
+        [paso, prep / durPuntos, 1],
+        [paso + 1, 0, (11.5 + 3.6) / durRecorrido],
+      ] as const) {
+        for (let k = 0; k <= 30; k++) {
+          const t = t0 + ((t1 - t0) * k) / 30;
+          const q = resolverEsqueleto(evaluar(sec, p, t, OPCIONES_INICIALES).figuras[0].pose);
+          const [C, T, punta, Co, To, puntaO] =
+            A === 'D' ? [q.caderaD, q.tobilloD, q.puntaD, q.caderaI, q.tobilloI, q.puntaI] : [q.caderaI, q.tobilloI, q.puntaI, q.caderaD, q.tobilloD, q.puntaD];
+          const donde = `${A} paso ${p + 1} t ${t.toFixed(3)}`;
+          const pierna = restaV(T, C);
+          // 45° hacia adelante (desde la vertical) y casi estirada.
+          expect((Math.acos(-pierna[1] / largoV(pierna)) * 180) / Math.PI, donde).toBeCloseTo(45, 0);
+          expect(pierna[2], donde).toBeGreaterThan(0.5);
+          expect(largoV(pierna), donde).toBeGreaterThan(PROP.muslo + PROP.pierna - 0.01);
+          // El pie pisa el piso: apoyado, plano (ni flota ni se hunde).
+          expect(punta, donde).toBeCloseTo(0, 5);
+          expect(T[1], donde).toBeCloseTo(PROP.tobilloY, 4);
+          expect(bajoDelPie(T, punta), donde).toBeGreaterThan(-0.002);
+          expect(bajoDelPie(T, punta), donde).toBeLessThan(0.008);
+          // La otra pierna apoyada, con la rodilla doblada.
+          expect(puntaO, donde).toBeCloseTo(0, 5);
+          expect(To[1], donde).toBeCloseTo(PROP.tobilloY, 5);
+          expect(largoV(restaV(To, Co)), donde).toBeLessThan(PROP.muslo + PROP.pierna - 0.05);
+        }
+      }
+      // Al empezar y al terminar, los dos pies en el piso.
+      for (const [p, t] of [
+        [pasoPuntos(A), 0],
+        [pasoPuntos(A) + 1, 1],
+      ] as const) {
+        const q = resolverEsqueleto(evaluar(sec, p, t, OPCIONES_INICIALES).figuras[0].pose);
+        expect(q.tobilloD[1]).toBeCloseTo(PROP.tobilloY, 3);
+        expect(q.tobilloI[1]).toBeCloseTo(PROP.tobilloY, 3);
+        expect(q.puntaD + q.puntaI).toBeCloseTo(0, 3);
+      }
+    }
+  });
+
+  it('se inclina a medida que la mano baja y al final queda de pie', () => {
     let antes = P.posturaEn(0);
     for (let x = 0.25; x <= P.N_PUNTOS - 1; x += 0.25) {
       const ahora = P.posturaEn(x);
-      expect(ahora.agachar + 1e-9).toBeGreaterThanOrEqual(antes.agachar);
-      expect(ahora.atrasar + 1e-9).toBeGreaterThanOrEqual(antes.atrasar);
-      expect(ahora.inclinar + 0.03).toBeGreaterThanOrEqual(antes.inclinar);
-      // Las canillas casi verticales: la rodilla no se adelanta (menos de 25°).
-      const q = P.esqueletoDe(ahora, 'D');
-      const canilla = restaV(q.tobilloD, q.rodillaD);
-      expect((Math.acos(-canilla[1] / largoV(canilla)) * 180) / Math.PI, `x ${x}`).toBeLessThan(25);
+      expect(ahora.inclinar + 1e-9, `x ${x}`).toBeGreaterThanOrEqual(antes.inclinar);
       antes = ahora;
     }
     for (const paso of [3, 7]) {

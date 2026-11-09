@@ -1,7 +1,7 @@
-import { type Esqueleto, type Pose, mezclarPose, resolverEsqueleto } from '../escena/cuerpo';
+import { type Esqueleto, type Pose, PROP, resolverEsqueleto } from '../escena/cuerpo';
 import { PERFIL_MUSLO, PERFIL_PIERNA, PLANO_MUSLO, PLANO_PIERNA, altoPie, radioMiembro } from '../escena/cuerpoGeo';
 import type { Camara, Estado } from '../escena/estado';
-import { type V3, clamp, cruzV, entraSaleSeno, escalaV, lerp, lerpV, normV, restaV, rotarX, rotarY, sumaV, tramo, ventana } from '../escena/mate';
+import { type V3, clamp, cruzV, entraSaleSeno, escalaV, lerp, lerpV, masSuave, normV, restaV, rotarX, rotarY, sumaV, tramo, ventana } from '../escena/mate';
 import { HUECO, SERENA } from '../escena/poses';
 import { TOMAS, esfera, pulso } from './comunes';
 import { type Secuencia, encuadre, enMundo, fijarPose, toma } from './motor';
@@ -57,19 +57,23 @@ import {
 
 // ── La pierna ───────────────────────────────────────────────────────────
 
-/** Los 6 puntos de goma, de arriba abajo; el recorrido llega además hasta los dedos del pie. */
+/** Los 6 puntos de goma, de arriba abajo; el recorrido llega además hasta la parte delantera del pie. */
 const NOMBRES = ['muslo', 'mitad del muslo', 'rodilla', 'mitad de la canilla', 'tobillo', 'empeine'];
 const DONDE = ['arriba del muslo', 'la mitad del muslo', 'la rodilla', 'la mitad de la canilla', 'el tobillo', 'el empeine'];
 const N_PUNTOS = NOMBRES.length;
-/** Los dedos del pie, en la misma escala que los puntos (solo para el recorrido a distancia). */
+/** La parte delantera del pie, en la misma escala que los puntos (solo para el recorrido a distancia). */
 const DEDOS_PIE = N_PUNTOS;
 /** Por delante de la rótula, la piel queda a 4,7 cm del centro de la rodilla (medido sobre la malla). */
 const RODILLA = 0.047;
 /** Entre el tobillo y el empeine, el camino se abomba un poco: así no corta el empeine por dentro. */
 const BULTO = 0.012;
-/** Dónde están, sobre el pie, el empeine y los dedos (desde el tobillo hacia adelante). */
+/**
+ * Dónde están, sobre el pie, el empeine y el final del recorrido (desde el tobillo hacia
+ * adelante). Con la pierna a 45° y abierta, el recorrido llega justo pasando el empeine, antes
+ * de los dedos: más adelante la mano ya no alcanza sin apoyar el pecho en la pierna.
+ */
 const Z_EMPEINE = 0.07;
-const Z_DEDOS = 0.15;
+const Z_DEDOS = 0.09;
 
 /** El frente de un segmento que baja en `d` (la normal hacia adelante, o hacia arriba si el segmento está acostado). */
 const frente = (d: V3): V3 => normV(cruzV(d, [1, 0, 0]));
@@ -81,7 +85,7 @@ const frente = (d: V3): V3 => normV(cruzV(d, [1, 0, 0]));
  * entre un punto y otro sigue la piel: así la esfera queda siempre a la misma distancia aunque
  * las rodillas se doblen, y no corta la rodilla ni el empeine por dentro.
  */
-export function pielEn(A: Lado, q: Esqueleto, x: number): PuntoPiel {
+function pielPorTramos(A: Lado, q: Esqueleto, x: number): PuntoPiel {
   const C = A === 'D' ? q.caderaD : q.caderaI;
   const K = A === 'D' ? q.rodillaD : q.rodillaI;
   const T = A === 'D' ? q.tobilloD : q.tobilloI;
@@ -93,10 +97,14 @@ export function pielEn(A: Lado, q: Esqueleto, x: number): PuntoPiel {
   const rM = (t: number) => radioMiembro(PERFIL_MUSLO, t) * PLANO_MUSLO;
   const rP = (t: number) => radioMiembro(PERFIL_PIERNA, t) * PLANO_PIERNA;
   const sobre = (c: V3, n: V3, r: number): PuntoPiel => ({ piel: sumaV(c, escalaV(n, r)), normal: n });
-  // El pie no gira: está apoyado en el piso, debajo del tobillo.
+  // El pie, debajo del tobillo; estirado en punta, girado alrededor del tobillo.
+  const punta = A === 'D' ? q.puntaD : q.puntaI;
   const pie = (z: number): PuntoPiel => {
     const pendiente = (altoPie(z + 0.005) - altoPie(z - 0.005)) / 0.01;
-    return { piel: [T[0], altoPie(z), T[2] + z], normal: normV([0, 1, -pendiente]) };
+    return {
+      piel: sumaV(T, rotarX([0, altoPie(z) - PROP.tobilloY, z], punta, [0, 0, 0])),
+      normal: normV(rotarX([0, 1, -pendiente], punta, [0, 0, 0])),
+    };
   };
   const tobillo = sobre(lerpV(K, T, 0.86), np, rP(0.86));
   const i = Math.max(0, Math.min(5, Math.floor(x)));
@@ -127,12 +135,62 @@ export function pielEn(A: Lado, q: Esqueleto, x: number): PuntoPiel {
   return pie(lerp(Z_EMPEINE, Z_DEDOS, f));
 }
 
+/** Redondea las uniones sin mover los seis puntos medidos ni cortar las articulaciones. */
+export function pielEn(A: Lado, q: Esqueleto, x: number): PuntoPiel {
+  const j = Math.round(x);
+  const ancho = 0.14;
+  if (j < 1 || j > 5 || Math.abs(x - j) >= ancho) return pielPorTramos(A, q, x);
+  const a = x < j ? j - ancho : j;
+  const b = a + ancho;
+  const pa = pielPorTramos(A, q, a);
+  const pb = pielPorTramos(A, q, b);
+  const h = 0.0001;
+  const tangente = (u: number, campo: 'piel' | 'normal') =>
+    escalaV(restaV(pielPorTramos(A, q, u + h)[campo], pielPorTramos(A, q, u - h)[campo]), ancho / (2 * h));
+  const interpolar = (campo: 'piel' | 'normal'): V3 => {
+    const da = tangente(a, campo);
+    const db = tangente(b, campo);
+    return pa[campo].map((v, i) => hermite(v, pb[campo][i], da[i], db[i], (x - a) / ancho)) as V3;
+  };
+  return { piel: interpolar('piel'), normal: normV(interpolar('normal')) };
+}
+
 /** Los 6 puntos de goma y los dedos del pie, en la postura `q`. */
 export const puntosPierna = (A: Lado, q: Esqueleto): PuntoPiel[] => Array.from({ length: DEDOS_PIE + 1 }, (_, i) => pielEn(A, q, i));
 
-// ── La postura: se agacha a medida que la mano baja ─────────────────────
+// ── La pierna que se trabaja: estirada adelante, a 45°, pisando el piso ──
+
+/**
+ * La pierna que se trabaja va estirada hacia adelante a 45° (desde la vertical) y sigue
+ * pisando el piso: el pie queda apoyado, así que respecto de la pierna queda estirado. La
+ * otra rodilla se dobla para bajar la cadera (descrito en la revisión).
+ */
+const ANGULO_PIERNA = Math.PI / 4;
+/** La pierna se abre un poco hacia su lado, como abriéndose (descrito en la revisión): la derecha a la derecha, la izquierda a la izquierda. */
+const ABRIR_PIERNA = (15 * Math.PI) / 180;
+/** La pierna casi estirada: la rodilla apenas flexionada. */
+const LARGO_PIERNA = PROP.muslo + PROP.pierna - 0.003;
+/** Hacia dónde va la pierna estirada: adelante y abajo, a 45° desde la vertical, abierta ABRIR_PIERNA hacia su lado. */
+const dirPierna = (A: Lado): V3 => [
+  SIGNO[A] * Math.sin(ANGULO_PIERNA) * Math.sin(ABRIR_PIERNA),
+  -Math.cos(ANGULO_PIERNA),
+  Math.sin(ANGULO_PIERNA) * Math.cos(ABRIR_PIERNA),
+];
+
+/** Cuánto baja la cadera para que, con la pierna a 45°, el pie quede apoyado en el piso (el tobillo a su altura de siempre). */
+const AGACHAR_PIERNA = PROP.caderaY - (PROP.tobilloY - dirPierna('D')[1] * LARGO_PIERNA);
+
+/** El tobillo de la pierna estirada, desde la cadera (que baja `agachar` y va atrás `atrasar`). */
+function tobilloAdelante(A: Lado, agachar: number, atrasar: number): V3 {
+  const cadera: V3 = [SIGNO[A] * PROP.caderaX, PROP.caderaY - agachar, -0.36 * agachar - atrasar];
+  return sumaV(cadera, escalaV(dirPierna(A), LARGO_PIERNA));
+}
+
+// ── La postura: se inclina a medida que la mano baja ────────────────────
 
 interface Postura {
+  /** Cuánto está estirada adelante la pierna que se trabaja (0 debajo de la cadera, 1 a 45°; el pie siempre en el piso). */
+  pierna: number;
   agachar: number;
   /** La cadera va hacia atrás: las canillas quedan casi verticales y el torso pasa por encima de los muslos. */
   atrasar: number;
@@ -152,18 +210,20 @@ interface Postura {
  * hacer goma, y para que el torso no se apoye en los muslos.
  */
 const POSTURAS: Postura[] = [
-  { agachar: 0.05, atrasar: 0.03, inclinar: 0.45, girar: 0.1, adelantar: 0.3, cabeza: 0.4 },
-  { agachar: 0.1, atrasar: 0.06, inclinar: 0.75, girar: 0.2, adelantar: 1, cabeza: 0.4 },
-  { agachar: 0.2, atrasar: 0.1, inclinar: 1.0, girar: 0.25, adelantar: 1, cabeza: 0.4 },
-  { agachar: 0.35, atrasar: 0.15, inclinar: 1.2, girar: 0.3, adelantar: 1, cabeza: 0.4 },
-  { agachar: 0.42, atrasar: 0.18, inclinar: 1.18, girar: 0.3, adelantar: 1, cabeza: 0.4 },
-  { agachar: 0.42, atrasar: 0.18, inclinar: 1.18, girar: 0.3, adelantar: 1, cabeza: 0.4 },
-  { agachar: 0.44, atrasar: 0.2, inclinar: 1.18, girar: 0.3, adelantar: 1, cabeza: 0.4 },
-];
-const ERGUIDO: Postura = { agachar: 0, atrasar: 0, inclinar: 0, girar: 0, adelantar: 0, cabeza: 0.38 };
+  // [atrasar, inclinar, girar, adelantar, cabeza]
+  [0, 0.4, 0.05, 0.5, 0.4],
+  [0, 0.55, 0.15, 1, 0.4],
+  [0, 0.9, 0.2, 1, 0.45],
+  [0, 1.3, 0.3, 1, 0.5],
+  [0, 1.5, 0.5, 1, 0.5],
+  [0, 1.7, 0.7, 1, 0.5],
+  [0, 1.75, 0.75, 1, 0.5],
+].map(([atrasar, inclinar, girar, adelantar, cabeza]) => ({ pierna: 1, agachar: AGACHAR_PIERNA, atrasar, inclinar, girar, adelantar, cabeza }));
+const ERGUIDO: Postura = { pierna: 0, agachar: 0, atrasar: 0, inclinar: 0, girar: 0, adelantar: 0, cabeza: 0.38 };
 
 function mezclarPostura(a: Postura, b: Postura, k: number): Postura {
   return {
+    pierna: lerp(a.pierna, b.pierna, k),
     agachar: lerp(a.agachar, b.agachar, k),
     atrasar: lerp(a.atrasar, b.atrasar, k),
     inclinar: lerp(a.inclinar, b.inclinar, k),
@@ -176,14 +236,42 @@ function mezclarPostura(a: Postura, b: Postura, k: number): Postura {
 /** La postura con la mano a la altura `x` de la pierna (0 = muslo … 6 = dedos del pie, continuo). */
 export function posturaEn(x: number): Postura {
   const i = Math.max(0, Math.min(POSTURAS.length - 2, Math.floor(x)));
-  return mezclarPostura(POSTURAS[i], POSTURAS[i + 1], clamp(x - i));
+  const f = clamp(x - i);
+  const P = { ...POSTURAS[i] };
+  // Hermite monótona: conserva los valores medidos y comparte la tangente entre tramos.
+  // La media armónica evita sobrepasar la inclinación o el alcance en las mesetas.
+  for (const campo of Object.keys(P) as (keyof Postura)[]) {
+    const pendiente = (j: number) => {
+      if (j <= 0 || j >= POSTURAS.length - 1) return 0;
+      const a = POSTURAS[j][campo] - POSTURAS[j - 1][campo];
+      const b = POSTURAS[j + 1][campo] - POSTURAS[j][campo];
+      return a * b > 0 ? (2 * a * b) / (a + b) : 0;
+    };
+    P[campo] = hermite(POSTURAS[i][campo], POSTURAS[i + 1][campo], pendiente(i), pendiente(i + 1), f);
+  }
+  return P;
+}
+
+/** Interpolación cúbica con tangentes expresadas en unidades del tramo. */
+function hermite(a: number, b: number, da: number, db: number, t: number): number {
+  return lerp(a, b, t * t * (3 - 2 * t)) + t * (1 - t) * ((1 - t) * da - t * db);
 }
 
 /** La pose con la postura `P` para la pierna `A` (gira hacia ella y adelanta el hombro de la otra mano). */
 function conPostura(m: Manos, P: Postura, A: Lado): Pose {
   const B = OTRO[A];
+  // La pierna da un paso adelante (el pie se levanta apenas al pasar y vuelve a pisar) y queda a 45°.
+  const base = armar(m, P.cabeza);
+  const apoyado = A === 'D' ? base.pieD : base.pieI;
+  // El destino se calcula con la pelvis ya baja: interpolar también su altura con la
+  // cadera en tránsito añadía hasta 6 cm al arco. El pie despega y aterriza sin golpe.
+  const destino = tobilloAdelante(A, AGACHAR_PIERNA, 0);
+  const pie = lerpV(apoyado, destino, P.pierna);
+  pie[1] = PROP.tobilloY + 0.045 * Math.sin(Math.PI * P.pierna) ** 2;
+  // Una vez apoyado, el pie permanece fijo aunque la cadera retroceda al llegar al empeine.
   return {
-    ...armar(m, P.cabeza),
+    ...base,
+    ...(A === 'D' ? { pieD: pie } : { pieI: pie }),
     agachar: P.agachar,
     atrasar: P.atrasar,
     inclinar: P.inclinar,
@@ -204,8 +292,15 @@ const enTorso = (d: V3, P: Postura, A: Lado): V3 => normV(rotarX(rotarY(d, -SIGN
 
 // ── Las manos ───────────────────────────────────────────────────────────
 
-/** Los dedos de la mano que pasa por la pierna la cruzan hacia afuera y hacia abajo (hacia el pie). */
-const dedosSobre = (A: Lado): V3 => normV([SIGNO[A] * 0.7, -0.7, 0.25]);
+/**
+ * Los dedos de la mano que pasa por la pierna: sobre el muslo y la rodilla la cruzan hacia
+ * afuera y abajo; de la canilla al pie van a lo largo de la pierna, hacia el pie (así la muñeca
+ * queda del lado del hombro y la mano llega al empeine).
+ */
+function dedosSobre(A: Lado, x: number): V3 {
+  const w = clamp((x - 2) / 2);
+  return normV(lerpV(normV([SIGNO[A] * 0.7, -0.7, 0.25]), dirPierna(A), w));
+}
 /** Su codo va hacia afuera y adelante: el brazo pasa por delante de las rodillas, no entre ellas. */
 const codoSobre = (B: Lado): V3 => normV([SIGNO[B] * 0.55, -0.25, 0.8]);
 
@@ -214,10 +309,10 @@ const codoSobre = (B: Lado): V3 => normV([SIGNO[B] * 0.55, -0.25, 0.8]);
  * `alza`. Con la goma (como en el 06): al subir, la muñeca se dobla un poco (los dedos hacia
  * la pierna) y los dedos se cierran levemente, como tirando de la goma.
  */
-function manoSobre(A: Lado, P: Postura, pp: PuntoPiel, alza: number, cierre = 0.15): Mano {
+function manoSobre(A: Lado, P: Postura, x: number, pp: PuntoPiel, alza: number, cierre = 0.15): Mano {
   const f = clamp(alza / GOMA);
   const palma0 = escalaV(pp.normal, -1);
-  const dedos0 = ortogonal(dedosSobre(A), palma0);
+  const dedos0 = ortogonal(dedosSobre(A, x), palma0);
   const beta = 0.28 * f;
   const dedos = normV(sumaV(escalaV(dedos0, Math.cos(beta)), escalaV(palma0, Math.sin(beta))));
   const palma = normV(restaV(escalaV(palma0, Math.cos(beta)), escalaV(dedos0, Math.sin(beta))));
@@ -242,6 +337,20 @@ function colgando(A: Lado, P: Postura, q: Esqueleto): Mano {
     cierre: 0.22,
     codo: enTorso(normV([s * 0.35, 0.1, -1]), P, A),
   };
+}
+
+/** Sigue la palma con la cabeza, descontando el giro y la inclinación que ya aporta el torso. */
+function mirarMano(e: Estado, A: Lado, peso: number) {
+  const p = e.figuras[0].pose;
+  const q = resolverEsqueleto(p);
+  const B = OTRO[A];
+  const m = B === 'D' ? q.munecaD : q.munecaI;
+  const pal = B === 'D' ? q.palmaD : q.palmaI;
+  const objetivo = sumaV(m, sumaV(escalaV(pal.dedos, HUECO.dedos), escalaV(pal.normal, HUECO.piel)));
+  const d = rotarY(restaV(objetivo, q.cabeza), -p.girar);
+  const pitch = Math.atan2(-d[1], d[2]) - p.inclinar;
+  // Saturación suave del cuello (±0,7 rad): evita doblarlo de más al mirar el muslo.
+  p.cabezaPitch = lerp(p.cabezaPitch, 0.7 * Math.tanh(pitch / 0.7), peso);
 }
 
 /** La esfera entre la piel y la palma: se estira (goma) cuando la mano sube. */
@@ -292,7 +401,11 @@ function puntoEn(A: Lado, x: number): { P: Postura; q: Esqueleto; pp: PuntoPiel 
 function ola(k: number): { x: number; u: number } {
   const n = N_PUNTOS;
   const x = -0.5 + n * clamp(k);
-  const xc = clamp(x, 0, n - 1);
+  // Los medios pulsos de los extremos arrancan y frenan con tangente nula;
+  // los cuatro puntos interiores conservan el avance continuo y el freno de la goma.
+  let xc = clamp(x, 0, n - 1);
+  if (xc < 0.5) xc = hermite(0, 0.5, 0, 0.5, xc * 2);
+  else if (xc > n - 1.5) xc = n - 1 - hermite(0, 0.5, 0, 0.5, (n - 1 - xc) * 2);
   return { x, u: xc - (FRENO * Math.sin(2 * Math.PI * xc)) / (2 * Math.PI) };
 }
 
@@ -323,7 +436,7 @@ function recorrerPuntos(e: Estado, A: Lado, k: number, bajando: boolean) {
   const donde = bajando ? u : n - 1 - u;
   const alza = GOMA * (0.5 + 0.5 * Math.cos(2 * Math.PI * x));
   const { P, q, pp } = puntoEn(A, donde);
-  e.figuras[0].pose = conPostura(manos(A, colgando(A, P, q), manoSobre(A, P, pp, alza)), P, A);
+  e.figuras[0].pose = conPostura(manos(A, colgando(A, P, q), manoSobre(A, P, donde, pp, alza)), P, A);
   esferaSobre(e, pp, alza);
   const ip = Math.max(0, Math.min(n - 1, Math.round(x)));
   const cual = bajando ? ip : n - 1 - ip;
@@ -338,16 +451,20 @@ function puntos(e: Estado, A: Lado, seg: number) {
   if (id === 'preparar') {
     // La mano que tiene la esfera la da vuelta sin soltarla (queda pegada a su palma) y la lleva
     // al muslo de la otra pierna; la figura empieza a inclinarse y la otra mano se suelta.
-    const s = entraSaleSeno(k);
+    const s = masSuave(k);
     const P = mezclarPostura(ERGUIDO, POSTURAS[0], s);
+    // Primero se descarga el peso sobre la pierna de apoyo; el pie termina de
+    // asentarse antes de completar la inclinación hacia el muslo.
+    P.agachar = AGACHAR_PIERNA * tramo(k, 0, 0.82, masSuave);
+    P.pierna = tramo(k, 0.12, 0.9, masSuave);
     const q = esqueletoDe(P, A);
     const pp = pielEn(A, q, 0);
     const ini = reposo(B);
-    const fin = manoSobre(A, P, pp, 0);
+    const fin = manoSobre(A, P, 0, pp, 0);
     const c0 = enPalma(ini, R);
     const c1 = sumaV(pp.piel, escalaV(pp.normal, LUZ_PIEL + R));
     const c = sumaV(lerpV(c0, c1, s), [0, 0.05 * Math.sin(Math.PI * s), 0]);
-    const palma = mezclarDir(ini.palma, fin.palma, s, [-SIGNO[B], 0, 0]);
+    const palma = mezclarDir(ini.palma, fin.palma, s);
     const dedos = ortogonal(mezclarDir(ini.dedos, fin.dedos, s), palma);
     const mB = sostener(c, R + LUZ_PALMA * s, palma, dedos, lerp(ini.cierre, fin.cierre, s), mezclarDir(ini.codo, fin.codo, s));
     const mA = mezclarMano(reposo(A), colgando(A, P, q), s);
@@ -384,8 +501,8 @@ function recorrido(e: Estado, A: Lado, seg: number) {
     // dedos del pie y de vuelta al muslo, como cubriéndolos.
     const u = id === 'recorrer' ? entraSaleSeno(k) : id === 'volver' ? 1 - entraSaleSeno(k) : 0;
     const { P, q, pp } = puntoEn(A, u * DEDOS_PIE);
-    const cierre = id === 'recorrer' ? lerp(0.15, CIERRE_RECORRER, tramo(k, 0, 0.15)) : id === 'volver' ? CIERRE_RECORRER : lerp(CIERRE_RECORRER, 0.15, k);
-    e.figuras[0].pose = conPostura(manos(A, colgando(A, P, q), manoSobre(A, P, pp, 0, cierre)), P, A);
+    const cierre = id === 'recorrer' ? lerp(0.15, CIERRE_RECORRER, tramo(k, 0, 0.15)) : id === 'volver' ? CIERRE_RECORRER : lerp(CIERRE_RECORRER, 0.15, masSuave(k));
+    e.figuras[0].pose = conPostura(manos(A, colgando(A, P, q), manoSobre(A, P, u * DEDOS_PIE, pp, 0, cierre)), P, A);
     esferaSobre(e, pp, 0);
     rotulo(e, A, pp, '5–10 cm', id === 'quieto' ? 0 : ventana(k, 0, 1, 0.08), 'distancia');
     e.hud.aviso =
@@ -399,7 +516,7 @@ function recorrido(e: Estado, A: Lado, seg: number) {
     // La mano acerca la esfera al muslo y la esfera entra en él, achicándose; un pulso en el muslo.
     const acerca = entraSaleSeno(tramo(k, 0, 0.6));
     const r = R * (1 - tramo(k, 0.3, 0.8));
-    e.figuras[0].pose = conPostura(manos(A, colgando(A, P0, q0), manoSobre(A, P0, pp, -acerca * ACERCAR)), P0, A);
+    e.figuras[0].pose = conPostura(manos(A, colgando(A, P0, q0), manoSobre(A, P0, 0, pp, -acerca * ACERCAR)), P0, A);
     if (r > 0.001) esferaSobre(e, pp, 0, r, HUNDIR * acerca);
     else e.esferas[0].activa = false;
     pulso(e, enMundo(e, 0, pp.piel), tramo(k, 0.55, 0.95), 0.16, 'oro');
@@ -409,16 +526,21 @@ function recorrido(e: Estado, A: Lado, seg: number) {
   // Se endereza y las manos se sueltan. La mano que introdujo la esfera primero se aparta hacia
   // adelante (así no cruza los muslos) y después baja a su costado.
   e.esferas[0].activa = false;
-  const s = entraSaleSeno(k);
+  const s = masSuave(k);
   const P = mezclarPostura(P0, ERGUIDO, s);
+  P.cabeza = lerp(P0.cabeza, 0, s);
+  // La cadera sigue baja mientras vuelve el pie y sube al recuperar los dos apoyos.
+  P.pierna = 1 - tramo(k, 0.12, 0.8, masSuave);
+  P.agachar = AGACHAR_PIERNA * (1 - tramo(k, 0.28, 1, masSuave));
   const q = esqueletoDe(P, A);
   const B = OTRO[A];
-  const desde = manoSobre(A, P0, pp, -ACERCAR);
+  const desde = manoSobre(A, P0, 0, pp, -ACERCAR);
   const aparte: Mano = { ...reposo(B), palma: [-SIGNO[B], 0, 0], dedos: normV([0, -0.3, 1]), cierre: 0.2 };
-  const mB = k < 0.5 ? mezclarMano(desde, aparte, entraSaleSeno(k / 0.5)) : mezclarMano(aparte, suelta(B), entraSaleSeno((k - 0.5) / 0.5));
-  const mA = mezclarMano(colgando(A, P, q), suelta(A), s);
-  const pose = conPostura(manos(A, mA, mB), P, A);
-  e.figuras[0].pose = k > 0.6 ? mezclarPose(pose, SERENA, entraSaleSeno((k - 0.6) / 0.4) * 0.5, 0.02) : pose;
+  const mB = k < 0.5 ? mezclarMano(desde, aparte, masSuave(k / 0.5)) : mezclarMano(aparte, suelta(B), masSuave((k - 0.5) / 0.5));
+  // La mano libre acompaña al hombro hasta que el pie vuelve; acercarla antes a
+  // SERENA hacía pasar el antebrazo por el muslo durante el último segundo.
+  const mA = mezclarMano(colgando(A, P, q), suelta(A), tramo(k, 0.65, 1, masSuave));
+  e.figuras[0].pose = conPostura(manos(A, mA, mB), P, A);
   e.hud.aviso = 'Se endereza despacio';
 }
 
@@ -431,7 +553,8 @@ function recorrido(e: Estado, A: Lado, seg: number) {
  */
 function camPierna(A: Lado, x: number): Camara {
   const k = clamp(x / (N_PUNTOS - 1));
-  return encuadre([SIGNO[A] * 0.08, lerp(0.95, 0.42, k), lerp(0.15, 0.22, k)], lerp(1.95, 1.55, k), SIGNO[A] * 0.55, lerp(0.12, 0.22, k));
+  // Más de costado que de frente: así se ve la pierna estirada a 45° y abierta, no de punta.
+  return encuadre([SIGNO[A] * 0.12, lerp(0.9, 0.45, k), lerp(0.22, 0.28, k)], lerp(1.95, 1.6, k), SIGNO[A] * 1.2, lerp(0.12, 0.2, k));
 }
 
 function pasoPuntos(A: Lado) {
@@ -443,6 +566,8 @@ function pasoPuntos(A: Lado) {
       e.esferas[1].activa = false;
       e.esferas[2].activa = false;
       puntos(e, A, t * dur);
+      const fase = enFase(FASES_PUNTOS, t * dur);
+      mirarMano(e, A, fase.id === 'preparar' ? tramo(fase.k, 0, 0.6, masSuave) : 1);
     },
   };
 }
@@ -456,6 +581,8 @@ function pasoRecorrido(A: Lado) {
       toma(e, camPierna(A, alturaRecorrido(t * dur)), t, 0, 1e-3);
       toma(e, TOMAS.general, t, finIntroducir, 1);
       recorrido(e, A, t * dur);
+      const fase = enFase(FASES_RECORRIDO, t * dur);
+      mirarMano(e, A, fase.id === 'erguirse' ? 1 - tramo(fase.k, 0, 0.8, masSuave) : 1);
     },
   };
 }
@@ -489,4 +616,4 @@ export const sensibilizacionPiernas: Secuencia = {
   ],
 };
 
-export const piernasInterno = { FASES_PUNTOS, FASES_RECORRIDO, POSTURAS, N_PUNTOS, DEDOS_PIE, NOMBRES, posturaEn, puntoEn, pielEn, esqueletoDe, DIST, R };
+export const piernasInterno = { AGACHAR_PIERNA, dirPierna, FASES_PUNTOS, FASES_RECORRIDO, POSTURAS, N_PUNTOS, DEDOS_PIE, NOMBRES, posturaEn, puntoEn, pielEn, esqueletoDe, DIST, R };

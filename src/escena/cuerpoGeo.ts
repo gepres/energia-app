@@ -305,6 +305,8 @@ export const PERFIL_PIE: readonly Fila[] = [
 
 /** Altura de la parte de arriba del pie (empeine y dedos) a `z` delante del tobillo. */
 export const altoPie = (z: number) => perfil(PERFIL_PIE, z, 2);
+/** Altura de la planta del pie a `z` delante del tobillo. */
+export const bajoPie = (z: number) => perfil(PERFIL_PIE, z, 3);
 
 /** [t (0 en la cadera o la rodilla, 1 en la rodilla o el tobillo), radio]; la sección se aplana por PLANO_*. */
 export const PERFIL_MUSLO: readonly Fila[] = [
