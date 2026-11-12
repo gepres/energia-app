@@ -4,6 +4,19 @@
  */
 export type Origen = 'revision' | 'set2026' | 'notas';
 
+/**
+ * Grupo de los ejercicios uno por uno, según lo que hace cada uno (elegido por el usuario,
+ * 2026-11-12). Los números siguen el orden de los grupos.
+ */
+export type GrupoId = 'carga' | 'sensibilizacion' | 'centros' | 'enraizar' | 'sellado';
+
+export interface Grupo {
+  id: GrupoId;
+  titulo: string;
+  /** Para qué sirve el grupo, en pocas palabras. */
+  nota?: string;
+}
+
 /** Color de acento de cada ejercicio (se traduce a tokens de UI y de escena). */
 export type Acento = 'oro' | 'cielo' | 'tierra' | 'rosa' | 'violeta' | 'jade';
 
@@ -45,6 +58,8 @@ export interface Bloque {
 export interface Ejercicio {
   id: string;
   numero: number;
+  /** Solo los uno por uno: el grupo en el que se muestran. */
+  grupo?: GrupoId;
   titulo: string;
   /** Subtítulo del apunte, p. ej. «generar lo material». */
   subtitulo?: string;

@@ -1,4 +1,6 @@
-# 06 · Sensibilización de manos (sin soltar la esfera, palpando dedos y brazos)
+# 05 · Sensibilización de manos (sin soltar la esfera, palpando dedos y brazos)
+
+> **Grupo:** Sensibilización. Desde el 2026-11-12 los ejercicios se numeran por grupo; antes era el 06. En el resto de este documento, los números de otros ejercicios son los de antes (la equivalencia está en [README.md](README.md)).
 
 > **Estado:** aprobado por el usuario el 2026-11-08 y otra vez el 2026-11-12. La segunda aprobación cubre la mano que recibe la energía parada, mirando a la persona, y la otra mano con movimiento natural.
 > Es la versión «uno por uno», descrita en el taller y pulida en la revisión. La de referencia (n.º 09 de las notas, «Sensibilización de manos») se conserva aparte.

@@ -27,19 +27,7 @@ Costo por API con los modelos multilingües: unos 1.12 USD por pasada completa (
 
 > Paso 2. Cargas intercaladas, 15 por mano. Después de un momento, las manos se dirigen lentamente al ombligo llevando una bola o esfera de energía, intercaladas: derecha, izquierda, derecha… 15 por cada mano.
 
-## 02 · Sellar desde el cielo
-
-438 caracteres, unos 34 s de voz.
-
-**Paso 1 · Manos a la nube** (152 caracteres, unos 12 s)
-
-> Sellar desde el cielo. Paso 1. Manos a la nube. Subir las dos manos por los costados y estirarlas hacia arriba hasta tocar una nube luminosa de energía.
-
-**Paso 2 · Agarrar y bajar el velo · 3 veces** (286 caracteres, unos 22 s)
-
-> Paso 2. Agarrar y bajar el velo, 3 veces. Agarrar la nube y bajar los brazos por los costados: las manos van girando poco a poco hacia abajo y soltándose hasta quedar del todo abiertas, mientras la energía cubre el cuerpo como un velo. Al final, las manos quedan sueltas a los costados.
-
-## 03 · Colocar energía en los 3 puntos
+## 02 · Colocar energía en los 3 puntos
 
 800 caracteres, unos 62 s de voz.
 
@@ -58,6 +46,18 @@ Costo por API con los modelos multilingües: unos 1.12 USD por pasada completa (
 **Paso 4 · Unir y llevar a la frente** (157 caracteres, unos 12 s)
 
 > Paso 4. Unir y llevar a la frente. Hacer lo mismo y llevar la energía al centro de la frente, con las manos a una distancia de 5 a 10 centímetros del cuerpo.
+
+## 03 · Cargar las ingles
+
+523 caracteres, unos 40 s de voz.
+
+**Paso 1 · Brazos al frente** (210 caracteres, unos 16 s)
+
+> Cargar las ingles. Paso 1. Brazos al frente. Estirar bien los brazos al frente, a la altura de los hombros (90 grados), y agarrar la energía que está a la altura de las manos, como barras de energía verticales.
+
+**Paso 2 · Cargas cruzadas · 15 por mano** (313 caracteres, unos 24 s)
+
+> Paso 2. Cargas cruzadas, 15 por mano. Después de un momento, las manos se dirigen lentamente a las ingles llevando una esfera de energía, cruzadas: la mano derecha a la ingle izquierda y la izquierda a la ingle derecha, colocando la esfera en cada una. Intercaladas: derecha, izquierda, derecha… 15 por cada mano.
 
 ## 04 · Masaje de manos y dedos
 
@@ -79,31 +79,7 @@ Costo por API con los modelos multilingües: unos 1.12 USD por pasada completa (
 
 > Paso 4. Dedo por dedo, mano derecha. Masajear la mano derecha dedo por dedo, empezando por el meñique y terminando en el pulgar, con 3 círculos en cada falange.
 
-## 05 · Recorrido por chakras
-
-1365 caracteres, unos 105 s de voz.
-
-**Paso 1 · Unir la energía de las barras** (287 caracteres, unos 22 s)
-
-> Recorrido por chakras. Paso 1. Unir la energía de las barras. Agarrar con cada mano su barra y tomar su energía; juntar las manos al frente con los brazos estirados y unir las dos esferas en una más grande. Jugar un poco con ella, alejando y acercando las manos, como una esfera de goma.
-
-**Paso 2 · La esfera sobre la coronilla** (211 caracteres, unos 16 s)
-
-> Paso 2. La esfera sobre la coronilla. Llevar la esfera entre las palmas arriba de la cabeza y dejarla sobre la coronilla. Desde aquí la esfera va sola, guiada con la mente, y las manos se sueltan a los costados.
-
-**Paso 3 · Bajar por el frente** (253 caracteres, unos 19 s)
-
-> Paso 3. Bajar por el frente. La esfera empieza por adelante: baja por delante de la cara y se desliza por el frente. Se detiene unos segundos en cada punto para recalcarlo: el centro de la frente, la garganta, el centro del pecho, el ombligo y la ingle.
-
-**Paso 4 · Por abajo y subir por la espalda** (326 caracteres, unos 25 s)
-
-> Paso 4. Por abajo y subir por la espalda. Pasa por debajo y se detiene en el centro de abajo, entre las piernas, en la misma línea que la coronilla. Sale por detrás y se detiene a la altura de la ingle. Después sube por la espalda y se detiene detrás del ombligo, detrás del pecho, detrás de la garganta y detrás de la frente.
-
-**Paso 5 · Introducir por la coronilla** (288 caracteres, unos 22 s)
-
-> Paso 5. Introducir por la coronilla. La esfera vuelve arriba de la cabeza. Las dos manos suben por los costados, la toman entre las palmas y la bajan sobre la coronilla; después ayudan a introducirla, acompañándola hacia adentro hasta quedar sobre la coronilla con las palmas hacia abajo.
-
-## 06 · Sensibilización de manos
+## 05 · Sensibilización de manos
 
 3818 caracteres, unos 294 s de voz.
 
@@ -139,19 +115,7 @@ Costo por API con los modelos multilingües: unos 1.12 USD por pasada completa (
 
 > Paso 8. Brazo izquierdo: por atrás, ida y vuelta. La mano izquierda gira, con el dorso hacia la persona, y se palpa por atrás; después la mano derecha, ahuecada, lo recorre como cubriéndolo y sin tocarlo, a una distancia de 5 a 10 centímetros de la piel, de los dedos hasta el hombro y de vuelta. Al terminar, la esfera vuelve a la palma y se absorbe, y las manos se sueltan a los costados.
 
-## 07 · Cargar las ingles
-
-523 caracteres, unos 40 s de voz.
-
-**Paso 1 · Brazos al frente** (210 caracteres, unos 16 s)
-
-> Cargar las ingles. Paso 1. Brazos al frente. Estirar bien los brazos al frente, a la altura de los hombros (90 grados), y agarrar la energía que está a la altura de las manos, como barras de energía verticales.
-
-**Paso 2 · Cargas cruzadas · 15 por mano** (313 caracteres, unos 24 s)
-
-> Paso 2. Cargas cruzadas, 15 por mano. Después de un momento, las manos se dirigen lentamente a las ingles llevando una esfera de energía, cruzadas: la mano derecha a la ingle izquierda y la izquierda a la ingle derecha, colocando la esfera en cada una. Intercaladas: derecha, izquierda, derecha… 15 por cada mano.
-
-## 08 · Sensibilización de piernas
+## 06 · Sensibilización de piernas
 
 3016 caracteres, unos 232 s de voz.
 
@@ -187,31 +151,31 @@ Costo por API con los modelos multilingües: unos 1.12 USD por pasada completa (
 
 > Paso 8. Pierna izquierda: a una distancia de 5 a 10 centímetros y la esfera entra en el muslo. La mano pasa a una distancia de 5 a 10 centímetros por toda la pierna y el pie, sin tocarlos, de ida y vuelta; al terminar, la esfera se introduce en el muslo, el cuerpo se endereza y la pierna vuelve a su lugar.
 
-## 09 · Enraizar
+## 07 · Recorrido por chakras
 
-1008 caracteres, unos 78 s de voz.
+1365 caracteres, unos 105 s de voz.
 
-**Paso 1 · Abajo: energía − de la tierra** (272 caracteres, unos 21 s)
+**Paso 1 · Unir la energía de las barras** (287 caracteres, unos 22 s)
 
-> Enraizar. Paso 1. Abajo: energía negativa de la tierra. Estirar la mano derecha hacia abajo, con la mano en forma de agarrar algo, y durante 5 segundos ir haciendo el movimiento de agarrar: se toma energía negativa de la tierra y se forma una esfera de energía en la mano.
+> Recorrido por chakras. Paso 1. Unir la energía de las barras. Agarrar con cada mano su barra y tomar su energía; juntar las manos al frente con los brazos estirados y unir las dos esferas en una más grande. Jugar un poco con ella, alejando y acercando las manos, como una esfera de goma.
 
-**Paso 2 · Arriba: energía + del cielo** (230 caracteres, unos 18 s)
+**Paso 2 · La esfera sobre la coronilla** (211 caracteres, unos 16 s)
 
-> Paso 2. Arriba: energía positiva del cielo. Después levantar la mano derecha y estirarla hacia arriba: la mano hace el efecto de agarrar algo durante 5 segundos, fortaleciendo o recargando la esfera con energía positiva del cielo.
+> Paso 2. La esfera sobre la coronilla. Llevar la esfera entre las palmas arriba de la cabeza y dejarla sobre la coronilla. Desde aquí la esfera va sola, guiada con la mente, y las manos se sueltan a los costados.
 
-**Paso 3 · Un hueco en la esfera: una dona** (121 caracteres, unos 9 s)
+**Paso 3 · Bajar por el frente** (253 caracteres, unos 19 s)
 
-> Paso 3. Un hueco en la esfera: una dona. Con la otra mano (la izquierda) le haces un hueco a la esfera, en forma de dona.
+> Paso 3. Bajar por el frente. La esfera empieza por adelante: baja por delante de la cara y se desliza por el frente. Se detiene unos segundos en cada punto para recalcarlo: el centro de la frente, la garganta, el centro del pecho, el ombligo y la ingle.
 
-**Paso 4 · En cuclillas: un tubo de energía al piso** (316 caracteres, unos 24 s)
+**Paso 4 · Por abajo y subir por la espalda** (326 caracteres, unos 25 s)
 
-> Paso 4. En cuclillas: un tubo de energía al piso. Ponerse en cuclillas y, con la mano derecha que tiene la esfera hueca, acercar la esfera a la parte baja de la ingle, el perineo; con la mano ir bajando la esfera hasta conectar con el piso: se forma un tubo de energía del perineo al piso, por el hueco de la esfera.
+> Paso 4. Por abajo y subir por la espalda. Pasa por debajo y se detiene en el centro de abajo, entre las piernas, en la misma línea que la coronilla. Sale por detrás y se detiene a la altura de la ingle. Después sube por la espalda y se detiene detrás del ombligo, detrás del pecho, detrás de la garganta y detrás de la frente.
 
-**Paso 5 · Decir la frase** (69 caracteres, unos 5 s)
+**Paso 5 · Introducir por la coronilla** (288 caracteres, unos 22 s)
 
-> Paso 5. Decir la frase. La frase es: «Sánate, conéctate hasta sanar».
+> Paso 5. Introducir por la coronilla. La esfera vuelve arriba de la cabeza. Las dos manos suben por los costados, la toman entre las palmas y la bajan sobre la coronilla; después ayudan a introducirla, acompañándola hacia adentro hasta quedar sobre la coronilla con las palmas hacia abajo.
 
-## 10 · Activación de centros energéticos
+## 08 · Activación de centros energéticos
 
 1536 caracteres, unos 118 s de voz.
 
@@ -238,6 +202,42 @@ Costo por API con los modelos multilingües: unos 1.12 USD por pasada completa (
 **Paso 6 · Frente: goma, la frase y la esfera entra** (329 caracteres, unos 25 s)
 
 > Paso 6. Frente: goma, la frase y la esfera entra. Lo mismo en la frente: acercar la esfera con la mano mirando a la frente, hacer goma durante 5 segundos, decir la frase e introducir la esfera sin tocar el cuerpo, con la mano a unos 10 centímetros. La frase es: «Con esta esfera de luz activo el poder de la clarividencia en mí».
+
+## 09 · Enraizar
+
+1008 caracteres, unos 78 s de voz.
+
+**Paso 1 · Abajo: energía − de la tierra** (272 caracteres, unos 21 s)
+
+> Enraizar. Paso 1. Abajo: energía negativa de la tierra. Estirar la mano derecha hacia abajo, con la mano en forma de agarrar algo, y durante 5 segundos ir haciendo el movimiento de agarrar: se toma energía negativa de la tierra y se forma una esfera de energía en la mano.
+
+**Paso 2 · Arriba: energía + del cielo** (230 caracteres, unos 18 s)
+
+> Paso 2. Arriba: energía positiva del cielo. Después levantar la mano derecha y estirarla hacia arriba: la mano hace el efecto de agarrar algo durante 5 segundos, fortaleciendo o recargando la esfera con energía positiva del cielo.
+
+**Paso 3 · Un hueco en la esfera: una dona** (121 caracteres, unos 9 s)
+
+> Paso 3. Un hueco en la esfera: una dona. Con la otra mano (la izquierda) le haces un hueco a la esfera, en forma de dona.
+
+**Paso 4 · En cuclillas: un tubo de energía al piso** (316 caracteres, unos 24 s)
+
+> Paso 4. En cuclillas: un tubo de energía al piso. Ponerse en cuclillas y, con la mano derecha que tiene la esfera hueca, acercar la esfera a la parte baja de la ingle, el perineo; con la mano ir bajando la esfera hasta conectar con el piso: se forma un tubo de energía del perineo al piso, por el hueco de la esfera.
+
+**Paso 5 · Decir la frase** (69 caracteres, unos 5 s)
+
+> Paso 5. Decir la frase. La frase es: «Sánate, conéctate hasta sanar».
+
+## 10 · Sellar desde el cielo
+
+438 caracteres, unos 34 s de voz.
+
+**Paso 1 · Manos a la nube** (152 caracteres, unos 12 s)
+
+> Sellar desde el cielo. Paso 1. Manos a la nube. Subir las dos manos por los costados y estirarlas hacia arriba hasta tocar una nube luminosa de energía.
+
+**Paso 2 · Agarrar y bajar el velo · 3 veces** (286 caracteres, unos 22 s)
+
+> Paso 2. Agarrar y bajar el velo, 3 veces. Agarrar la nube y bajar los brazos por los costados: las manos van girando poco a poco hacia abajo y soltándose hasta quedar del todo abiertas, mientras la energía cubre el cuerpo como un velo. Al final, las manos quedan sueltas a los costados.
 
 ## 11 · Sellado final
 

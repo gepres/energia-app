@@ -1,5 +1,7 @@
 # 09 · Enraizar · generar lo material (tierra, cielo, la dona y el tubo al piso)
 
+> **Grupo:** Enraizar. Desde el 2026-11-12 los ejercicios se numeran por grupo; este conserva su número. En el resto de este documento, los números de otros ejercicios son los de antes (la equivalencia está en [README.md](README.md)).
+
 > **Estado:** aprobado por el usuario el 2026-11-09, revisándolo uno por uno.
 > Versión refinada de «Enraizar · generar lo material», descrita en la revisión «uno por uno». La versión de referencia (n.º 4 del set, id `enraizar`) se conserva aparte.
 > Misma nota en Foundry: espacio energia-app → «Ejercicios uno por uno · comportamiento aprobado» → «09 · Enraizar · generar lo material».

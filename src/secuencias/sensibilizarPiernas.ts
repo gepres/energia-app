@@ -43,7 +43,7 @@ import {
  * «Sensibilización de piernas», descrita en el taller: como «Sensibilización de manos»,
  * pero con las piernas.
  *  - Se generan las esferas con las manos tomando energía de las barras, se juntan en una
- *    y se pasa de una mano a otra jugando como goma (igual que en el 06).
+ *    y se pasa de una mano a otra jugando como goma (igual que en «Sensibilización de manos»).
  *  - Con la mano que tiene la esfera se pasa por la pierna, la rodilla, el tobillo y la
  *    parte alta del pie, y se regresa de la misma forma: la pierna y el pie divididos en 6
  *    puntos (elegido en la revisión), y en cada uno se juega como goma.
@@ -52,7 +52,7 @@ import {
  *    otra vez desde las barras.
  * Elegido en la revisión: la figura está de pie y se agacha (flexiona las rodillas y dobla
  * la cintura) a medida que la mano baja; primero la pierna derecha, con la mano izquierda
- * (la mano contraria, como en el 06).
+ * (la mano contraria, como en «Sensibilización de manos»).
  */
 
 // ── La pierna ───────────────────────────────────────────────────────────
@@ -306,7 +306,7 @@ const codoSobre = (B: Lado): V3 => normV([SIGNO[B] * 0.55, -0.25, 0.8]);
 
 /**
  * La mano `OTRO[A]` sobre el punto `pp` de la pierna `A`, con la palma hacia la piel a DIST +
- * `alza`. Con la goma (como en el 06): al subir, la muñeca se dobla un poco (los dedos hacia
+ * `alza`. Con la goma (como en «Sensibilización de manos»): al subir, la muñeca se dobla un poco (los dedos hacia
  * la pierna) y los dedos se cierran levemente, como tirando de la goma.
  */
 function manoSobre(A: Lado, P: Postura, x: number, pp: PuntoPiel, alza: number, cierre = 0.15): Mano {

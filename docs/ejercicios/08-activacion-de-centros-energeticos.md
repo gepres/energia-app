@@ -1,4 +1,6 @@
-# 10 · Activación de centros energéticos (pecho, garganta y frente)
+# 08 · Activación de centros energéticos (pecho, garganta y frente)
+
+> **Grupo:** Centros energéticos. Desde el 2026-11-12 los ejercicios se numeran por grupo; antes era el 10. En el resto de este documento, los números de otros ejercicios son los de antes (la equivalencia está en [README.md](README.md)).
 
 > **Estado:** aprobado por el usuario el 2026-11-09, revisándolo uno por uno, en la primera versión, sin correcciones.
 > Versión refinada de «Activación de centros energéticos», descrita en la revisión «uno por uno». La versión de referencia (n.º 10 de las notas, id `activar-centros`) se conserva aparte.

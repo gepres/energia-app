@@ -1,5 +1,7 @@
 # 04 · Masaje de manos y dedos (palma y falange por falange)
 
+> **Grupo:** Sensibilización. Desde el 2026-11-12 los ejercicios se numeran por grupo; este conserva su número. En el resto de este documento, los números de otros ejercicios son los de antes (la equivalencia está en [README.md](README.md)).
+
 > **Estado:** aprobado por el usuario el 2026-11-08, revisándolo uno por uno.
 > Es la versión «uno por uno», descrita en el taller. No tiene equivalente en la versión de referencia.
 > Misma nota en Foundry: espacio energia-app → «Ejercicios uno por uno · comportamiento aprobado» → «04 · Masaje de manos y dedos».

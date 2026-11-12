@@ -242,6 +242,26 @@ button {
   gap: 8px;
 }
 
+/* Los grupos de ejercicios (carga, sensibilización…) dentro de «Ejercicios». */
+.inicio-subgrupo + .inicio-subgrupo {
+  margin-top: 22px;
+}
+
+.inicio-subgrupo-titulo {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--texto-2);
+}
+
+.inicio-subgrupo-titulo span {
+  letter-spacing: 0.06em;
+  text-transform: none;
+  color: var(--texto-3);
+}
+
 .tarjeta {
   position: relative;
   display: grid;

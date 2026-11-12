@@ -1,4 +1,4 @@
-import type { Duda, Ejercicio, Organo } from './tipos';
+import type { Duda, Ejercicio, Grupo, GrupoId, Organo } from './tipos';
 
 /**
  * Contenido de los apuntes de la carpeta:
@@ -47,11 +47,25 @@ export const DUDAS: Duda[] = [
   },
 ];
 
+/**
+ * Los grupos de los ejercicios uno por uno, en el orden en que se muestran (elegido por el
+ * usuario, 2026-11-12). Los números de los ejercicios siguen este orden.
+ */
+export const GRUPOS: Grupo[] = [
+  { id: 'carga', titulo: 'Carga', nota: 'Llenar de energía' },
+  { id: 'sensibilizacion', titulo: 'Sensibilización', nota: 'Sentir la energía' },
+  { id: 'centros', titulo: 'Centros energéticos' },
+  { id: 'enraizar', titulo: 'Enraizar' },
+  { id: 'sellado', titulo: 'Sellado', nota: 'Cerrar' },
+];
+
 export const EJERCICIOS: Ejercicio[] = [
   // ───────────────────────── UNO POR UNO (descritos en el taller) ─────────────────────────
+  // CARGA · llenar de energía
   {
     id: 'cargar-ombligo',
     numero: 1,
+    grupo: 'carga',
     titulo: 'Cargar el ombligo',
     subtitulo: '15 por cada mano',
     origen: 'revision',
@@ -78,35 +92,9 @@ export const EJERCICIOS: Ejercicio[] = [
     ],
   },
   {
-    id: 'sellar-cielo',
-    numero: 2,
-    titulo: 'Sellar desde el cielo',
-    subtitulo: '3 veces',
-    origen: 'revision',
-    resumen:
-      'Las dos manos estiradas hacia arriba tocan una nube luminosa de energía; se la agarra y, bajando los brazos abiertos por los costados, la energía cubre el cuerpo como un velo. Tres veces.',
-    acento: 'violeta',
-    pasos: [
-      {
-        id: 'tocar-nube',
-        titulo: 'Manos a la nube',
-        texto: 'Subir las dos manos por los costados y estirarlas hacia arriba hasta tocar una nube luminosa de energía.',
-        aclaracion: 'Descrito en el taller.',
-      },
-      {
-        id: 'bajar-velo',
-        titulo: 'Agarrar y bajar el velo · 3 veces',
-        texto:
-          'Agarrar la nube y bajar los brazos por los costados: las manos van girando poco a poco hacia abajo y soltándose hasta quedar del todo abiertas, mientras la energía cubre el cuerpo como un velo. Al final, las manos quedan sueltas a los costados.',
-        cantidad: { valor: 3, unidad: 'veces', pregunta: '¿Cuántas veces se sella desde el cielo?' },
-        aclaracion:
-          'Descrito en el taller: las dos manos arriba tocando una nube luminosa, se la agarra y se baja por los costados, con las palmas girando hacia abajo y las manos abriéndose poco a poco; entre una vez y otra las manos vuelven a subir por los costados; 3 veces; las manos terminan sueltas a los costados.',
-      },
-    ],
-  },
-  {
     id: 'colocar-tres-puntos',
-    numero: 3,
+    numero: 2,
+    grupo: 'carga',
     titulo: 'Colocar energía en los 3 puntos',
     subtitulo: 'ombligo, pecho y frente',
     origen: 'revision',
@@ -148,8 +136,42 @@ export const EJERCICIOS: Ejercicio[] = [
     ],
   },
   {
+    id: 'cargar-ingles',
+    numero: 3,
+    grupo: 'carga',
+    titulo: 'Cargar las ingles',
+    subtitulo: 'cruzadas, 15 por cada mano',
+    origen: 'revision',
+    resumen:
+      'Como «Cargar el ombligo»: brazos bien estirados al frente, tomando la energía de dos barras verticales; las manos, intercaladas, llevan lentamente una esfera cada vez, pero cruzadas: la mano derecha a la ingle izquierda y la izquierda a la ingle derecha. 15 por cada mano.',
+    acento: 'tierra',
+    pasos: [
+      {
+        id: 'brazos-barras',
+        titulo: 'Brazos al frente',
+        texto:
+          'Estirar bien los brazos al frente, a la altura de los hombros (90°), y agarrar la energía que está a la altura de las manos, como barras de energía verticales.',
+        aclaracion: 'Descrito en el taller: como en «Cargar el ombligo».',
+      },
+      {
+        id: 'cargas-cruzadas',
+        titulo: 'Cargas cruzadas · 15 por mano',
+        texto:
+          'Después de un momento, las manos se dirigen lentamente a las ingles llevando una esfera de energía, cruzadas: la mano derecha a la ingle izquierda y la izquierda a la ingle derecha, colocando la esfera en cada una. Intercaladas: derecha, izquierda, derecha… 15 por cada mano.',
+        cantidad: { valor: 15, unidad: 'por cada mano (30 en total)', pregunta: '¿Cuántas cargas a las ingles se hacen con cada mano?' },
+        aclaracion:
+          'Descrito en el taller: parecido a «Cargar el ombligo», pero la mano derecha va a la ingle izquierda y la izquierda a la ingle derecha, colocando las esferas en esas partes. Elegido en la revisión: intercaladas, 15 por mano.',
+        lectura:
+          'Empieza la derecha. La espalda queda recta: para llegar a la ingle del otro lado, el hombro de esa mano se adelanta y el torso gira un poco hacia esa ingle mientras la mano lleva la esfera. Cada esfera se acumula en su ingle.',
+      },
+    ],
+  },
+
+  // SENSIBILIZACIÓN · sentir la energía
+  {
     id: 'masaje-manos',
     numero: 4,
+    grupo: 'sensibilizacion',
     titulo: 'Masaje de manos y dedos',
     subtitulo: 'palma y falange por falange',
     origen: 'revision',
@@ -188,61 +210,9 @@ export const EJERCICIOS: Ejercicio[] = [
     ],
   },
   {
-    id: 'recorrido-por-chakras',
-    numero: 5,
-    titulo: 'Recorrido por chakras',
-    subtitulo: 'baja por el frente, sube por la espalda',
-    origen: 'revision',
-    resumen:
-      'Se une la energía de las dos barras en una esfera y se coloca sobre la coronilla. La esfera va sola: empieza por adelante y baja por el frente, pasa por debajo, entre las piernas, sale por detrás, sube por la espalda y vuelve a la coronilla, deteniéndose unos segundos en cada punto importante. Al final, las dos manos la bajan entre las palmas y ayudan a introducirla por la coronilla.',
-    acento: 'cielo',
-    pasos: [
-      {
-        id: 'unir-barras',
-        titulo: 'Unir la energía de las barras',
-        texto:
-          'Agarrar con cada mano su barra y tomar su energía; juntar las manos al frente con los brazos estirados y unir las dos esferas en una más grande. Jugar un poco con ella, alejando y acercando las manos, como una esfera de goma.',
-        aclaracion: 'Descrito en el taller: la esfera se forma como en los ejercicios anteriores.',
-        lectura: 'Se forma igual que en «Colocar energía en los 3 puntos», con el juego de la esfera de goma (4 s).',
-      },
-      {
-        id: 'coronilla',
-        titulo: 'La esfera sobre la coronilla',
-        texto: 'Llevar la esfera entre las palmas arriba de la cabeza y dejarla sobre la coronilla. Desde aquí la esfera va sola, guiada con la mente, y las manos se sueltan a los costados.',
-        aclaracion: 'Descrito en el taller: la esfera se coloca arriba y recorre el cuerpo sola.',
-        lectura: 'Las manos bajan abriéndose por los costados, como en «Sellar desde el cielo».',
-      },
-      {
-        id: 'frente',
-        titulo: 'Bajar por el frente',
-        texto:
-          'La esfera empieza por adelante: baja por delante de la cara y se desliza por el frente. Se detiene unos segundos en cada punto para recalcarlo: el centro de la frente, la garganta, el centro del pecho, el ombligo y la ingle.',
-        cantidad: { valor: 2, unidad: 'segundos en cada punto', pregunta: '¿Cuántos segundos se detiene la esfera en cada punto del recorrido?' },
-        aclaracion:
-          'En la revisión: la esfera empieza a recorrer por la parte de adelante (antes bajaba por la espalda; el apunte también la bajaba por el frente). Descrito en el taller: se detiene en cada punto importante.',
-      },
-      {
-        id: 'espalda',
-        titulo: 'Por abajo y subir por la espalda',
-        texto:
-          'Pasa por debajo y se detiene en el centro de abajo, entre las piernas, en la misma línea que la coronilla. Sale por detrás y se detiene a la altura de la ingle. Después sube por la espalda y se detiene detrás del ombligo, detrás del pecho, detrás de la garganta y detrás de la frente.',
-        aclaracion:
-          'Descrito en el taller: también se detiene en el centro de abajo y da la vuelta por detrás; atrás se detiene a la altura de la ingle, del ombligo, del pecho, de la garganta y de la frente.',
-        lectura: 'Como las piernas están juntas, en el centro de abajo la esfera se ve a través de ellas.',
-      },
-      {
-        id: 'introducir',
-        titulo: 'Introducir por la coronilla',
-        texto:
-          'La esfera vuelve arriba de la cabeza. Las dos manos suben por los costados, la toman entre las palmas y la bajan sobre la coronilla; después ayudan a introducirla, acompañándola hacia adentro hasta quedar sobre la coronilla con las palmas hacia abajo.',
-        aclaracion: 'Descrito en el taller: regresa a la coronilla y las dos manos ayudan a introducirla.',
-        lectura: 'Al terminar, las manos se sueltan a los costados.',
-      },
-    ],
-  },
-  {
     id: 'sensibilizacion-manos',
-    numero: 6,
+    numero: 5,
+    grupo: 'sensibilizacion',
     titulo: 'Sensibilización de manos',
     subtitulo: 'sin soltar la esfera, palpando dedos y brazos',
     origen: 'revision',
@@ -327,38 +297,9 @@ export const EJERCICIOS: Ejercicio[] = [
     ],
   },
   {
-    id: 'cargar-ingles',
-    numero: 7,
-    titulo: 'Cargar las ingles',
-    subtitulo: 'cruzadas, 15 por cada mano',
-    origen: 'revision',
-    resumen:
-      'Como «Cargar el ombligo»: brazos bien estirados al frente, tomando la energía de dos barras verticales; las manos, intercaladas, llevan lentamente una esfera cada vez, pero cruzadas: la mano derecha a la ingle izquierda y la izquierda a la ingle derecha. 15 por cada mano.',
-    acento: 'tierra',
-    pasos: [
-      {
-        id: 'brazos-barras',
-        titulo: 'Brazos al frente',
-        texto:
-          'Estirar bien los brazos al frente, a la altura de los hombros (90°), y agarrar la energía que está a la altura de las manos, como barras de energía verticales.',
-        aclaracion: 'Descrito en el taller: como en «Cargar el ombligo».',
-      },
-      {
-        id: 'cargas-cruzadas',
-        titulo: 'Cargas cruzadas · 15 por mano',
-        texto:
-          'Después de un momento, las manos se dirigen lentamente a las ingles llevando una esfera de energía, cruzadas: la mano derecha a la ingle izquierda y la izquierda a la ingle derecha, colocando la esfera en cada una. Intercaladas: derecha, izquierda, derecha… 15 por cada mano.',
-        cantidad: { valor: 15, unidad: 'por cada mano (30 en total)', pregunta: '¿Cuántas cargas a las ingles se hacen con cada mano?' },
-        aclaracion:
-          'Descrito en el taller: parecido a «Cargar el ombligo», pero la mano derecha va a la ingle izquierda y la izquierda a la ingle derecha, colocando las esferas en esas partes. Elegido en la revisión: intercaladas, 15 por mano.',
-        lectura:
-          'Empieza la derecha. La espalda queda recta: para llegar a la ingle del otro lado, el hombro de esa mano se adelanta y el torso gira un poco hacia esa ingle mientras la mano lleva la esfera. Cada esfera se acumula en su ingle.',
-      },
-    ],
-  },
-  {
     id: 'sensibilizacion-piernas',
-    numero: 8,
+    numero: 6,
+    grupo: 'sensibilizacion',
     titulo: 'Sensibilización de piernas',
     subtitulo: 'como goma, de la pierna al pie',
     origen: 'revision',
@@ -438,66 +379,66 @@ export const EJERCICIOS: Ejercicio[] = [
       },
     ],
   },
+
+  // CENTROS ENERGÉTICOS
   {
-    id: 'enraizar-material',
-    numero: 9,
-    titulo: 'Enraizar',
-    subtitulo: 'generar lo material',
+    id: 'recorrido-por-chakras',
+    numero: 7,
+    grupo: 'centros',
+    titulo: 'Recorrido por chakras',
+    subtitulo: 'baja por el frente, sube por la espalda',
     origen: 'revision',
     resumen:
-      'La mano derecha, estirada hacia abajo, agarra energía − de la tierra durante 5 s y se forma una esfera; estirada hacia arriba, agarra energía + del cielo durante 5 s y la esfera se fortalece. Al frente del pecho, la mano izquierda le hace un hueco: queda en forma de dona. En cuclillas, la esfera hueca arranca pegada al perineo y la mano la baja hasta el piso: se forma un tubo de energía, recto, del perineo al piso, y la dona desaparece. Al final se dice la frase y, de pie, el tubo sigue conectado al suelo.',
-    acento: 'tierra',
+      'Se une la energía de las dos barras en una esfera y se coloca sobre la coronilla. La esfera va sola: empieza por adelante y baja por el frente, pasa por debajo, entre las piernas, sale por detrás, sube por la espalda y vuelve a la coronilla, deteniéndose unos segundos en cada punto importante. Al final, las dos manos la bajan entre las palmas y ayudan a introducirla por la coronilla.',
+    acento: 'cielo',
     pasos: [
       {
-        id: 'abajo-tierra',
-        titulo: 'Abajo: energía − de la tierra',
+        id: 'unir-barras',
+        titulo: 'Unir la energía de las barras',
         texto:
-          'Estirar la mano derecha hacia abajo, con la mano en forma de agarrar algo, y durante 5 segundos ir haciendo el movimiento de agarrar: se toma energía − de la tierra y se forma una esfera de energía en la mano.',
-        cantidad: { valor: 5, unidad: 's', pregunta: '¿Cuántos segundos se agarra energía con la mano abajo?' },
+          'Agarrar con cada mano su barra y tomar su energía; juntar las manos al frente con los brazos estirados y unir las dos esferas en una más grande. Jugar un poco con ella, alejando y acercando las manos, como una esfera de goma.',
+        aclaracion: 'Descrito en el taller: la esfera se forma como en los ejercicios anteriores.',
+        lectura: 'Se forma igual que en «Colocar energía en los 3 puntos», con el juego de la esfera de goma (4 s).',
+      },
+      {
+        id: 'coronilla',
+        titulo: 'La esfera sobre la coronilla',
+        texto: 'Llevar la esfera entre las palmas arriba de la cabeza y dejarla sobre la coronilla. Desde aquí la esfera va sola, guiada con la mente, y las manos se sueltan a los costados.',
+        aclaracion: 'Descrito en el taller: la esfera se coloca arriba y recorre el cuerpo sola.',
+        lectura: 'Las manos bajan abriéndose por los costados, como en «Sellar desde el cielo».',
+      },
+      {
+        id: 'frente',
+        titulo: 'Bajar por el frente',
+        texto:
+          'La esfera empieza por adelante: baja por delante de la cara y se desliza por el frente. Se detiene unos segundos en cada punto para recalcarlo: el centro de la frente, la garganta, el centro del pecho, el ombligo y la ingle.',
+        cantidad: { valor: 2, unidad: 'segundos en cada punto', pregunta: '¿Cuántos segundos se detiene la esfera en cada punto del recorrido?' },
         aclaracion:
-          'Descrito en la revisión: la mano derecha, estirada hacia abajo y con forma de agarrar algo, forma una esfera de energía en la mano durante 5 s. Elegido en la revisión: abajo se toma energía − (de la tierra), como en el ejercicio de referencia.',
-        lectura: 'La palma mira al piso y los dedos al frente; un agarre por segundo, y en cada uno la esfera crece.',
+          'En la revisión: la esfera empieza a recorrer por la parte de adelante (antes bajaba por la espalda; el apunte también la bajaba por el frente). Descrito en el taller: se detiene en cada punto importante.',
       },
       {
-        id: 'arriba-cielo',
-        titulo: 'Arriba: energía + del cielo',
+        id: 'espalda',
+        titulo: 'Por abajo y subir por la espalda',
         texto:
-          'Después levantar la mano derecha y estirarla hacia arriba: la mano hace el efecto de agarrar algo durante 5 segundos, fortaleciendo o recargando la esfera con energía + del cielo.',
-        cantidad: { valor: 5, unidad: 's', pregunta: '¿Cuántos segundos se agarra energía con la mano arriba?' },
-        aclaracion: 'Descrito en la revisión: la mano estirada hacia arriba agarra durante 5 s, fortaleciendo o recargando la esfera. Elegido en la revisión: arriba, energía + del cielo.',
-        lectura: 'La mano sube por delante, con la esfera; arriba la palma mira al cielo.',
-      },
-      {
-        id: 'dona',
-        titulo: 'Un hueco en la esfera: una dona',
-        texto: 'Con la otra mano (la izquierda) le haces un hueco a la esfera, en forma de dona.',
-        aclaracion: 'Descrito en la revisión. Elegido en la revisión: al frente del pecho (la derecha baja la esfera desde arriba).',
-        lectura: 'La izquierda la atraviesa con el índice, de arriba abajo: el hueco queda vertical.',
-      },
-      {
-        id: 'tubo-piso',
-        titulo: 'En cuclillas: un tubo de energía al piso',
-        texto:
-          'Ponerse en cuclillas y, con la mano derecha que tiene la esfera hueca, acercar la esfera a la parte baja de la ingle, el perineo; con la mano ir bajando la esfera hasta conectar con el piso: se forma un tubo de energía del perineo al piso, por el hueco de la esfera.',
+          'Pasa por debajo y se detiene en el centro de abajo, entre las piernas, en la misma línea que la coronilla. Sale por detrás y se detiene a la altura de la ingle. Después sube por la espalda y se detiene detrás del ombligo, detrás del pecho, detrás de la garganta y detrás de la frente.',
         aclaracion:
-          'Descrito en la revisión: el tubo nace en el perineo y baja recto al piso; la esfera hueca arranca pegada al perineo y baja con la mano hasta el piso, y el tubo pasa por el agujero de la dona. Cuando el tubo queda formado, la dona desaparece y el tubo se mantiene. Del taller (en el ejercicio de referencia): el agujero va en la ingle y queda conectado con la tierra, el piso de tus pies.',
-        lectura:
-          'La mano lleva la dona tomándola por el borde y la izquierda se apoya en la rodilla. El tubo toca el piso justo debajo del perineo. La dona se desvanece en el piso, en un segundo.',
+          'Descrito en el taller: también se detiene en el centro de abajo y da la vuelta por detrás; atrás se detiene a la altura de la ingle, del ombligo, del pecho, de la garganta y de la frente.',
+        lectura: 'Como las piernas están juntas, en el centro de abajo la esfera se ve a través de ellas.',
       },
       {
-        id: 'decir-conectate',
-        titulo: 'Decir la frase',
-        texto: 'Decir la frase.',
-        frase: 'SÁNATE, CONÉCTATE HASTA SANAR',
-        aclaracion: 'Del ejercicio de referencia; se mantiene al final (elegido en la revisión). Descrito en la revisión: al ponerse de pie, el tubo sigue conectado al suelo.',
-        lectura: 'Al ponerse de pie, la boca del tubo acompaña al perineo y el tubo sigue recto hasta el piso.',
+        id: 'introducir',
+        titulo: 'Introducir por la coronilla',
+        texto:
+          'La esfera vuelve arriba de la cabeza. Las dos manos suben por los costados, la toman entre las palmas y la bajan sobre la coronilla; después ayudan a introducirla, acompañándola hacia adentro hasta quedar sobre la coronilla con las palmas hacia abajo.',
+        aclaracion: 'Descrito en el taller: regresa a la coronilla y las dos manos ayudan a introducirla.',
+        lectura: 'Al terminar, las manos se sueltan a los costados.',
       },
     ],
   },
-
   {
     id: 'activacion-centros',
-    numero: 10,
+    numero: 8,
+    grupo: 'centros',
     titulo: 'Activación de centros energéticos',
     origen: 'revision',
     resumen:
@@ -558,9 +499,98 @@ export const EJERCICIOS: Ejercicio[] = [
     ],
   },
 
+  // ENRAIZAR
+  {
+    id: 'enraizar-material',
+    numero: 9,
+    grupo: 'enraizar',
+    titulo: 'Enraizar',
+    subtitulo: 'generar lo material',
+    origen: 'revision',
+    resumen:
+      'La mano derecha, estirada hacia abajo, agarra energía − de la tierra durante 5 s y se forma una esfera; estirada hacia arriba, agarra energía + del cielo durante 5 s y la esfera se fortalece. Al frente del pecho, la mano izquierda le hace un hueco: queda en forma de dona. En cuclillas, la esfera hueca arranca pegada al perineo y la mano la baja hasta el piso: se forma un tubo de energía, recto, del perineo al piso, y la dona desaparece. Al final se dice la frase y, de pie, el tubo sigue conectado al suelo.',
+    acento: 'tierra',
+    pasos: [
+      {
+        id: 'abajo-tierra',
+        titulo: 'Abajo: energía − de la tierra',
+        texto:
+          'Estirar la mano derecha hacia abajo, con la mano en forma de agarrar algo, y durante 5 segundos ir haciendo el movimiento de agarrar: se toma energía − de la tierra y se forma una esfera de energía en la mano.',
+        cantidad: { valor: 5, unidad: 's', pregunta: '¿Cuántos segundos se agarra energía con la mano abajo?' },
+        aclaracion:
+          'Descrito en la revisión: la mano derecha, estirada hacia abajo y con forma de agarrar algo, forma una esfera de energía en la mano durante 5 s. Elegido en la revisión: abajo se toma energía − (de la tierra), como en el ejercicio de referencia.',
+        lectura: 'La palma mira al piso y los dedos al frente; un agarre por segundo, y en cada uno la esfera crece.',
+      },
+      {
+        id: 'arriba-cielo',
+        titulo: 'Arriba: energía + del cielo',
+        texto:
+          'Después levantar la mano derecha y estirarla hacia arriba: la mano hace el efecto de agarrar algo durante 5 segundos, fortaleciendo o recargando la esfera con energía + del cielo.',
+        cantidad: { valor: 5, unidad: 's', pregunta: '¿Cuántos segundos se agarra energía con la mano arriba?' },
+        aclaracion: 'Descrito en la revisión: la mano estirada hacia arriba agarra durante 5 s, fortaleciendo o recargando la esfera. Elegido en la revisión: arriba, energía + del cielo.',
+        lectura: 'La mano sube por delante, con la esfera; arriba la palma mira al cielo.',
+      },
+      {
+        id: 'dona',
+        titulo: 'Un hueco en la esfera: una dona',
+        texto: 'Con la otra mano (la izquierda) le haces un hueco a la esfera, en forma de dona.',
+        aclaracion: 'Descrito en la revisión. Elegido en la revisión: al frente del pecho (la derecha baja la esfera desde arriba).',
+        lectura: 'La izquierda la atraviesa con el índice, de arriba abajo: el hueco queda vertical.',
+      },
+      {
+        id: 'tubo-piso',
+        titulo: 'En cuclillas: un tubo de energía al piso',
+        texto:
+          'Ponerse en cuclillas y, con la mano derecha que tiene la esfera hueca, acercar la esfera a la parte baja de la ingle, el perineo; con la mano ir bajando la esfera hasta conectar con el piso: se forma un tubo de energía del perineo al piso, por el hueco de la esfera.',
+        aclaracion:
+          'Descrito en la revisión: el tubo nace en el perineo y baja recto al piso; la esfera hueca arranca pegada al perineo y baja con la mano hasta el piso, y el tubo pasa por el agujero de la dona. Cuando el tubo queda formado, la dona desaparece y el tubo se mantiene. Del taller (en el ejercicio de referencia): el agujero va en la ingle y queda conectado con la tierra, el piso de tus pies.',
+        lectura:
+          'La mano lleva la dona tomándola por el borde y la izquierda se apoya en la rodilla. El tubo toca el piso justo debajo del perineo. La dona se desvanece en el piso, en un segundo.',
+      },
+      {
+        id: 'decir-conectate',
+        titulo: 'Decir la frase',
+        texto: 'Decir la frase.',
+        frase: 'SÁNATE, CONÉCTATE HASTA SANAR',
+        aclaracion: 'Del ejercicio de referencia; se mantiene al final (elegido en la revisión). Descrito en la revisión: al ponerse de pie, el tubo sigue conectado al suelo.',
+        lectura: 'Al ponerse de pie, la boca del tubo acompaña al perineo y el tubo sigue recto hasta el piso.',
+      },
+    ],
+  },
+
+  // SELLADO · cerrar
+  {
+    id: 'sellar-cielo',
+    numero: 10,
+    grupo: 'sellado',
+    titulo: 'Sellar desde el cielo',
+    subtitulo: '3 veces',
+    origen: 'revision',
+    resumen:
+      'Las dos manos estiradas hacia arriba tocan una nube luminosa de energía; se la agarra y, bajando los brazos abiertos por los costados, la energía cubre el cuerpo como un velo. Tres veces.',
+    acento: 'violeta',
+    pasos: [
+      {
+        id: 'tocar-nube',
+        titulo: 'Manos a la nube',
+        texto: 'Subir las dos manos por los costados y estirarlas hacia arriba hasta tocar una nube luminosa de energía.',
+        aclaracion: 'Descrito en el taller.',
+      },
+      {
+        id: 'bajar-velo',
+        titulo: 'Agarrar y bajar el velo · 3 veces',
+        texto:
+          'Agarrar la nube y bajar los brazos por los costados: las manos van girando poco a poco hacia abajo y soltándose hasta quedar del todo abiertas, mientras la energía cubre el cuerpo como un velo. Al final, las manos quedan sueltas a los costados.',
+        cantidad: { valor: 3, unidad: 'veces', pregunta: '¿Cuántas veces se sella desde el cielo?' },
+        aclaracion:
+          'Descrito en el taller: las dos manos arriba tocando una nube luminosa, se la agarra y se baja por los costados, con las palmas girando hacia abajo y las manos abriéndose poco a poco; entre una vez y otra las manos vuelven a subir por los costados; 3 veces; las manos terminan sueltas a los costados.',
+      },
+    ],
+  },
   {
     id: 'sellado-ombligo',
     numero: 11,
+    grupo: 'sellado',
     titulo: 'Sellado final',
     origen: 'revision',
     resumen:
@@ -1126,4 +1156,13 @@ export function buscarEjercicio(id: string): Ejercicio | undefined {
 
 export function buscarDuda(id: string): Duda | undefined {
   return DUDAS.find((d) => d.id === id);
+}
+
+export function buscarGrupo(id: GrupoId | undefined): Grupo | undefined {
+  return GRUPOS.find((g) => g.id === id);
+}
+
+/** Los ejercicios uno por uno de cada grupo, en orden (los grupos sin ejercicios no salen). */
+export function ejerciciosPorGrupo(lista: Ejercicio[] = EJERCICIOS): { grupo: Grupo; ejercicios: Ejercicio[] }[] {
+  return GRUPOS.map((grupo) => ({ grupo, ejercicios: lista.filter((e) => e.grupo === grupo.id) })).filter((g) => g.ejercicios.length > 0);
 }

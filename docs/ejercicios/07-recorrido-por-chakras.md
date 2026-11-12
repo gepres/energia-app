@@ -1,4 +1,6 @@
-# 05 · Recorrido por chakras (baja por el frente, sube por la espalda)
+# 07 · Recorrido por chakras (baja por el frente, sube por la espalda)
+
+> **Grupo:** Centros energéticos. Desde el 2026-11-12 los ejercicios se numeran por grupo; antes era el 05. En el resto de este documento, los números de otros ejercicios son los de antes (la equivalencia está en [README.md](README.md)).
 
 > **Estado:** aprobado por el usuario el 2026-11-08 y otra vez el 2026-11-12, con el recorrido al revés (empieza por adelante).
 > Es la versión «uno por uno», descrita en el taller. La de referencia (n.º 11 de las notas, que también bajaba por el frente y subía por la espalda) se conserva aparte.

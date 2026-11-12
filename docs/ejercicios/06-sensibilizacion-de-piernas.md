@@ -1,4 +1,6 @@
-# 08 · Sensibilización de piernas (como goma, de la pierna al pie)
+# 06 · Sensibilización de piernas (como goma, de la pierna al pie)
+
+> **Grupo:** Sensibilización. Desde el 2026-11-12 los ejercicios se numeran por grupo; antes era el 08. En el resto de este documento, los números de otros ejercicios son los de antes (la equivalencia está en [README.md](README.md)).
 
 > **Estado:** aprobado por el usuario el 2026-11-08, revisándolo uno por uno.
 > Es un ejercicio nuevo de la revisión «uno por uno», descrito en el taller como «parecido al 06, pero con las piernas»; no tiene versión de referencia.

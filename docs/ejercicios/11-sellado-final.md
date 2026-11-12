@@ -1,5 +1,7 @@
 # 11 · Sellado final (manos en el ombligo, lengua al paladar y 30 s sin respirar)
 
+> **Grupo:** Sellado. Desde el 2026-11-12 los ejercicios se numeran por grupo; este conserva su número. En el resto de este documento, los números de otros ejercicios son los de antes (la equivalencia está en [README.md](README.md)).
+
 > **Estado:** aprobado por el usuario el 2026-11-09, revisándolo uno por uno. Hubo una corrección: rehacer con Codex el dibujo de la lengua.
 > Versión refinada de «Sellado final», descrita en la revisión «uno por uno». La versión de referencia (n.º 12 de las notas, id `sellado-final`) se conserva aparte.
 > Misma nota en Foundry: espacio energia-app → «Ejercicios uno por uno · comportamiento aprobado» → «11 · Sellado final».

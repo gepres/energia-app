@@ -1,6 +1,6 @@
 import { ArrowRight, Brain, CircleHelp, Copy, Pencil, Play, Plus, Wind } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { DUDAS, EJERCICIOS } from '../contenido/ejercicios';
+import { DUDAS, EJERCICIOS, ejerciciosPorGrupo } from '../contenido/ejercicios';
 import type { Ejercicio } from '../contenido/tipos';
 import { RUTINA_POR_DEFECTO, type Rutina, alCambiarRutinas, duracionRutina, leerRutinas, minutos, nombreItem } from '../rutinas/rutinas';
 import { useProgreso } from './progreso';
@@ -121,11 +121,19 @@ export function Inicio() {
           <h2 id="titulo-uno">Ejercicios</h2>
           <span>Cada uno, paso a paso</span>
         </div>
-        <div className="tarjetas">
-          {uno.map((ej) => (
-            <Tarjeta key={ej.id} ej={ej} visto={!!progreso.vistos[ej.id]} repaso={progreso.repaso[ej.id]} />
-          ))}
-        </div>
+        {ejerciciosPorGrupo(uno).map(({ grupo, ejercicios }) => (
+          <section key={grupo.id} className="inicio-subgrupo" aria-labelledby={`grupo-${grupo.id}`}>
+            <h3 id={`grupo-${grupo.id}`} className="inicio-subgrupo-titulo">
+              {grupo.titulo}
+              {grupo.nota && <span> · {grupo.nota}</span>}
+            </h3>
+            <div className="tarjetas">
+              {ejercicios.map((ej) => (
+                <Tarjeta key={ej.id} ej={ej} visto={!!progreso.vistos[ej.id]} repaso={progreso.repaso[ej.id]} />
+              ))}
+            </div>
+          </section>
+        ))}
       </section>
       <footer className="inicio-pie">Representación simbólica de las prácticas del taller.</footer>
     </main>

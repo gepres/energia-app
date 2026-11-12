@@ -1,5 +1,7 @@
 # 01 · Cargar el ombligo
 
+> **Grupo:** Carga. Desde el 2026-11-12 los ejercicios se numeran por grupo; este conserva su número. En el resto de este documento, los números de otros ejercicios son los de antes (la equivalencia está en [README.md](README.md)).
+
 > **Estado:** aprobado por el usuario el 2026-11-07, revisándolo uno por uno.
 > Es la versión «uno por uno», descrita en el taller. La versión de referencia del set 2026 se conserva aparte (etiqueta `referencia-v1`).
 > Misma nota en Foundry: espacio energia-app → «Ejercicios uno por uno · comportamiento aprobado» → «01 · Cargar el ombligo».

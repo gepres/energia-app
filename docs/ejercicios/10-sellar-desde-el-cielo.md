@@ -1,4 +1,6 @@
-# 02 · Sellar desde el cielo
+# 10 · Sellar desde el cielo
+
+> **Grupo:** Sellado. Desde el 2026-11-12 los ejercicios se numeran por grupo; antes era el 02. En el resto de este documento, los números de otros ejercicios son los de antes (la equivalencia está en [README.md](README.md)).
 
 > **Estado:** aprobado por el usuario el 2026-11-07, revisándolo uno por uno.
 > Es la versión «uno por uno», descrita en el taller. La versión de referencia (con una sola mano y un aura) se conserva aparte (etiqueta `referencia-v1`).

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DUDAS, EJERCICIOS, ORGANOS, fraseOrgano } from '../contenido/ejercicios';
+import { DUDAS, EJERCICIOS, GRUPOS, ORGANOS, ejerciciosPorGrupo, fraseOrgano } from '../contenido/ejercicios';
 import { MeshBasicMaterial } from 'three';
 import { NEUTRA, PROP, PUNTOS, ik2, resolverEsqueleto, transformarPunto } from '../escena/cuerpo';
 import { crearManos, huecoPalma, segmentosMano } from '../escena/manos';
@@ -69,6 +69,23 @@ describe('contenido', () => {
       'QUE SUBA LA ENERGÍA − SUFICIENTE PARA SANAR MI VEJIGA Y SUS FUNCIONES',
     );
     expect(fraseOrgano(ORGANOS.find((o) => o.id === 'corazon')!)).toContain('QUE BAJE LA ENERGÍA +');
+  });
+
+  it('agrupa los 11 uno por uno (carga, sensibilización, centros, enraizar, sellado) y los numera en ese orden', () => {
+    const uno = EJERCICIOS.filter((e) => e.origen === 'revision');
+    expect(GRUPOS.map((g) => g.titulo)).toEqual(['Carga', 'Sensibilización', 'Centros energéticos', 'Enraizar', 'Sellado']);
+    expect(ejerciciosPorGrupo(uno).map(({ grupo, ejercicios }) => [grupo.id, ejercicios.map((e) => e.id)])).toEqual([
+      ['carga', ['cargar-ombligo', 'colocar-tres-puntos', 'cargar-ingles']],
+      ['sensibilizacion', ['masaje-manos', 'sensibilizacion-manos', 'sensibilizacion-piernas']],
+      ['centros', ['recorrido-por-chakras', 'activacion-centros']],
+      ['enraizar', ['enraizar-material']],
+      ['sellado', ['sellar-cielo', 'sellado-ombligo']],
+    ]);
+    // Del 01 al 11, sin huecos, en el orden de la lista (que es el de los grupos).
+    expect(uno.map((e) => e.numero)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    expect(ejerciciosPorGrupo(uno).flatMap((g) => g.ejercicios)).toEqual(uno);
+    // Los de referencia no tienen grupo.
+    expect(EJERCICIOS.filter((e) => e.origen !== 'revision' && e.grupo)).toEqual([]);
   });
 
   it('solo referencia dudas que existen', () => {
@@ -675,7 +692,7 @@ describe('Recorrido por chakras (descrito en el taller)', () => {
     expect(f.munecaI[1]).toBeLessThan(1);
   });
 
-  it('cuenta los 11 puntos en orden y la esfera se forma con las barras como en el ejercicio 03', () => {
+  it('cuenta los 11 puntos en orden y la esfera se forma con las barras como en «Colocar energía en los 3 puntos»', () => {
     let previo = 0;
     for (const paso of [2, 3]) {
       for (let i = 0; i <= 300; i++) {
@@ -2176,7 +2193,7 @@ describe('Activación de centros energéticos (uno por uno, descrito en la revis
 
   it('6 pasos: barras y centro, tres veces (pecho, garganta y frente), con las frases de referencia', () => {
     expect(sec.pasos).toHaveLength(6);
-    expect(ej.numero).toBe(10);
+    expect(ej.numero).toBe(8);
     expect(ej.origen).toBe('revision');
     expect(ej.pasos.map((p) => p.id)).toEqual(['barras-pecho', 'pecho', 'barras-garganta', 'garganta', 'barras-frente', 'frente']);
     expect(ej.pasos[1].frase).toBe(FRASES.pecho);

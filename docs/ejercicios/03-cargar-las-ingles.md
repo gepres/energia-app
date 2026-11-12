@@ -1,4 +1,6 @@
-# 07 · Cargar las ingles (cruzadas, 15 por cada mano)
+# 03 · Cargar las ingles (cruzadas, 15 por cada mano)
+
+> **Grupo:** Carga. Desde el 2026-11-12 los ejercicios se numeran por grupo; antes era el 07. En el resto de este documento, los números de otros ejercicios son los de antes (la equivalencia está en [README.md](README.md)).
 
 > **Estado:** aprobado por el usuario el 2026-11-08, revisándolo uno por uno.
 > Es un ejercicio nuevo de la revisión «uno por uno», descrito en el taller; no tiene versión de referencia.

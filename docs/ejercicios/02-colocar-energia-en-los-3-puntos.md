@@ -1,4 +1,6 @@
-# 03 · Colocar energía en los 3 puntos (ombligo, pecho y frente)
+# 02 · Colocar energía en los 3 puntos (ombligo, pecho y frente)
+
+> **Grupo:** Carga. Desde el 2026-11-12 los ejercicios se numeran por grupo; antes era el 03. En el resto de este documento, los números de otros ejercicios son los de antes (la equivalencia está en [README.md](README.md)).
 
 > **Estado:** aprobado por el usuario el 2026-11-08, revisándolo uno por uno.
 > Detalle agregado por el usuario después de aprobarlo, el mismo día: al entrar la energía, las manos quedan a 5–10 cm del cuerpo.
