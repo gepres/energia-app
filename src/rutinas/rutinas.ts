@@ -13,7 +13,8 @@ export interface Rutina {
 
 /**
  * La rutina por defecto, en el orden pedido en la revisión (2026-11-09): los ejercicios uno por
- * uno, de las manos al sellado.
+ * uno, de las manos al sellado. No sigue la numeración por grupos (carga, sensibilización…): el
+ * usuario confirmó el 2026-11-12 que la rutina se queda en este orden.
  */
 export const RUTINA_POR_DEFECTO: Rutina = {
   id: 'completa',
