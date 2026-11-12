@@ -887,7 +887,26 @@ function prepararCubrir(b: Brazo, k: number): { manos: Manos; c: V3; r: number }
   while (tau1 - tau0 > 2 * Math.PI) tau1 -= 2 * Math.PI;
   // A lo largo del antebrazo, la palma pasa de la de partida a la final: mientras sube queda
   // casi perpendicular a él, en línea con el antebrazo que se levanta (la muñeca no se dobla).
-  const palma = conTorsion(b, mk, lerp(tau0, tau1, gira), lerp(puntoV(ini.palma, m0.f), puntoV(fin.palma, m1.f), gira));
+  // Al subir, la muñeca se dobla un poco hacia atrás (unos 20°), como quien lleva una bola en la
+  // palma: la palma mira más hacia arriba y la esfera se ve encima de la mano.
+  const largo = lerp(puntoV(ini.palma, m0.f), puntoV(fin.palma, m1.f), gira) + 0.35 * sube * (1 - gira);
+  // Como el antebrazo sube cruzando hacia el centro, sin girar la palma quedaría mirando hacia
+  // afuera (revisión del 2026-11-12: «sigue mirando un poco para afuera»). Mientras sube, la
+  // mano gira hacia adentro solo lo justo para que la palma no mire nunca hacia afuera (un poco
+  // hacia el centro), y desde ahí sigue la media vuelta.
+  const afuera = (t: number) => conTorsion(b, mk, t, largo)[0] * SIGNO[b.B] + 0.05;
+  let tauSube = tau0;
+  if (afuera(tauSube) > 0) {
+    let hasta = tau0;
+    while (afuera(hasta) > 0 && hasta < tau0 + Math.PI) hasta += Math.PI / 18;
+    for (let i = 0; i < 24; i++) {
+      const medio = (tauSube + hasta) / 2;
+      if (afuera(medio) > 0) tauSube = medio;
+      else hasta = medio;
+    }
+    tauSube = hasta;
+  }
+  const palma = conTorsion(b, mk, lerp(tauSube, Math.max(tau1, tauSube), gira), largo);
   // La esfera, pegada a la palma: encima mientras sube y en la yema al terminar de girar.
   const r = R + (LUZ_PALMA + PALMA_SOBRE) * gira;
   const c = sumaV(h, escalaV(palma, r));

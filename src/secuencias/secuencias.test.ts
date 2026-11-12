@@ -1287,6 +1287,13 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
       // Ni siquiera un poco hacia afuera al subir (antes se inclinaba unos 28°).
       expect(Math.min(...g.slice(0, fin + 1)), `paso ${paso + 1}: gira hacia afuera`).toBeGreaterThan(-10);
       expect(g[fin], `paso ${paso + 1}: media vuelta hacia adentro`).toBeGreaterThan(120);
+      // Y la palma no mira hacia el costado de afuera del cuerpo mientras sube y gira.
+      const total = FASES_DELANTE[A].reduce((a, f) => a + f.dur, 0);
+      for (let i = 0; i <= 60; i++) {
+        const q = resolverEsqueleto(evaluar(sec, paso, ((FASES_DELANTE[A][0].dur * i) / 60) / total, OPCIONES_INICIALES).figuras[0].pose);
+        const n = B === 'I' ? q.palmaI.normal : q.palmaD.normal;
+        expect(n[0] * (B === 'I' ? 1 : -1), `paso ${paso + 1}: la palma mira hacia afuera`).toBeLessThan(0.02);
+      }
     }
     // En los traspasos, la mano que da vuelta la esfera también gira hacia adentro.
     for (const paso of [1, 5])
