@@ -191,10 +191,10 @@ export const EJERCICIOS: Ejercicio[] = [
     id: 'recorrido-por-chakras',
     numero: 5,
     titulo: 'Recorrido por chakras',
-    subtitulo: 'baja por la espalda, sube por el frente',
+    subtitulo: 'baja por el frente, sube por la espalda',
     origen: 'revision',
     resumen:
-      'Se une la energía de las dos barras en una esfera y se coloca sobre la coronilla. La esfera va sola: baja por detrás de la cabeza y por la espalda, pasa por debajo, entre las piernas, sale por la ingle, sube por el frente y vuelve a la coronilla, deteniéndose unos segundos en cada punto importante. Al final, las dos manos la bajan entre las palmas y ayudan a introducirla por la coronilla.',
+      'Se une la energía de las dos barras en una esfera y se coloca sobre la coronilla. La esfera va sola: empieza por adelante y baja por el frente, pasa por debajo, entre las piernas, sale por detrás, sube por la espalda y vuelve a la coronilla, deteniéndose unos segundos en cada punto importante. Al final, las dos manos la bajan entre las palmas y ayudan a introducirla por la coronilla.',
     acento: 'cielo',
     pasos: [
       {
@@ -213,21 +213,21 @@ export const EJERCICIOS: Ejercicio[] = [
         lectura: 'Las manos bajan abriéndose por los costados, como en «Sellar desde el cielo».',
       },
       {
-        id: 'espalda',
-        titulo: 'Bajar por la espalda',
+        id: 'frente',
+        titulo: 'Bajar por el frente',
         texto:
-          'La esfera baja por detrás de la cabeza y se desliza por la espalda. Se detiene unos segundos en cada punto para recalcarlo: detrás de la frente, detrás de la garganta, detrás del pecho, detrás del ombligo y detrás de la ingle.',
+          'La esfera empieza por adelante: baja por delante de la cara y se desliza por el frente. Se detiene unos segundos en cada punto para recalcarlo: el centro de la frente, la garganta, el centro del pecho, el ombligo y la ingle.',
         cantidad: { valor: 2, unidad: 'segundos en cada punto', pregunta: '¿Cuántos segundos se detiene la esfera en cada punto del recorrido?' },
         aclaracion:
-          'Descrito en el taller: baja desde la parte de atrás de la cabeza y se detiene en cada punto importante (el apunte lo tenía al revés: bajar por el frente y subir por la espalda).',
+          'En la revisión: la esfera empieza a recorrer por la parte de adelante (antes bajaba por la espalda; el apunte también la bajaba por el frente). Descrito en el taller: se detiene en cada punto importante.',
       },
       {
-        id: 'frente',
-        titulo: 'Por abajo y subir por el frente',
+        id: 'espalda',
+        titulo: 'Por abajo y subir por la espalda',
         texto:
-          'Pasa por debajo y se detiene en el centro de abajo, entre las piernas, en la misma línea que la coronilla. Sale por delante y se detiene en la ingle. Después sube y se detiene en el ombligo, el centro del pecho, la garganta y el centro de la frente.',
+          'Pasa por debajo y se detiene en el centro de abajo, entre las piernas, en la misma línea que la coronilla. Sale por detrás y se detiene a la altura de la ingle. Después sube por la espalda y se detiene detrás del ombligo, detrás del pecho, detrás de la garganta y detrás de la frente.',
         aclaracion:
-          'Descrito en el taller: también se detiene en el centro de abajo y da la vuelta por el frente; adelante se detiene en la ingle, el ombligo, el pecho, la garganta y la frente.',
+          'Descrito en el taller: también se detiene en el centro de abajo y da la vuelta por detrás; atrás se detiene a la altura de la ingle, del ombligo, del pecho, de la garganta y de la frente.',
         lectura: 'Como las piernas están juntas, en el centro de abajo la esfera se ve a través de ellas.',
       },
       {
@@ -275,11 +275,11 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'derecho-delante',
         titulo: 'Brazo derecho: la izquierda cubre los dedos',
         texto:
-          'Empieza la mano izquierda con la mano derecha. La derecha se extiende con la palma hacia arriba; la izquierda da vuelta la esfera sin soltarla y, con forma de agarrar y la energía de la esfera dentro, cubre los dedos de la derecha uno por uno, lentamente y sin tocarlos: meñique, anular, medio, índice y pulgar. En cada dedo, ese dedo se separa un poco de los demás, la yema queda en el centro de la esfera y la mano hace goma: sube y baja, y la esfera se estira con ella. Después acompaña a la esfera por delante del brazo, de la muñeca al codo: la distancia dividida en 4, y en cada punto (muñeca, ¼, ½, ¾ y codo) hace goma: la mano sube, con la muñeca un poco doblada y los dedos que se cierran como tirando de la goma, y baja mientras sigue al punto siguiente, sin detenerse, como una ola.',
+          'Empieza la mano izquierda con la mano derecha. La derecha se extiende al frente, levantada casi a la altura del pecho, con la palma hacia arriba; la izquierda da vuelta la esfera sin soltarla y, con forma de agarrar y la energía de la esfera dentro, cubre los dedos de la derecha uno por uno, lentamente y sin tocarlos: meñique, anular, medio, índice y pulgar. En cada dedo, ese dedo se separa un poco de los demás, la yema queda en el centro de la esfera y la mano hace goma: sube y baja, y la esfera se estira con ella. Después acompaña a la esfera por delante del brazo, de la muñeca al codo: la distancia dividida en 4, y en cada punto (muñeca, ¼, ½, ¾ y codo) hace goma: la mano sube, con la muñeca un poco doblada y los dedos que se cierran como tirando de la goma, y baja mientras sigue al punto siguiente, sin detenerse, como una ola.',
         aclaracion:
           'Descrito en el taller: empieza la mano izquierda tocando la mano derecha, primero los dedos: la mano izquierda, un poco más cerrada y con la energía de la esfera dentro, intenta cubrir los dedos de la otra mano uno por uno, de forma lenta. En la revisión: del meñique al pulgar, sin tocarlos, la mano con forma de agarrar algo, haciendo goma en cada dedo, con la yema del dedo en el centro de la esfera, la esfera de su tamaño de siempre y ese dedo un poco separado de los demás. Después, al palpar a distancia, la mano acompaña a la esfera y hace como goma en los puntos del brazo; en la revisión: de la muñeca al codo, la distancia dividida en 4, con goma en cada punto, recorridos de forma continua (unos 2 s por punto).',
         lectura:
-          'Para cubrir los dedos, la izquierda da vuelta la esfera con la palma hacia abajo. Para separar el dedo, se levanta un poco desde el nudillo y sus vecinos se abren hacia los costados; así la mano que agarra no los toca.',
+          'El brazo que recibe la energía no queda echado: se levanta casi a la altura del pecho, con el antebrazo casi horizontal (corregido en la revisión). Para cubrir los dedos, la izquierda da vuelta la esfera con la palma hacia abajo. Para separar el dedo, se levanta un poco desde el nudillo y sus vecinos se abren hacia los costados; así la mano que agarra no los toca.',
       },
       {
         id: 'derecho-atras',
@@ -314,7 +314,7 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'izquierdo-delante',
         titulo: 'Brazo izquierdo: la derecha cubre los dedos',
         texto:
-          'La izquierda se extiende con la palma hacia arriba; la derecha da vuelta la esfera sin soltarla y, con forma de agarrar, cubre los dedos de la izquierda uno por uno, lentamente y sin tocarlos, con cada dedo un poco separado de los demás, la yema en el centro de la esfera y haciendo goma en cada uno. Después acompaña a la esfera por delante del brazo izquierdo, de la muñeca al codo en 4 tramos iguales, con goma en cada punto, de forma continua.',
+          'La izquierda se extiende al frente, levantada casi a la altura del pecho, con la palma hacia arriba; la derecha da vuelta la esfera sin soltarla y, con forma de agarrar, cubre los dedos de la izquierda uno por uno, lentamente y sin tocarlos, con cada dedo un poco separado de los demás, la yema en el centro de la esfera y haciendo goma en cada uno. Después acompaña a la esfera por delante del brazo izquierdo, de la muñeca al codo en 4 tramos iguales, con goma en cada punto, de forma continua.',
         aclaracion: 'Descrito en el taller: después se sigue con la otra mano.',
       },
       {

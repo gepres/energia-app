@@ -563,31 +563,34 @@ describe('Recorrido por chakras (descrito en el taller)', () => {
   const { PARADAS, TRAMOS, PAUSA, ARRIBA, CURVA, puntoEnCurva, enRecorrido, atraves, DUR_FINAL, SEG_FINAL, INICIO_MANOS } = chakrasInterno;
   const sec = SECUENCIAS['recorrido-por-chakras'];
 
-  it('baja por la espalda, pasa por el centro de abajo y sube por el frente, en el orden del taller', () => {
+  it('empieza por adelante: baja por el frente, pasa por el centro de abajo y sube por la espalda (revisión)', () => {
     expect(PARADAS.map((p) => p.nombre)).toEqual([
-      'detrás de la frente',
-      'detrás de la garganta',
-      'detrás del pecho',
-      'detrás del ombligo',
-      'detrás de la ingle',
-      'centro de abajo',
-      'ingle',
-      'ombligo',
-      'centro del pecho',
-      'garganta',
       'centro de la frente',
+      'garganta',
+      'centro del pecho',
+      'ombligo',
+      'ingle',
+      'centro de abajo',
+      'detrás de la ingle',
+      'detrás del ombligo',
+      'detrás del pecho',
+      'detrás de la garganta',
+      'detrás de la frente',
     ]);
-    // Las cinco primeras por detrás (bajando), el centro de abajo y las de adelante, subiendo.
-    const atras = PARADAS.slice(0, 5);
+    // Las cinco primeras por adelante (bajando), el centro de abajo y las de atrás, subiendo.
+    const adelante = PARADAS.slice(0, 5);
     const abajo = PARADAS[5];
-    const adelante = PARADAS.slice(6);
-    for (const p of atras) expect(p.pos[2]).toBeLessThan(0);
+    const atras = PARADAS.slice(6);
     for (const p of adelante) expect(p.pos[2]).toBeGreaterThan(0);
-    for (let i = 1; i < atras.length; i++) expect(atras[i].pos[1]).toBeLessThan(atras[i - 1].pos[1]);
-    for (let i = 1; i < adelante.length; i++) expect(adelante[i].pos[1]).toBeGreaterThan(adelante[i - 1].pos[1]);
+    for (const p of atras) expect(p.pos[2]).toBeLessThan(0);
+    for (let i = 1; i < adelante.length; i++) expect(adelante[i].pos[1]).toBeLessThan(adelante[i - 1].pos[1]);
+    for (let i = 1; i < atras.length; i++) expect(atras[i].pos[1]).toBeGreaterThan(atras[i - 1].pos[1]);
     // Las de atrás a la altura de las de adelante: la frente y la ingle.
-    expect(atras[0].pos[1]).toBeCloseTo(adelante[adelante.length - 1].pos[1], 6);
-    expect(atras[4].pos[1]).toBeCloseTo(adelante[0].pos[1], 6);
+    expect(adelante[0].pos[1]).toBeCloseTo(atras[atras.length - 1].pos[1], 6);
+    expect(adelante[4].pos[1]).toBeCloseTo(atras[0].pos[1], 6);
+    // Sale de arriba de la coronilla hacia adelante (por delante de la cara) y vuelve por detrás.
+    expect(puntoEnCurva(0.05)[2]).toBeGreaterThan(0);
+    expect(puntoEnCurva(chakrasInterno.LARGO_TOTAL - 0.05)[2]).toBeLessThan(0);
     // El centro de abajo: en la misma vertical que la coronilla, debajo del cuerpo, y se ve a través de las piernas.
     expect(abajo.pos[0]).toBe(0);
     expect(abajo.pos[2]).toBe(0);
@@ -726,6 +729,35 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
         const q = resolverEsqueleto(p);
         expect(dist(q.munecaD, p.manoD), `paso ${paso + 1}, derecha`).toBeLessThan(0.003);
         expect(dist(q.munecaI, p.manoI), `paso ${paso + 1}, izquierda`).toBeLessThan(0.003);
+      }
+    }
+  });
+
+  it('el brazo que recibe la energía no está echado: levantado casi a la altura del pecho, con el antebrazo casi horizontal (revisión)', () => {
+    const pecho = PUNTOS.corazon[1];
+    for (const [pasos, A] of [
+      [[2, 3], PRIMERO],
+      [[6, 7], SEGUNDO],
+    ] as const) {
+      for (const paso of pasos) {
+        const fases = paso === pasos[0] ? FASES_DELANTE[A] : FASES_ATRAS[A];
+        const total = fases.reduce((a, f) => a + f.dur, 0);
+        // Desde que termina de extenderse hasta que empieza a soltarse (la absorción).
+        const desde = paso === pasos[0] ? fases[0].dur / total : 0;
+        const hasta = paso === pasos[0] ? 1 : fases.slice(0, -1).reduce((a, f) => a + f.dur, 0) / total;
+        for (let i = 0; i <= 60; i++) {
+          const t = desde + ((hasta - desde) * i) / 60;
+          const q = resolverEsqueleto(evaluar(sec, paso, t, OPCIONES_INICIALES).figuras[0].pose);
+          const W = A === 'I' ? q.munecaI : q.munecaD;
+          const E = A === 'I' ? q.codoI : q.codoD;
+          // La muñeca y el codo, casi a la altura del pecho (antes, a la de la cintura: 1,20 y 1,17).
+          expect(W[1], `paso ${paso + 1}, muñeca`).toBeGreaterThan(pecho - 0.04);
+          expect(W[1], `paso ${paso + 1}, muñeca`).toBeLessThan(pecho);
+          expect(E[1], `paso ${paso + 1}, codo`).toBeGreaterThan(pecho - 0.05);
+          // El antebrazo, casi horizontal: menos de 8° de inclinación.
+          const ante = restaV(W as [number, number, number], E as [number, number, number]);
+          expect(Math.abs(Math.asin(ante[1] / largoV(ante))), `paso ${paso + 1}, antebrazo`).toBeLessThan((8 * Math.PI) / 180);
+        }
       }
     }
   });

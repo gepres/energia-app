@@ -275,18 +275,26 @@ const PHI_CUBRIR = -15;
 /** Codo de la mano que llega al hombro del otro lado: bien adelante (así el brazo cruza por delante del pecho). */
 const CODO_HOMBRO: V3 = normV([0, -0.15, 1]);
 
+/**
+ * Muñeca del brazo que se palpa: casi a la altura del pecho (el centro del pecho está a
+ * 1,30 m), un poco adelantada para que el antebrazo quede casi horizontal.
+ */
+export const MUNECA_PALPADO = (s: number): V3 => [s * 0.06, 1.28, 0.38];
+
 function brazo(A: Lado): Brazo {
   const s = SIGNO[A];
   const B = OTRO[A];
-  // El antebrazo cruza por delante del cuerpo, a la altura de la cintura: se ve a lo largo.
+  // El antebrazo cruza por delante del cuerpo, levantado casi a la altura del pecho y casi
+  // horizontal (revisión del 2026-11-12: no echado a la altura de la cintura). El codo sube
+  // con él, hacia afuera, y el brazo queda adelantado, como ofreciéndolo.
   const dedos = normV([-s * 0.72, 0, 0.69]);
   const medial = ortogonal([-s, 0, 0], dedos);
   const palpado = (giro: number): Mano => ({
-    mano: [s * 0.05, 1.2, 0.34],
+    mano: MUNECA_PALPADO(s),
     palma: normV(sumaV(escalaV(ARRIBA, Math.cos(Math.PI * giro)), escalaV(medial, Math.sin(Math.PI * giro)))),
     dedos,
     cierre: 0.1,
-    codo: normV([s * 0.6, -0.6, -0.3]),
+    codo: normV([s * 0.9, -0.35, -0.1]),
   });
   const esq = resolverEsqueleto(armar(manos(A, palpado(0), reposo(B))));
   const W = A === 'D' ? esq.munecaD : esq.munecaI;
@@ -330,8 +338,14 @@ function brazo(A: Lado): Brazo {
     return p(lerpV(E, W, t), arribaAnte, grosor(t));
   });
   // Del codo al hombro, la mano pasa por delante del brazo (por el pliegue del codo), sin rozarlo.
-  const nBrazo = ortogonal(normV([-s * 0.2, 0.3, 1]), normV(restaV(H, E)));
+  const dirBrazo = normV(restaV(H, E));
+  const nBrazo = ortogonal(normV([-s * 0.2, 0.3, 1]), dirBrazo);
   const nPliegue = normV(sumaV(arribaAnte, nBrazo));
+  // El hombro, por delante: con el brazo levantado al frente, el brazo mismo ocupa el frente
+  // del hombro, así que la mano llega por delante y un poco por arriba, a 65° del brazo (más
+  // arriba, el antebrazo que recorre pasaría por delante del mentón; más abajo, rozaría el brazo).
+  const ANG_HOMBRO = (65 * Math.PI) / 180;
+  const nHombro = normV(sumaV(escalaV(dirBrazo, -Math.cos(ANG_HOMBRO)), escalaV(ortogonal(normV([s * 0.35, 0.3, 1]), dirBrazo), Math.sin(ANG_HOMBRO))));
   // El recorrido, cubriendo el brazo y la mano sin tocarlos. Sobre la mano y el antebrazo, los dedos
   // de la mano que recorre cruzan el brazo; sobre el brazo y el hombro, la mano gira y sube por
   // delante, con los dedos hacia arriba: llega al hombro por delante, así el otro brazo pasa por
@@ -350,7 +364,7 @@ function brazo(A: Lado): Brazo {
     d(puntos.codo, cruzado),
     d(p(E, nPliegue, 0.036 + DIST * 0.35), normV(sumaV(cruzado, haciaArriba)), normV(sumaV(codoCerca, codoLejos))),
     d(p(lerpV(E, H, 0.5), nBrazo, 0.046), haciaArriba, codoLejos),
-    d(p(H, normV([s * 0.35, 0.3, 1]), 0.055), haciaArriba, codoLejos),
+    d(p(H, nHombro, 0.055), haciaArriba, codoLejos),
   ];
   return { A, B, s, palpado, puntos, linea, cubrir, recorrido };
 }
@@ -923,8 +937,9 @@ function atras(e: Estado, A: Lado, seg: number) {
 // ── Cámaras ─────────────────────────────────────────────────────────────
 
 const CAM_MANOS = encuadre([0, 1.2, 0.32], 0.5, 0.25, 0.22);
-const camDelante = (A: Lado): Camara => encuadre([SIGNO[A] * 0.07, 1.25, 0.27], 0.56, SIGNO[A] * 0.25, 0.22);
-const camHombro = (A: Lado): Camara => encuadre([SIGNO[A] * 0.12, 1.32, 0.15], 0.85, SIGNO[A] * 0.6, 0.2);
+// Con el brazo palpado casi a la altura del pecho, las tomas lo siguen 8 cm más arriba y un poco más adelante.
+const camDelante = (A: Lado): Camara => encuadre([SIGNO[A] * 0.08, 1.33, 0.31], 0.56, SIGNO[A] * 0.25, 0.22);
+const camHombro = (A: Lado): Camara => encuadre([SIGNO[A] * 0.12, 1.37, 0.17], 0.85, SIGNO[A] * 0.6, 0.2);
 /** De cerca y desde el lado del pulgar, un poco por encima: se ve la mano ahuecada sobre cada dedo, sin tocarlo. */
 const camDedos = (A: Lado): Camara => encuadre(sumaV(BRAZOS[A].puntos.dedos.piel, [0, 0.02, 0]), 0.36, SIGNO[A] * 0.77, 0.22);
 
