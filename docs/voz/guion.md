@@ -3,20 +3,25 @@
 > Generado por `npm run voz` a partir de los pasos de la app (`src/contenido/ejercicios.ts`). No editar a mano:
 > para cambiar lo que dice la voz se cambia el texto del paso y se vuelve a generar.
 
-**Total:** 14.051 caracteres, unos 18 minutos de voz.
-Costo por API con los modelos multilingües: unos 1.12 USD por pasada completa (1 crédito por carácter en la web).
+**Total:** 14.075 caracteres, unos 18 minutos de voz.
+Costo por API con los modelos multilingües: unos 1.13 USD por pasada completa (1 crédito por carácter en la web).
 
-**Lecturas para confirmar** (cómo dice la voz algunos símbolos):
-- «energía −» se dice «energía negativa».
-- «energía +» se dice «energía positiva».
+**Cómo dice la voz algunos símbolos:**
+- «90°» se dice «90 grados».
+- «5–10 cm» se dice «a una distancia de 5 a 10 centímetros».
+- «5 s» se dice «5 segundos».
+- «¼, ½, ¾» se dice «un cuarto, la mitad, tres cuartos».
+- «izquierda → derecha» se dice «izquierda, derecha».
+- «energía −» se dice «energía negativa» (confirmado por el usuario).
+- «energía +» se dice «energía positiva» (confirmado por el usuario).
 
 ## 01 · Cargar el ombligo
 
-411 caracteres, unos 32 s de voz.
+417 caracteres, unos 32 s de voz.
 
-**Paso 1 · Brazos al frente** (204 caracteres, unos 16 s)
+**Paso 1 · Brazos al frente** (210 caracteres, unos 16 s)
 
-> Cargar el ombligo. Paso 1. Brazos al frente. Estirar bien los brazos al frente, a la altura de los hombros (90°), y agarrar la energía que está a la altura de las manos, como barras de energía verticales.
+> Cargar el ombligo. Paso 1. Brazos al frente. Estirar bien los brazos al frente, a la altura de los hombros (90 grados), y agarrar la energía que está a la altura de las manos, como barras de energía verticales.
 
 **Paso 2 · Cargas intercaladas · 15 por mano** (207 caracteres, unos 16 s)
 
@@ -136,11 +141,11 @@ Costo por API con los modelos multilingües: unos 1.12 USD por pasada completa (
 
 ## 07 · Cargar las ingles
 
-517 caracteres, unos 40 s de voz.
+523 caracteres, unos 40 s de voz.
 
-**Paso 1 · Brazos al frente** (204 caracteres, unos 16 s)
+**Paso 1 · Brazos al frente** (210 caracteres, unos 16 s)
 
-> Cargar las ingles. Paso 1. Brazos al frente. Estirar bien los brazos al frente, a la altura de los hombros (90°), y agarrar la energía que está a la altura de las manos, como barras de energía verticales.
+> Cargar las ingles. Paso 1. Brazos al frente. Estirar bien los brazos al frente, a la altura de los hombros (90 grados), y agarrar la energía que está a la altura de las manos, como barras de energía verticales.
 
 **Paso 2 · Cargas cruzadas · 15 por mano** (313 caracteres, unos 24 s)
 
@@ -148,7 +153,7 @@ Costo por API con los modelos multilingües: unos 1.12 USD por pasada completa (
 
 ## 08 · Sensibilización de piernas
 
-3004 caracteres, unos 231 s de voz.
+3016 caracteres, unos 232 s de voz.
 
 **Paso 1 · Cargar de las barras y juntar las dos esferas** (370 caracteres, unos 28 s)
 
@@ -158,9 +163,9 @@ Costo por API con los modelos multilingües: unos 1.12 USD por pasada completa (
 
 > Paso 2. De mano en mano, lentamente y como goma. Pasar la esfera de una mano a la otra lentamente, sin soltarla nunca, con una mano arriba y la otra abajo: las dos manos van al medio al mismo tiempo, la que la tiene la da vuelta y la pone arriba y la otra se pone abajo y la recibe; juegan con ella como si fuera de goma, y recién entonces la de arriba la suelta: la esfera queda en la mano de abajo.
 
-**Paso 3 · Pierna derecha: goma en 6 puntos, de ida y vuelta** (654 caracteres, unos 50 s)
+**Paso 3 · Pierna derecha: goma en 6 puntos, de ida y vuelta** (660 caracteres, unos 51 s)
 
-> Paso 3. Pierna derecha: goma en 6 puntos, de ida y vuelta. La pierna derecha da un paso y queda estirada hacia adelante, a 45° y un poco abierta hacia la derecha, con el pie estirado, pisando el piso; la otra rodilla se dobla. La mano izquierda da vuelta la esfera sin soltarla y la lleva a la pierna derecha. Pasa por la pierna en 6 puntos (arriba del muslo, mitad del muslo, rodilla, mitad de la canilla, tobillo y empeine, la parte alta del pie) y en cada uno juega como goma: la mano sube y baja, y la esfera se estira con ella. Después regresa de la misma forma, del empeine al muslo. A medida que la mano baja, el cuerpo se inclina hacia la pierna.
+> Paso 3. Pierna derecha: goma en 6 puntos, de ida y vuelta. La pierna derecha da un paso y queda estirada hacia adelante, a 45 grados y un poco abierta hacia la derecha, con el pie estirado, pisando el piso; la otra rodilla se dobla. La mano izquierda da vuelta la esfera sin soltarla y la lleva a la pierna derecha. Pasa por la pierna en 6 puntos (arriba del muslo, mitad del muslo, rodilla, mitad de la canilla, tobillo y empeine, la parte alta del pie) y en cada uno juega como goma: la mano sube y baja, y la esfera se estira con ella. Después regresa de la misma forma, del empeine al muslo. A medida que la mano baja, el cuerpo se inclina hacia la pierna.
 
 **Paso 4 · Pierna derecha: a 5–10 cm, ida y vuelta, y la esfera entra en el muslo** (417 caracteres, unos 32 s)
 
@@ -174,9 +179,9 @@ Costo por API con los modelos multilingües: unos 1.12 USD por pasada completa (
 
 > Paso 6. De mano en mano, otra vez. Otra vez de mano en mano, lentamente y sin soltarla, con una mano arriba y la otra abajo y jugando como goma: izquierda, derecha, izquierda, derecha. Queda en la derecha, que es la que pasa por la pierna izquierda.
 
-**Paso 7 · Pierna izquierda: goma en 6 puntos, de ida y vuelta** (326 caracteres, unos 25 s)
+**Paso 7 · Pierna izquierda: goma en 6 puntos, de ida y vuelta** (332 caracteres, unos 26 s)
 
-> Paso 7. Pierna izquierda: goma en 6 puntos, de ida y vuelta. La pierna izquierda se estira hacia adelante a 45°, un poco abierta hacia la izquierda, pisando el piso, y la mano derecha lleva la esfera por los mismos 6 puntos, jugando como goma en cada uno, hasta el empeine y de vuelta al muslo, inclinándose a medida que baja.
+> Paso 7. Pierna izquierda: goma en 6 puntos, de ida y vuelta. La pierna izquierda se estira hacia adelante a 45 grados, un poco abierta hacia la izquierda, pisando el piso, y la mano derecha lleva la esfera por los mismos 6 puntos, jugando como goma en cada uno, hasta el empeine y de vuelta al muslo, inclinándose a medida que baja.
 
 **Paso 8 · Pierna izquierda: a 5–10 cm y la esfera entra en el muslo** (307 caracteres, unos 24 s)
 

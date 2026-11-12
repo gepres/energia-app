@@ -32,8 +32,8 @@
   "cargar-ombligo/brazos-barras": {
     "audio": "voz/cargar-ombligo/brazos-barras.mp3",
     "segundos": 19.09,
-    "firma": "eb43ef530d3a",
-    "caracteres": 204
+    "firma": "8a56823678d0",
+    "caracteres": 210
   },
   "cargar-ombligo/cargas-intercaladas": {
     "audio": "voz/cargar-ombligo/cargas-intercaladas.mp3",
@@ -52,5 +52,251 @@
     "segundos": 22.52,
     "firma": "4b1b885e88c2",
     "caracteres": 286
+  },
+  "colocar-tres-puntos/agarrar-barras": {
+    "audio": "voz/colocar-tres-puntos/agarrar-barras.mp3",
+    "segundos": 13.93,
+    "firma": "2c7fe2e7c05c",
+    "caracteres": 134
+  },
+  "colocar-tres-puntos/unir-ombligo": {
+    "audio": "voz/colocar-tres-puntos/unir-ombligo.mp3",
+    "segundos": 28.98,
+    "firma": "22e120ecae57",
+    "caracteres": 347
+  },
+  "colocar-tres-puntos/unir-pecho": {
+    "audio": "voz/colocar-tres-puntos/unir-pecho.mp3",
+    "segundos": 13.89,
+    "firma": "48f369acab3f",
+    "caracteres": 162
+  },
+  "colocar-tres-puntos/unir-frente": {
+    "audio": "voz/colocar-tres-puntos/unir-frente.mp3",
+    "segundos": 15.56,
+    "firma": "b547bc7f1d1d",
+    "caracteres": 157
+  },
+  "masaje-manos/palma-izquierda": {
+    "audio": "voz/masaje-manos/palma-izquierda.mp3",
+    "segundos": 16.53,
+    "firma": "edfaf77dca91",
+    "caracteres": 175
+  },
+  "masaje-manos/dedos-izquierda": {
+    "audio": "voz/masaje-manos/dedos-izquierda.mp3",
+    "segundos": 20.99,
+    "firma": "fb337b9cc0dd",
+    "caracteres": 249
+  },
+  "masaje-manos/palma-derecha": {
+    "audio": "voz/masaje-manos/palma-derecha.mp3",
+    "segundos": 14.26,
+    "firma": "eddf5b46734e",
+    "caracteres": 162
+  },
+  "masaje-manos/dedos-derecha": {
+    "audio": "voz/masaje-manos/dedos-derecha.mp3",
+    "segundos": 15.56,
+    "firma": "23b471ca196d",
+    "caracteres": 160
+  },
+  "sensibilizacion-manos/tomar-esferas": {
+    "audio": "voz/sensibilizacion-manos/tomar-esferas.mp3",
+    "segundos": 30.23,
+    "firma": "5331c75da7e0",
+    "caracteres": 368
+  },
+  "sensibilizacion-manos/mano-a-mano": {
+    "audio": "voz/sensibilizacion-manos/mano-a-mano.mp3",
+    "segundos": 36.13,
+    "firma": "3b2da709cef3",
+    "caracteres": 466
+  },
+  "sensibilizacion-manos/derecho-delante": {
+    "audio": "voz/sensibilizacion-manos/derecho-delante.mp3",
+    "segundos": 76.39,
+    "firma": "3a0aa6cf3ac8",
+    "caracteres": 959
+  },
+  "sensibilizacion-manos/derecho-atras": {
+    "audio": "voz/sensibilizacion-manos/derecho-atras.mp3",
+    "segundos": 42.77,
+    "firma": "f79d0d4b8dc1",
+    "caracteres": 526
+  },
+  "sensibilizacion-manos/otra-mano-barras": {
+    "audio": "voz/sensibilizacion-manos/otra-mano-barras.mp3",
+    "segundos": 22.2,
+    "firma": "40de35f7a833",
+    "caracteres": 279
+  },
+  "sensibilizacion-manos/otra-mano-pasar": {
+    "audio": "voz/sensibilizacion-manos/otra-mano-pasar.mp3",
+    "segundos": 19.97,
+    "firma": "965d93c63ea4",
+    "caracteres": 252
+  },
+  "sensibilizacion-manos/izquierdo-delante": {
+    "audio": "voz/sensibilizacion-manos/izquierdo-delante.mp3",
+    "segundos": 48.21,
+    "firma": "65e986189740",
+    "caracteres": 578
+  },
+  "sensibilizacion-manos/izquierdo-atras": {
+    "audio": "voz/sensibilizacion-manos/izquierdo-atras.mp3",
+    "segundos": 30.7,
+    "firma": "4a5a73e5f59a",
+    "caracteres": 390
+  },
+  "cargar-ingles/brazos-barras": {
+    "audio": "voz/cargar-ingles/brazos-barras.mp3",
+    "segundos": 19.55,
+    "firma": "17d5fdb4c01c",
+    "caracteres": 210
+  },
+  "cargar-ingles/cargas-cruzadas": {
+    "audio": "voz/cargar-ingles/cargas-cruzadas.mp3",
+    "segundos": 26.98,
+    "firma": "d9f2a36a21f5",
+    "caracteres": 313
+  },
+  "sensibilizacion-piernas/tomar-esferas": {
+    "audio": "voz/sensibilizacion-piernas/tomar-esferas.mp3",
+    "segundos": 30.19,
+    "firma": "26d857f1edb4",
+    "caracteres": 370
+  },
+  "sensibilizacion-piernas/mano-a-mano": {
+    "audio": "voz/sensibilizacion-piernas/mano-a-mano.mp3",
+    "segundos": 32.6,
+    "firma": "ddd18fe7f3be",
+    "caracteres": 400
+  },
+  "sensibilizacion-piernas/derecha-puntos": {
+    "audio": "voz/sensibilizacion-piernas/derecha-puntos.mp3",
+    "segundos": 52.66,
+    "firma": "c22bbf4f7d58",
+    "caracteres": 660
+  },
+  "sensibilizacion-piernas/derecha-recorrido": {
+    "audio": "voz/sensibilizacion-piernas/derecha-recorrido.mp3",
+    "segundos": 34.27,
+    "firma": "f992891c2cb9",
+    "caracteres": 417
+  },
+  "sensibilizacion-piernas/otra-pierna-barras": {
+    "audio": "voz/sensibilizacion-piernas/otra-pierna-barras.mp3",
+    "segundos": 21.83,
+    "firma": "14be7575d00a",
+    "caracteres": 281
+  },
+  "sensibilizacion-piernas/otra-pierna-pasar": {
+    "audio": "voz/sensibilizacion-piernas/otra-pierna-pasar.mp3",
+    "segundos": 21.04,
+    "firma": "fe64c3101aac",
+    "caracteres": 249
+  },
+  "sensibilizacion-piernas/izquierda-puntos": {
+    "audio": "voz/sensibilizacion-piernas/izquierda-puntos.mp3",
+    "segundos": 28.33,
+    "firma": "6758aca89c7a",
+    "caracteres": 332
+  },
+  "sensibilizacion-piernas/izquierda-recorrido": {
+    "audio": "voz/sensibilizacion-piernas/izquierda-recorrido.mp3",
+    "segundos": 23.96,
+    "firma": "6518f884257d",
+    "caracteres": 307
+  },
+  "enraizar-material/abajo-tierra": {
+    "audio": "voz/enraizar-material/abajo-tierra.mp3",
+    "segundos": 20.39,
+    "firma": "52468043dda0",
+    "caracteres": 272
+  },
+  "enraizar-material/arriba-cielo": {
+    "audio": "voz/enraizar-material/arriba-cielo.mp3",
+    "segundos": 18.67,
+    "firma": "08cf7dc4889d",
+    "caracteres": 230
+  },
+  "enraizar-material/dona": {
+    "audio": "voz/enraizar-material/dona.mp3",
+    "segundos": 11.7,
+    "firma": "7a04fcd3db62",
+    "caracteres": 121
+  },
+  "enraizar-material/tubo-piso": {
+    "audio": "voz/enraizar-material/tubo-piso.mp3",
+    "segundos": 25.17,
+    "firma": "5575c074640f",
+    "caracteres": 316
+  },
+  "enraizar-material/decir-conectate": {
+    "audio": "voz/enraizar-material/decir-conectate.mp3",
+    "segundos": 11.19,
+    "firma": "7ed3a9872ed6",
+    "caracteres": 85
+  },
+  "activacion-centros/barras-pecho": {
+    "audio": "voz/activacion-centros/barras-pecho.mp3",
+    "segundos": 18.86,
+    "firma": "0ab9f28311fb",
+    "caracteres": 213
+  },
+  "activacion-centros/pecho": {
+    "audio": "voz/activacion-centros/pecho.mp3",
+    "segundos": 32.79,
+    "firma": "534f6d601bbc",
+    "caracteres": 370
+  },
+  "activacion-centros/barras-garganta": {
+    "audio": "voz/activacion-centros/barras-garganta.mp3",
+    "segundos": 13.47,
+    "firma": "ffa3f5fa04cb",
+    "caracteres": 140
+  },
+  "activacion-centros/garganta": {
+    "audio": "voz/activacion-centros/garganta.mp3",
+    "segundos": 28.75,
+    "firma": "d12de27f88ec",
+    "caracteres": 344
+  },
+  "activacion-centros/barras-frente": {
+    "audio": "voz/activacion-centros/barras-frente.mp3",
+    "segundos": 12.82,
+    "firma": "6f0a658ce627",
+    "caracteres": 140
+  },
+  "activacion-centros/frente": {
+    "audio": "voz/activacion-centros/frente.mp3",
+    "segundos": 26.38,
+    "firma": "7f6af1b8f301",
+    "caracteres": 329
+  },
+  "sellado-ombligo/manos-ombligo": {
+    "audio": "voz/sellado-ombligo/manos-ombligo.mp3",
+    "segundos": 15.98,
+    "firma": "569de2bfbdb6",
+    "caracteres": 168
+  },
+  "sellado-ombligo/lengua-paladar": {
+    "audio": "voz/sellado-ombligo/lengua-paladar.mp3",
+    "segundos": 6.69,
+    "firma": "3ef1d954f54d",
+    "caracteres": 67
+  },
+  "sellado-ombligo/aguantar-30": {
+    "audio": "voz/sellado-ombligo/aguantar-30.mp3",
+    "segundos": 8.96,
+    "firma": "075ad1428b59",
+    "caracteres": 85
+  },
+  "sellado-ombligo/manos-costados": {
+    "audio": "voz/sellado-ombligo/manos-costados.mp3",
+    "segundos": 7.9,
+    "firma": "c8077ffedd6e",
+    "caracteres": 72
   }
 }

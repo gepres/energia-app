@@ -53,6 +53,9 @@ const LECTURAS = [
   [/(\d+(?:,\d+)?)\s*s\b/g, '$1 segundos'],
   [/\b1\s*m\b/g, 'un metro'],
   [/(\d+(?:,\d+)?)\s*m\b/g, '$1 metros'],
+  // Ángulos: «a 90°» se decía mal (corregido por el usuario el 2026-11-12).
+  [/\b1\s*°/g, 'un grado'],
+  [/(\d+)\s*°/g, '$1 grados'],
   // Fracciones de la línea del brazo.
   [/¼/g, 'un cuarto'],
   [/½/g, 'la mitad'],
@@ -61,15 +64,20 @@ const LECTURAS = [
   [/\s*→\s*/g, ', '],
   [/\s+·\s+/g, ', '],
   [/n\.º\s*/g, 'número '],
-  // Cargas de energía: − de la tierra, + del cielo (lectura para confirmar).
+  // Cargas de energía: − de la tierra, + del cielo (confirmado por el usuario el 2026-11-12).
   [/energía\s*−/g, 'energía negativa'],
   [/energía\s*\+/g, 'energía positiva'],
 ];
 
-/** Lecturas que eligió el script y conviene que confirme el usuario (se listan en el guion). */
-const PARA_CONFIRMAR = [
-  ['energía −', '«energía negativa»'],
-  ['energía +', '«energía positiva»'],
+/** Cómo se dicen algunos símbolos (se listan en el guion). */
+const LECTURAS_DE_SIMBOLOS = [
+  ['90°', '«90 grados»'],
+  ['5–10 cm', '«a una distancia de 5 a 10 centímetros»'],
+  ['5 s', '«5 segundos»'],
+  ['¼, ½, ¾', '«un cuarto, la mitad, tres cuartos»'],
+  ['izquierda → derecha', '«izquierda, derecha»'],
+  ['energía −', '«energía negativa» (confirmado por el usuario)'],
+  ['energía +', '«energía positiva» (confirmado por el usuario)'],
 ];
 
 function paraVoz(s) {
@@ -114,8 +122,8 @@ function escribirGuion() {
     `**Total:** ${total.toLocaleString('es')} caracteres, unos ${Math.round(total / CARACTERES_POR_SEGUNDO / 60)} minutos de voz.`,
     `Costo por API con los modelos multilingües: unos ${((total / 1000) * USD_POR_MIL).toFixed(2)} USD por pasada completa (1 crédito por carácter en la web).`,
     '',
-    '**Lecturas para confirmar** (cómo dice la voz algunos símbolos):',
-    ...PARA_CONFIRMAR.map(([a, b]) => `- «${a}» se dice ${b}.`),
+    '**Cómo dice la voz algunos símbolos:**',
+    ...LECTURAS_DE_SIMBOLOS.map(([a, b]) => `- «${a}» se dice ${b}.`),
     '',
   ];
   for (const { ej, pasos } of todas) {
