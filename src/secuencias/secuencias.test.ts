@@ -733,30 +733,38 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     }
   });
 
-  it('el brazo que recibe la energía no está echado: levantado casi a la altura del pecho, con el antebrazo casi horizontal (revisión)', () => {
+  it('la mano que recibe la energía no está echada: parada casi a la altura del pecho, mirando a la persona (revisión)', () => {
     const pecho = PUNTOS.corazon[1];
     for (const [pasos, A] of [
       [[2, 3], PRIMERO],
       [[6, 7], SEGUNDO],
     ] as const) {
       for (const paso of pasos) {
-        const fases = paso === pasos[0] ? FASES_DELANTE[A] : FASES_ATRAS[A];
+        const delante = paso === pasos[0];
+        const fases = delante ? FASES_DELANTE[A] : FASES_ATRAS[A];
         const total = fases.reduce((a, f) => a + f.dur, 0);
-        // Desde que termina de extenderse hasta que empieza a soltarse (la absorción).
-        const desde = paso === pasos[0] ? fases[0].dur / total : 0;
-        const hasta = paso === pasos[0] ? 1 : fases.slice(0, -1).reduce((a, f) => a + f.dur, 0) / total;
+        // Por delante, desde que termina de levantarla; por atrás, desde que terminó de girar y hasta que se suelta.
+        const desde = fases[0].dur / total;
+        const hasta = delante ? 1 : fases.slice(0, -1).reduce((a, f) => a + f.dur, 0) / total;
         for (let i = 0; i <= 60; i++) {
           const t = desde + ((hasta - desde) * i) / 60;
           const q = resolverEsqueleto(evaluar(sec, paso, t, OPCIONES_INICIALES).figuras[0].pose);
           const W = A === 'I' ? q.munecaI : q.munecaD;
           const E = A === 'I' ? q.codoI : q.codoD;
-          // La muñeca y el codo, casi a la altura del pecho (antes, a la de la cintura: 1,20 y 1,17).
-          expect(W[1], `paso ${paso + 1}, muñeca`).toBeGreaterThan(pecho - 0.04);
-          expect(W[1], `paso ${paso + 1}, muñeca`).toBeLessThan(pecho);
-          expect(E[1], `paso ${paso + 1}, codo`).toBeGreaterThan(pecho - 0.05);
-          // El antebrazo, casi horizontal: menos de 8° de inclinación.
-          const ante = restaV(W as [number, number, number], E as [number, number, number]);
-          expect(Math.abs(Math.asin(ante[1] / largoV(ante))), `paso ${paso + 1}, antebrazo`).toBeLessThan((8 * Math.PI) / 180);
+          const pal = A === 'I' ? q.palmaI : q.palmaD;
+          const hueco = huecoPalma(W, pal.dedos, pal.normal, 0);
+          // La mano, casi a la altura del pecho (antes estaba echada a la altura de la cintura, en 1,20).
+          expect(hueco[1], `paso ${paso + 1}, altura de la mano`).toBeGreaterThan(pecho - 0.03);
+          expect(hueco[1], `paso ${paso + 1}, altura de la mano`).toBeLessThan(pecho + 0.06);
+          // Parada: los dedos hacia arriba (más de 40°) y el codo más abajo que la muñeca.
+          expect(pal.dedos[1], `paso ${paso + 1}, dedos hacia arriba`).toBeGreaterThan(Math.sin((40 * Math.PI) / 180));
+          expect(E[1], `paso ${paso + 1}, codo abajo`).toBeLessThan(W[1]);
+          // Mirando a la persona: por delante, la palma hacia atrás (hacia la cara y el pecho) y no hacia
+          // arriba; por atrás, el brazo giró y es el dorso el que mira a la persona.
+          if (delante) {
+            expect(pal.normal[2], `paso ${paso + 1}, la palma mira a la persona`).toBeLessThan(-0.5);
+            expect(pal.normal[1], `paso ${paso + 1}, la palma no mira arriba`).toBeLessThan(0.75);
+          } else expect(pal.normal[2], `paso ${paso + 1}, el dorso mira a la persona`).toBeGreaterThan(0.5);
         }
       }
     }
@@ -920,8 +928,8 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
         const p = e.figuras[0].pose;
         const q = resolverEsqueleto(p);
         // Las manos como se dibujan: con el dedo aislado y separado, si lo hay.
-        const sD = segmentosMano(q.munecaD, q.palmaD.dedos, q.palmaD.normal, 1, p.cierreD, p.pinzaD, p.tipoPinzaD, p.aisladoD, p.aislarD, p.separarD);
-        const sI = segmentosMano(q.munecaI, q.palmaI.dedos, q.palmaI.normal, -1, p.cierreI, p.pinzaI, p.tipoPinzaI, p.aisladoI, p.aislarI, p.separarI);
+        const sD = segmentosMano(q.munecaD, q.palmaD.dedos, q.palmaD.normal, 1, p.cierreD, p.pinzaD, p.tipoPinzaD, p.aisladoD, p.aislarD, p.separarD, p.apoyarD);
+        const sI = segmentosMano(q.munecaI, q.palmaI.dedos, q.palmaI.normal, -1, p.cierreI, p.pinzaI, p.tipoPinzaI, p.aisladoI, p.aislarI, p.separarI, p.apoyarI);
         let m = 1e9;
         for (const a of sD) for (const b of sI) m = Math.min(m, holgura(a, b));
         expect(m, `paso ${paso + 1}`).toBeGreaterThan(-0.004);
@@ -1011,8 +1019,8 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
         const pal = A === 'D' ? q.palmaD : q.palmaI;
         const seg =
           A === 'D'
-            ? segmentosMano(W, pal.dedos, pal.normal, 1, p.cierreD, p.pinzaD, p.tipoPinzaD, p.aisladoD, p.aislarD, p.separarD)
-            : segmentosMano(W, pal.dedos, pal.normal, -1, p.cierreI, p.pinzaI, p.tipoPinzaI, p.aisladoI, p.aislarI, p.separarI);
+            ? segmentosMano(W, pal.dedos, pal.normal, 1, p.cierreD, p.pinzaD, p.tipoPinzaD, p.aisladoD, p.aislarD, p.separarD, p.apoyarD)
+            : segmentosMano(W, pal.dedos, pal.normal, -1, p.cierreI, p.pinzaI, p.tipoPinzaI, p.aisladoI, p.aislarI, p.separarI, p.apoyarI);
         const yema = (i: number) => [0, 1, 2].map((k) => seg[i].pos[k] + seg[i].dir[k] * seg[i].largo * 0.75);
         const yemas = [12, 9, 6, 3, 15].map(yema);
         const esf = e.esferas[0];
@@ -1052,10 +1060,11 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
                 libre = Math.min(libre, dist(pa, pb) - a.radio - b.radio);
               }
         expect(libre, `${A}: dedo ${j + 1}, sin tocar`).toBeGreaterThan(0);
-        // Goma: a mitad del dedo la mano subió y la esfera se estiró con ella.
+        // Goma: a mitad del dedo la mano se alejó de la palma (que mira a la persona) y la esfera se estiró con ella.
         const g = en(j, 0.55);
         expect(g.esferas[0].estirar, `${A}: dedo ${j + 1}, goma`).toBeGreaterThan(1 + (0.8 * GOMA_DEDO) / (2 * R));
-        expect(palmas(g)[B][1] - palmas(e)[B][1], `${A}: dedo ${j + 1}, la mano sube`).toBeGreaterThan(0.8 * GOMA_DEDO);
+        const aleja = [0, 1, 2].reduce((x, k) => x + (palmas(g)[B][k] - palmas(e)[B][k]) * pal.normal[k], 0);
+        expect(aleja, `${A}: dedo ${j + 1}, la mano se aleja como goma`).toBeGreaterThan(0.8 * GOMA_DEDO);
       }
     }
   });
@@ -1184,6 +1193,44 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
       }
     }
   });
+
+  it('con la mano parada, la mano y el antebrazo que palpan no se meten en el cuerpo ni cruzan el otro antebrazo (pasos 3, 4, 7 y 8)', () => {
+    /** Distancia entre dos segmentos (muestreados), sin grosor. */
+    const entreSegmentos = (a0: number[], a1: number[], b0: number[], b1: number[]) => {
+      let m = 1e9;
+      for (let i = 0; i <= 8; i++)
+        for (let j = 0; j <= 8; j++)
+          m = Math.min(m, dist([0, 1, 2].map((k) => a0[k] + ((a1[k] - a0[k]) * i) / 8), [0, 1, 2].map((k) => b0[k] + ((b1[k] - b0[k]) * j) / 8)));
+      return m;
+    };
+    for (const [paso, A] of [
+      [2, PRIMERO],
+      [3, PRIMERO],
+      [6, SEGUNDO],
+      [7, SEGUNDO],
+    ] as const) {
+      const B = A === 'D' ? 'I' : 'D';
+      for (const e of muestras(paso, 24)) {
+        const p = e.figuras[0].pose;
+        const q = resolverEsqueleto(p);
+        const W = B === 'I' ? q.munecaI : q.munecaD;
+        const E = B === 'I' ? q.codoI : q.codoD;
+        const pal = B === 'I' ? q.palmaI : q.palmaD;
+        // La mano y el antebrazo que palpan, contra la piel del torso, el cuello y la cabeza.
+        const mano = segmentosMano(W, pal.dedos, pal.normal, B === 'D' ? 1 : -1, B === 'I' ? p.cierreI : p.cierreD);
+        const muestrasBrazo: [number[], number][] = [];
+        for (const g of mano.slice(1)) for (const u of [0, 1]) muestrasBrazo.push([g.pos.map((x, k) => x + g.dir[k] * g.largo * u), g.radio]);
+        for (const u of [0, 0.33, 0.66]) muestrasBrazo.push([W.map((x, k) => x + (E[k] - x) * u), 0.03]);
+        const s = pielDelCuerpo(e);
+        const peor = Math.min(...muestrasBrazo.map(([c, rad]) => distanciaConSigno(c, s) - rad));
+        expect(peor, `paso ${paso + 1}: la mano o el antebrazo que palpan, dentro del cuerpo`).toBeGreaterThan(-0.005);
+        // Los dos antebrazos (de 3 cm de radio, aprox.) no se cruzan.
+        const WA = A === 'I' ? q.munecaI : q.munecaD;
+        const EA = A === 'I' ? q.codoI : q.codoD;
+        expect(entreSegmentos(W, E, WA, EA) - 0.06, `paso ${paso + 1}: los antebrazos se cruzan`).toBeGreaterThan(-0.005);
+      }
+    }
+  }, 60000);
 });
 
 describe('Cargar las ingles (descrito en el taller)', () => {

@@ -275,17 +275,17 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'derecho-delante',
         titulo: 'Brazo derecho: la izquierda cubre los dedos',
         texto:
-          'Empieza la mano izquierda con la mano derecha. La derecha se extiende al frente, levantada casi a la altura del pecho, con la palma hacia arriba; la izquierda da vuelta la esfera sin soltarla y, con forma de agarrar y la energía de la esfera dentro, cubre los dedos de la derecha uno por uno, lentamente y sin tocarlos: meñique, anular, medio, índice y pulgar. En cada dedo, ese dedo se separa un poco de los demás, la yema queda en el centro de la esfera y la mano hace goma: sube y baja, y la esfera se estira con ella. Después acompaña a la esfera por delante del brazo, de la muñeca al codo: la distancia dividida en 4, y en cada punto (muñeca, ¼, ½, ¾ y codo) hace goma: la mano sube, con la muñeca un poco doblada y los dedos que se cierran como tirando de la goma, y baja mientras sigue al punto siguiente, sin detenerse, como una ola.',
+          'Empieza la mano izquierda con la mano derecha. La mano derecha se levanta al frente, parada casi a la altura del pecho y con la palma mirando a la persona; la izquierda da vuelta la esfera sin soltarla y, con forma de agarrar y la energía de la esfera dentro, cubre los dedos de la derecha uno por uno, lentamente y sin tocarlos: meñique, anular, medio, índice y pulgar. En cada dedo, ese dedo se separa un poco de los demás, la yema queda en el centro de la esfera y la mano hace goma: se aleja y se acerca, y la esfera se estira con ella. Después acompaña a la esfera por delante del brazo, de la muñeca al codo: la distancia dividida en 4, y en cada punto (muñeca, ¼, ½, ¾ y codo) hace goma: la mano sube, con la muñeca un poco doblada y los dedos que se cierran como tirando de la goma, y baja mientras sigue al punto siguiente, sin detenerse, como una ola.',
         aclaracion:
           'Descrito en el taller: empieza la mano izquierda tocando la mano derecha, primero los dedos: la mano izquierda, un poco más cerrada y con la energía de la esfera dentro, intenta cubrir los dedos de la otra mano uno por uno, de forma lenta. En la revisión: del meñique al pulgar, sin tocarlos, la mano con forma de agarrar algo, haciendo goma en cada dedo, con la yema del dedo en el centro de la esfera, la esfera de su tamaño de siempre y ese dedo un poco separado de los demás. Después, al palpar a distancia, la mano acompaña a la esfera y hace como goma en los puntos del brazo; en la revisión: de la muñeca al codo, la distancia dividida en 4, con goma en cada punto, recorridos de forma continua (unos 2 s por punto).',
         lectura:
-          'El brazo que recibe la energía no queda echado: se levanta casi a la altura del pecho, con el antebrazo casi horizontal (corregido en la revisión). Para cubrir los dedos, la izquierda da vuelta la esfera con la palma hacia abajo. Para separar el dedo, se levanta un poco desde el nudillo y sus vecinos se abren hacia los costados; así la mano que agarra no los toca.',
+          'La mano que recibe la energía no queda echada: se levanta casi a la altura del pecho, parada y con la palma mirando a la persona, como cuando uno se mira la palma; el antebrazo va levantado y la muñeca, doblada hacia arriba (corregido en la revisión). Mientras se cubren los otros dedos, el pulgar se queda junto a la palma. Para cubrir los dedos, la izquierda da vuelta la esfera con la palma hacia la otra mano. Para separar el dedo, se levanta un poco desde el nudillo y sus vecinos se abren hacia los costados; así la mano que agarra no los toca.',
       },
       {
         id: 'derecho-atras',
         titulo: 'Brazo derecho: por atrás, ida y vuelta',
         texto:
-          'El brazo derecho gira con la palma hacia abajo y se palpa por atrás de la misma forma: del codo a la muñeca, en los mismos 5 puntos, con goma en cada uno, de forma continua. Después la mano izquierda, ahuecada, recorre el brazo y la mano suavemente, como cubriéndolos y sin tocarlos, a 5–10 cm de la piel: de los dedos hasta el hombro (llega por delante) y de vuelta hasta los dedos. Al terminar, la esfera vuelve a la palma y se absorbe.',
+          'La mano derecha gira, ahora con el dorso hacia la persona, y se palpa por atrás de la misma forma: del codo a la muñeca, en los mismos 5 puntos, con goma en cada uno, de forma continua. Después la mano izquierda, ahuecada, recorre el brazo y la mano suavemente, como cubriéndolos y sin tocarlos, a 5–10 cm de la piel: de los dedos hasta el hombro (llega por delante) y de vuelta hasta los dedos. Al terminar, la esfera vuelve a la palma y se absorbe.',
         cantidad: {
           valor: 10,
           unidad: 'cm de la piel como máximo (5–10 cm)',
@@ -314,14 +314,14 @@ export const EJERCICIOS: Ejercicio[] = [
         id: 'izquierdo-delante',
         titulo: 'Brazo izquierdo: la derecha cubre los dedos',
         texto:
-          'La izquierda se extiende al frente, levantada casi a la altura del pecho, con la palma hacia arriba; la derecha da vuelta la esfera sin soltarla y, con forma de agarrar, cubre los dedos de la izquierda uno por uno, lentamente y sin tocarlos, con cada dedo un poco separado de los demás, la yema en el centro de la esfera y haciendo goma en cada uno. Después acompaña a la esfera por delante del brazo izquierdo, de la muñeca al codo en 4 tramos iguales, con goma en cada punto, de forma continua.',
+          'La mano izquierda se levanta al frente, parada casi a la altura del pecho y con la palma mirando a la persona; la derecha da vuelta la esfera sin soltarla y, con forma de agarrar, cubre los dedos de la izquierda uno por uno, lentamente y sin tocarlos, con cada dedo un poco separado de los demás, la yema en el centro de la esfera y haciendo goma en cada uno. Después acompaña a la esfera por delante del brazo izquierdo, de la muñeca al codo en 4 tramos iguales, con goma en cada punto, de forma continua.',
         aclaracion: 'Descrito en el taller: después se sigue con la otra mano.',
       },
       {
         id: 'izquierdo-atras',
         titulo: 'Brazo izquierdo: por atrás, ida y vuelta',
         texto:
-          'El brazo izquierdo gira y se palpa por atrás; después la mano derecha, ahuecada, lo recorre como cubriéndolo y sin tocarlo, a 5–10 cm de la piel, de los dedos hasta el hombro y de vuelta. Al terminar, la esfera vuelve a la palma y se absorbe, y las manos se sueltan a los costados.',
+          'La mano izquierda gira, con el dorso hacia la persona, y se palpa por atrás; después la mano derecha, ahuecada, lo recorre como cubriéndolo y sin tocarlo, a 5–10 cm de la piel, de los dedos hasta el hombro y de vuelta. Al terminar, la esfera vuelve a la palma y se absorbe, y las manos se sueltan a los costados.',
         aclaracion: 'Descrito en el taller.',
       },
     ],
