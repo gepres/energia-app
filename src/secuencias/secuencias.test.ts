@@ -1046,12 +1046,19 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
         }
         expect(B === 'I' ? p.cierreI : p.cierreD).toBeGreaterThanOrEqual(0.35);
         // Sin tocar la otra mano.
+        // La mano que cubre, como se dibuja (con su pulgar acomodado).
         const otra = segmentosMano(
           B === 'I' ? q.munecaI : q.munecaD,
           B === 'I' ? q.palmaI.dedos : q.palmaD.dedos,
           B === 'I' ? q.palmaI.normal : q.palmaD.normal,
           B === 'D' ? 1 : -1,
           B === 'I' ? p.cierreI : p.cierreD,
+          0,
+          0,
+          -1,
+          0,
+          0,
+          B === 'I' ? p.apoyarI : p.apoyarD,
         );
         let libre = 1e9;
         for (const a of seg)
@@ -1193,6 +1200,41 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
         const peor = Math.min(...valores);
         const donde = valores.indexOf(peor) >= muestrasBrazo.length - 7 ? (valores.indexOf(peor) >= muestrasBrazo.length - 3 ? 'el brazo' : 'el antebrazo') : 'la mano';
         expect(peor, `${A}: recorrido ${i}/16, ${donde} dentro del cuerpo`).toBeGreaterThan(-0.005);
+      }
+    }
+  });
+
+  it('la mano que palpa se mueve natural: sigue a su antebrazo, sin doblar la muñeca hacia atrás ni girar de golpe (revisión)', () => {
+    const angulo = (a: number[], b: number[]) => {
+      const la = Math.hypot(...a);
+      const lb = Math.hypot(...b);
+      return (Math.acos(Math.max(-1, Math.min(1, (a[0] * b[0] + a[1] * b[1] + a[2] * b[2]) / (la * lb)))) * 180) / Math.PI;
+    };
+    for (const [paso, A] of [
+      [2, PRIMERO],
+      [3, PRIMERO],
+      [6, SEGUNDO],
+      [7, SEGUNDO],
+    ] as const) {
+      const B = A === 'D' ? 'I' : 'D';
+      const dur = sec.pasos[paso].dur;
+      const FPS = 20;
+      const n = Math.round(dur * FPS);
+      let previa: { F: number[]; N: number[] } | null = null;
+      for (let i = 0; i <= n; i++) {
+        const q = resolverEsqueleto(evaluar(sec, paso, i / n, OPCIONES_INICIALES).figuras[0].pose);
+        const W = B === 'I' ? q.munecaI : q.munecaD;
+        const E = B === 'I' ? q.codoI : q.codoD;
+        const pal = B === 'I' ? q.palmaI : q.palmaD;
+        // La muñeca: la mano sigue la dirección de su antebrazo (antes llegaba a doblarse 140°).
+        const quiebre = angulo([0, 1, 2].map((k) => W[k] - E[k]), pal.dedos);
+        expect(quiebre, `paso ${paso + 1}, ${(i / FPS).toFixed(2)} s: muñeca de la mano que palpa`).toBeLessThan(50);
+        // Sin giros de golpe (antes, los dedos llegaban a girar 4600°/s).
+        if (previa) {
+          expect(angulo(previa.F, pal.dedos) * FPS, `paso ${paso + 1}, ${(i / FPS).toFixed(2)} s: giro de los dedos`).toBeLessThan(450);
+          expect(angulo(previa.N, pal.normal) * FPS, `paso ${paso + 1}, ${(i / FPS).toFixed(2)} s: giro de la palma`).toBeLessThan(450);
+        }
+        previa = { F: pal.dedos, N: pal.normal };
       }
     }
   });

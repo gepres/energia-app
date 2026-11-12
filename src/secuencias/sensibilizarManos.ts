@@ -1,9 +1,8 @@
-import { type Pose, mezclarPose, pose, resolverEsqueleto } from '../escena/cuerpo';
+import { type Pose, PROP, ik2, mezclarPose, pose, resolverEsqueleto } from '../escena/cuerpo';
 import { type Camara, type Estado, enPalma as enPalmaRef } from '../escena/estado';
 import {
   type V3,
   clamp,
-  cruzV,
   entraSaleSeno,
   escalaV,
   largoV,
@@ -279,6 +278,8 @@ const PHI_CUBRIR = -15;
 
 /** Codo de la mano que llega al hombro del otro lado: bien adelante (así el brazo cruza por delante del pecho). */
 const CODO_HOMBRO: V3 = normV([0, -0.15, 1]);
+/** Dónde termina la línea del antebrazo, desde el codo (0) hacia la muñeca (1): a unos 10 cm de la articulación. */
+const CODO_LINEA = 0.4;
 
 /**
  * La mano que recibe la energía, parada y mirando a la persona (revisión del 2026-11-12: no
@@ -338,41 +339,33 @@ function brazo(A: Lado): Brazo {
   });
   const E = A === 'D' ? esq.codoD : esq.codoI;
   const H = A === 'D' ? esq.hombroD : esq.hombroI;
-  // El lado del antebrazo por donde palpa la otra mano: en la muñeca, el de la palma, que mira a
-  // la persona; hacia el codo gira al lado de adentro y de abajo, fuera del pliegue del codo (con
-  // el codo doblado, el lado de la palma mira al brazo: la mano y la esfera lo rozarían).
+  // El antebrazo se palpa siempre del lado de la palma, que mira a la persona: así la otra mano
+  // lo acompaña sin rodearlo (rodearlo por el costado obliga a doblar su muñeca). Con el codo
+  // doblado, junto al codo ese lado mira al bíceps: el punto «codo» queda a 10 cm de la
+  // articulación (CODO_LINEA), donde la mano y la esfera tienen lugar.
   const dirAnte = normV(restaV(W, E));
-  const nMuneca = ortogonal(haciaPersona, dirAnte);
-  const plano = normV(cruzV(restaV(H, E), dirAnte));
-  const adentroAbajo = plano[1] < 0 ? plano : escalaV(plano, -1);
-  const nCodo = normV(sumaV(escalaV(adentroAbajo, 0.8), escalaV(nMuneca, 0.2)));
-  /** Normal del antebrazo en `t` (0 = codo, 1 = muñeca), desde los puntos de la línea (0,24) hasta la muñeca. */
-  const arribaAnte = (t: number) => normV(lerpV(nCodo, nMuneca, clamp((t - 0.24) / 0.76)));
+  const nAnte = ortogonal(haciaPersona, dirAnte);
   const p = (c: V3, n: V3, r: number): PuntoPiel => ({ piel: sumaV(c, escalaV(n, r)), normal: n });
+  // El grosor del antebrazo en `t` (0 = codo, 1 = muñeca), medido sobre la malla.
+  const grosor = (t: number) => (t >= 0.5 ? lerp(0.034, 0.024, (t - 0.5) / 0.5) : lerp(0.037, 0.034, (t - 0.24) / 0.26));
   const puntos = {
     // Sobre las falanges medias, del lado de la palma (que mira a la persona).
     dedos: p(sumaV(W, escalaV(dedos, 0.118)), haciaPersona, 0.012),
-    muneca: p(W, arribaAnte(1), 0.024),
-    antebrazo: p(lerpV(E, W, 0.5), arribaAnte(0.5), 0.034),
-    // Junto al codo, sobre el antebrazo: encima del codo mismo la esfera rozaría el brazo que sube.
-    codo: p(lerpV(E, W, 0.24), arribaAnte(0.24), 0.037),
+    muneca: p(W, nAnte, 0.024),
+    antebrazo: p(lerpV(E, W, 0.5), nAnte, 0.034),
+    codo: p(lerpV(E, W, CODO_LINEA), nAnte, grosor(CODO_LINEA)),
   };
-  // Los puntos de goma, a distancias iguales de la muñeca al codo. `t` va del codo (0) a la
-  // muñeca (1); el grosor del antebrazo, como en los puntos de arriba (medido sobre la malla).
-  const grosor = (t: number) => (t >= 0.5 ? lerp(0.034, 0.024, (t - 0.5) / 0.5) : lerp(0.037, 0.034, (t - 0.24) / 0.26));
+  // Los puntos de goma, a distancias iguales de la muñeca al codo.
   const linea = Array.from({ length: TRAMOS_BRAZO + 1 }, (_, i) => {
     if (i === 0) return puntos.muneca;
     if (i === TRAMOS_BRAZO) return puntos.codo;
-    const t = lerp(1, 0.24, i / TRAMOS_BRAZO);
-    return p(lerpV(E, W, t), arribaAnte(t), grosor(t));
+    const t = lerp(1, CODO_LINEA, i / TRAMOS_BRAZO);
+    return p(lerpV(E, W, t), nAnte, grosor(t));
   });
-  // Del codo al hombro: con el codo doblado, el frente del brazo mira al antebrazo. La mano rodea
-  // el codo por el lado de adentro y de abajo (perpendicular a los dos huesos, donde no toca
-  // ninguno) y recién desde la mitad del brazo sube por delante, sin rozarlo.
+  // Del codo al hombro, la mano sube por delante del brazo: pasa por la abertura del codo, entre
+  // el antebrazo y el brazo, y sigue por el frente del brazo hasta el hombro, sin rozarlos.
   const dirBrazo = normV(restaV(H, E));
   const nBrazo = ortogonal(normV([-s * 0.2, 0.3, 1]), dirBrazo);
-  const nBrazoBajo = ortogonal(normV(sumaV(escalaV(adentroAbajo, 0.7), escalaV(nBrazo, 0.3))), dirBrazo);
-  const nBrazoMedio = ortogonal(normV(sumaV(nBrazo, escalaV(adentroAbajo, 0.5))), dirBrazo);
   // El hombro, por delante. Si el brazo sale hacia adelante, ocupa el frente del hombro: la
   // mano llega entonces a no menos de 65° del brazo, por delante y un poco por arriba (más
   // cerca, la esfera rozaría el brazo; a 90°, el antebrazo que recorre pasaría por el mentón).
@@ -388,8 +381,9 @@ function brazo(A: Lado): Brazo {
   // delante del pecho y no alrededor de la cabeza.
   const cruzado = normV([s * Math.SQRT1_2, 0, Math.SQRT1_2]);
   const haciaArriba = normV([s * 0.15, 1, -0.2]);
-  // El codo de la mano que recorre: afuera, abajo y adelante; al llegar al hombro, bien adelante.
-  const codoCerca = normV([-s * 0.3, -0.4, 0.85]);
+  // El codo de la mano que recorre: como un brazo relajado (afuera, abajo y un poco adelante); al
+  // llegar al hombro, bien adelante, así el brazo cruza por delante del pecho.
+  const codoCerca = normV([-s * 0.5, -0.75, 0.4]);
   const codoLejos = CODO_HOMBRO;
   const d = (pp: PuntoPiel, dir: V3, codo = codoCerca): PuntoPiel => ({ ...pp, dedos: dir, codo });
   // Sobre los nudillos, la muñeca y el antebrazo, 8 mm más de aire: con la mano parada y girada,
@@ -401,9 +395,7 @@ function brazo(A: Lado): Brazo {
     d(aire(puntos.muneca), cruzado),
     d(aire(puntos.antebrazo), cruzado),
     d(puntos.codo, cruzado),
-    d(p(E, adentroAbajo, 0.05), normV(sumaV(cruzado, haciaArriba)), normV(sumaV(codoCerca, codoLejos))),
-    d(p(lerpV(E, H, 0.3), nBrazoBajo, 0.045), haciaArriba, normV(sumaV(codoCerca, codoLejos))),
-    d(p(lerpV(E, H, 0.6), nBrazoMedio, 0.046), haciaArriba, codoLejos),
+    d(p(lerpV(E, H, 0.55), nBrazo, 0.046), haciaArriba, normV(sumaV(codoCerca, codoLejos))),
     d(p(H, nHombro, 0.055), haciaArriba, codoLejos),
   ];
   return { A, B, s, palpado, puntos, linea, cubrir, recorrido };
@@ -434,24 +426,48 @@ const dirPhi = (b: Brazo, phi: number): V3 => {
 };
 const dirPalpar = (b: Brazo): V3 => dirPhi(b, PHI_PALPAR);
 
-/** La mano de `b.B` con el hueco de la palma en `hueco`, mirando hacia `-normal`. */
-function manoEn(b: Brazo, hueco: V3, normal: V3, phi = PHI_PALPAR, cierre = 0.15, haciaDedos?: V3): Mano {
+/** Codo de la mano que palpa, como un brazo relajado: hacia afuera, abajo y un poco adelante. */
+const poloPalpa = (b: Brazo): V3 => normV([-b.s * 0.5, -0.75, 0.4]);
+
+/**
+ * La mano que palpa, natural (revisión del 2026-11-12: su movimiento no se veía natural): con
+ * el hueco de la palma y hacia dónde mira la palma ya dados, los dedos siguen la dirección de
+ * su propio antebrazo (el codo, donde lo pone `polo`). Así la muñeca no se dobla hacia atrás
+ * ni de costado, y los dedos no giran de golpe cuando la palma cambia de lado. Si el antebrazo
+ * quedara casi perpendicular a la palma, se dejan los dedos pedidos.
+ */
+function natural(b: Brazo, m: Mano, polo: V3, peso = 1): Mano {
+  const H: V3 = [-b.s * PROP.hombroX, PROP.hombroY, -0.01];
+  const hueco = sumaV(sumaV(m.mano, escalaV(m.dedos, HUECO.dedos)), escalaV(m.palma, HUECO.piel));
+  const muneca = (F: V3) => restaV(restaV(hueco, escalaV(F, HUECO.dedos)), escalaV(m.palma, HUECO.piel));
+  let dedos = m.dedos;
+  for (let i = 0; i < 3; i++) {
+    const W = muneca(dedos);
+    const ante = normV(restaV(W, ik2(H, W, PROP.brazo, PROP.antebrazo, polo).medio));
+    const enPalma = restaV(ante, escalaV(m.palma, puntoV(ante, m.palma)));
+    if (largoV(enPalma) < 0.35) break;
+    dedos = ortogonal(lerpV(m.dedos, normV(enPalma), peso), m.palma);
+  }
+  return { ...m, mano: muneca(dedos), dedos, codo: polo };
+}
+
+/** La mano de `b.B` con el hueco de la palma en `hueco`, mirando hacia `-normal`; natural, con el codo en `polo`. */
+function manoEn(b: Brazo, hueco: V3, normal: V3, phi = PHI_PALPAR, cierre = 0.15, haciaDedos?: V3, polo = poloPalpa(b), peso = 1): Mano {
   const palma = escalaV(normal, -1);
   const dedos = ortogonal(haciaDedos ?? dirPhi(b, phi), palma);
-  return {
-    mano: restaV(restaV(hueco, escalaV(dedos, HUECO.dedos)), escalaV(palma, HUECO.piel)),
-    palma,
-    dedos,
-    cierre,
-    // El codo hacia afuera, abajo y adelante: al cruzar hasta el otro brazo, el brazo pasa por delante del pecho.
-    codo: normV([-b.s * 0.3, -0.4, 0.85]),
-  };
+  const m: Mano = { mano: restaV(restaV(hueco, escalaV(dedos, HUECO.dedos)), escalaV(palma, HUECO.piel)), palma, dedos, cierre, codo: polo };
+  return natural(b, m, polo, peso);
 }
+/**
+ * Al cubrir los dedos, el pulgar de la mano que cubre va a medio camino del plano de su palma:
+ * con la mano natural, si no, toca la palma de la mano parada al cubrir el meñique y el anular.
+ */
+const APOYO_CUBRIR = 0.6;
 
 /** La mano que palpa, encima del punto, a DIST + `alza` de la piel, con la palma hacia el brazo. */
 function encima(b: Brazo, pp: PuntoPiel, alza: number, extra: Partial<Mano> = {}, phi = PHI_PALPAR): Mano {
-  const m = manoEn(b, sumaV(pp.piel, escalaV(pp.normal, DIST + alza)), pp.normal, phi, 0.15, pp.dedos);
-  return { ...m, ...(pp.codo ? { codo: pp.codo } : {}), ...extra };
+  const m = manoEn(b, sumaV(pp.piel, escalaV(pp.normal, DIST + alza)), pp.normal, phi, 0.15, pp.dedos, pp.codo ?? poloPalpa(b));
+  return { ...m, ...extra };
 }
 
 /** Esfera entre la piel y la palma: se estira (goma) cuando la mano sube. */
@@ -798,7 +814,7 @@ function cubrirDedos(e: Estado, b: Brazo, k: number) {
     separar *= 1 - w;
   }
   const base = sumaV(c, escalaV(nrm, arco));
-  const mb = manoEn(b, sumaV(base, escalaV(nrm, R + g + LUZ_PALMA + PALMA_SOBRE)), nrm, PHI_CUBRIR, CIERRE_CUBRIR, dir);
+  const mb = { ...manoEn(b, sumaV(base, escalaV(nrm, R + g + LUZ_PALMA + PALMA_SOBRE)), nrm, PHI_CUBRIR, CIERRE_CUBRIR, dir), apoyar: APOYO_CUBRIR };
   e.figuras[0].pose = armar(manos(b.A, { ...b.palpado(0, apoyo), aislado, separar }, mb));
   esferaEn(e, sumaV(base, escalaV(nrm, g / 2)), R, 1.25 + 0.35 * (g / GOMA_DEDO), (2 * R + g) / (2 * R), nrm);
   const op = ventana(kj, j === 0 ? 0 : 0.25, 0.92, 0.08);
@@ -823,9 +839,18 @@ function prepararCubrir(b: Brazo, k: number): { manos: Manos; c: V3; r: number }
   const ini = reposo(b.B);
   const fin = manoEn(b, sumaV(primero.yema, escalaV(primero.normal, R + LUZ_PALMA + PALMA_SOBRE)), primero.normal, PHI_CUBRIR, CIERRE_CUBRIR, primero.dir);
   const c = sumaV(lerpV(enPalma(ini, R), primero.yema, s), [0, 0.08 * Math.sin(Math.PI * s), 0]);
-  const palma = mezclarDir(ini.palma, fin.palma, s, [-SIGNO[b.B], 0, 0]);
+  // La da vuelta girando el antebrazo: la palma pasa por una dirección perpendicular a él (si
+  // pasara por la dirección del antebrazo, la muñeca se doblaría 90°).
+  const H: V3 = [-b.s * PROP.hombroX, PROP.hombroY, -0.01];
+  const ante = (m: Mano) => normV(restaV(m.mano, ik2(H, m.mano, PROP.brazo, PROP.antebrazo, m.codo).medio));
+  const giraPor = ortogonal(normV(sumaV(ini.palma, fin.palma)), normV(sumaV(ante(ini), ante(fin))));
+  const palma = s < 0.5 ? mezclarDir(ini.palma, giraPor, s * 2) : mezclarDir(giraPor, fin.palma, s * 2 - 1);
   const dedos = ortogonal(mezclarDir(ini.dedos, fin.dedos, s), palma);
-  const mB = sostener(c, R + (LUZ_PALMA + PALMA_SOBRE) * s, palma, dedos, lerp(ini.cierre, fin.cierre, s), mezclarDir(ini.codo, fin.codo, s));
+  const polo = mezclarDir(ini.codo, fin.codo, s);
+  const sostiene = sostener(c, R + (LUZ_PALMA + PALMA_SOBRE) * s, palma, dedos, lerp(ini.cierre, fin.cierre, s), polo);
+  // Mientras la da vuelta y la lleva, la mano sigue a su antebrazo (sin doblar la muñeca) y el
+  // pulgar se acomoda como al cubrir los dedos.
+  const mB = { ...natural(b, sostiene, polo, tramo(s, 0, 0.35)), apoyar: APOYO_CUBRIR * s };
   return { manos: manos(b.A, mA, mB), c, r: R };
 }
 
@@ -956,7 +981,8 @@ function atras(e: Estado, A: Lado, seg: number) {
   // Al terminar cada brazo, por turnos: el brazo palpado se suelta al costado; la otra mano trae la
   // esfera al frente, gira por debajo sin soltarla y la esfera se absorbe en la palma; las manos se sueltan.
   const finRecorrido = encima(b, b.recorrido[0], 0);
-  const lleva = frenteLlevando(b);
+  // También al traer la esfera al frente y darla vuelta, la mano sigue a su antebrazo.
+  const lleva = natural(b, frenteLlevando(b), poloPalpa(b));
   const sB = SIGNO[b.B];
   const mA = mezclarMano(b.palpado(1), suelta(A), entraSaleSeno(clamp(k / 0.22)));
   let mB: Mano;
@@ -971,7 +997,7 @@ function atras(e: Estado, A: Lado, seg: number) {
   } else {
     c = bajoPalma(lleva);
     const palma = mezclarDir([0, -1, 0], ARRIBA, entraSaleSeno(clamp((k - 0.47) / 0.2)), [-sB, 0, 0]);
-    mB = sostener(c, R + LUZ_PALMA, palma, ortogonal(lleva.dedos, palma), 0.15, lleva.codo);
+    mB = natural(b, sostener(c, R + LUZ_PALMA, palma, ortogonal(lleva.dedos, palma), 0.15, lleva.codo), lleva.codo);
     r = R * (1 - tramo(k, 0.68, 0.82));
   }
   let pose = armar(manos(A, mA, mB));
