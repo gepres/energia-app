@@ -5,3 +5,8 @@ dev-dist
 .DS_Store
 ~$*
 capturas-tmp
+
+# Claves locales (p. ej. ELEVENLABS_API_KEY): nunca al repositorio
+.env
+.env.local
+.env.*.local
