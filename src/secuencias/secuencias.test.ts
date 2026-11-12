@@ -1284,12 +1284,13 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
       const B = A === 'D' ? 'I' : 'D';
       const g = giros(paso, B);
       const fin = Math.round((FASES_DELANTE[A][0].dur / sec.pasos[paso].dur) * (g.length - 1));
-      expect(Math.min(...g.slice(0, fin + 1)), `paso ${paso + 1}: gira hacia afuera`).toBeGreaterThan(-45);
+      // Ni siquiera un poco hacia afuera al subir (antes se inclinaba unos 28°).
+      expect(Math.min(...g.slice(0, fin + 1)), `paso ${paso + 1}: gira hacia afuera`).toBeGreaterThan(-10);
       expect(g[fin], `paso ${paso + 1}: media vuelta hacia adentro`).toBeGreaterThan(120);
     }
     // En los traspasos, la mano que da vuelta la esfera también gira hacia adentro.
     for (const paso of [1, 5])
-      for (const L of ['D', 'I'] as const) expect(Math.min(...giros(paso, L)), `paso ${paso + 1}, mano ${L}: gira hacia afuera`).toBeGreaterThan(-45);
+      for (const L of ['D', 'I'] as const) expect(Math.min(...giros(paso, L)), `paso ${paso + 1}, mano ${L}: gira hacia afuera`).toBeGreaterThan(-10);
   });
 
   it('la cámara ve la mano que palpa: el brazo palpado no la tapa (pasos 3, 4, 7 y 8; revisión)', () => {
