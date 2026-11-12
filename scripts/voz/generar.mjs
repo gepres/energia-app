@@ -86,12 +86,18 @@ function paraVoz(s) {
   return r.replace(/\s{2,}/g, ' ').trim();
 }
 
-/** Lo que dice la voz en un paso: el título y el texto, y la frase si el texto no la incluye. */
+/** Solo las palabras, para comparar dos textos sin tildes, mayúsculas ni puntuación. */
+const soloPalabras = (s) => sinTildes(s).replace(/[^a-z0-9]+/g, ' ').trim();
+
+/**
+ * Lo que dice la voz en un paso: el título y el texto, y la frase si el texto no la incluye.
+ * Si el texto solo repite el título (09, paso 5: «Decir la frase.»), se dice una vez.
+ */
 function textoDelPaso(ej, paso, i) {
   const partes = [];
   if (i === 0) partes.push(`${paraVoz(ej.titulo)}.`);
   partes.push(`Paso ${i + 1}. ${paraVoz(paso.titulo)}.`);
-  partes.push(paraVoz(paso.texto));
+  if (soloPalabras(paso.texto) !== soloPalabras(paso.titulo)) partes.push(paraVoz(paso.texto));
   if (paso.frase && !sinTildes(paso.texto).includes(sinTildes(paso.frase))) partes.push(`La frase es: «${fraseNatural(paso.frase)}».`);
   return partes.join(' ');
 }

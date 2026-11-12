@@ -3,8 +3,8 @@
 > Generado por `npm run voz` a partir de los pasos de la app (`src/contenido/ejercicios.ts`). No editar a mano:
 > para cambiar lo que dice la voz se cambia el texto del paso y se vuelve a generar.
 
-**Total:** 14.075 caracteres, unos 18 minutos de voz.
-Costo por API con los modelos multilingües: unos 1.13 USD por pasada completa (1 crédito por carácter en la web).
+**Total:** 14.059 caracteres, unos 18 minutos de voz.
+Costo por API con los modelos multilingües: unos 1.12 USD por pasada completa (1 crédito por carácter en la web).
 
 **Cómo dice la voz algunos símbolos:**
 - «90°» se dice «90 grados».
@@ -189,7 +189,7 @@ Costo por API con los modelos multilingües: unos 1.13 USD por pasada completa (
 
 ## 09 · Enraizar
 
-1024 caracteres, unos 79 s de voz.
+1008 caracteres, unos 78 s de voz.
 
 **Paso 1 · Abajo: energía − de la tierra** (272 caracteres, unos 21 s)
 
@@ -207,9 +207,9 @@ Costo por API con los modelos multilingües: unos 1.13 USD por pasada completa (
 
 > Paso 4. En cuclillas: un tubo de energía al piso. Ponerse en cuclillas y, con la mano derecha que tiene la esfera hueca, acercar la esfera a la parte baja de la ingle, el perineo; con la mano ir bajando la esfera hasta conectar con el piso: se forma un tubo de energía del perineo al piso, por el hueco de la esfera.
 
-**Paso 5 · Decir la frase** (85 caracteres, unos 7 s)
+**Paso 5 · Decir la frase** (69 caracteres, unos 5 s)
 
-> Paso 5. Decir la frase. Decir la frase. La frase es: «Sánate, conéctate hasta sanar».
+> Paso 5. Decir la frase. La frase es: «Sánate, conéctate hasta sanar».
 
 ## 10 · Activación de centros energéticos
 
