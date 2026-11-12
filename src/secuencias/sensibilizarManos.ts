@@ -3,6 +3,7 @@ import { type Camara, type Estado, enPalma as enPalmaRef } from '../escena/estad
 import {
   type V3,
   clamp,
+  cruzV,
   entraSaleSeno,
   escalaV,
   largoV,
@@ -827,6 +828,27 @@ function cubrirDedos(e: Estado, b: Brazo, k: number) {
 }
 
 /**
+ * La palma de la mano `b.B` que gira de `desde` a `hasta` alrededor de su antebrazo (el de la
+ * mano `fin`), siempre hacia adentro (pronación): para la mano izquierda, en sentido positivo
+ * alrededor del antebrazo (del codo a la muñeca); para la derecha, al revés. `k`: 0–1.
+ */
+function pronar(b: Brazo, desde: V3, hasta: V3, fin: Mano, k: number): V3 {
+  const H: V3 = [-b.s * PROP.hombroX, PROP.hombroY, -0.01];
+  const f = normV(restaV(fin.mano, ik2(H, fin.mano, PROP.brazo, PROP.antebrazo, fin.codo).medio));
+  const a0 = ortogonal(desde, f);
+  const a1 = ortogonal(hasta, f);
+  const signo = SIGNO[b.B];
+  let ang = Math.atan2(puntoV(cruzV(a0, a1), f), puntoV(a0, a1));
+  if (signo > 0 && ang < 0) ang += 2 * Math.PI;
+  if (signo < 0 && ang > 0) ang -= 2 * Math.PI;
+  const th = ang * k;
+  // Rodrigues, con a0 perpendicular a f; la parte a lo largo del antebrazo pasa de una a otra.
+  const giro = sumaV(escalaV(a0, Math.cos(th)), escalaV(cruzV(f, a0), Math.sin(th)));
+  const c = lerp(puntoV(desde, f), puntoV(hasta, f), k);
+  return normV(sumaV(escalaV(giro, Math.sqrt(Math.max(0, 1 - c * c))), escalaV(f, c)));
+}
+
+/**
  * La mano `b.A` se levanta, parada y con la palma hacia la persona, y separa un poco el
  * primer dedo de los demás. La mano `b.B` lo hace en dos tiempos, como un gesto natural
  * (revisión del 2026-11-12: subir y girar a la vez se veía como un giro raro):
@@ -847,12 +869,15 @@ function prepararCubrir(b: Brazo, k: number): { manos: Manos; c: V3; r: number }
   // mano ni la esfera tocan la mano parada); al darse vuelta, se acerca al dedo.
   const antes = sumaV(sumaV(hueco(fin), escalaV(primero.normal, PREP_ATRAS)), [0, -PREP_ABAJO, 0]);
   const h = lerpV(lerpV(hueco(ini), antes, sube), hueco(fin), gira);
-  // Se da vuelta girando el antebrazo: la palma pasa por una dirección perpendicular a él (si
-  // pasara por la dirección del antebrazo, la muñeca se doblaría 90°).
+  // Se da vuelta girando el antebrazo hacia adentro (pronación, con el pulgar hacia el centro):
+  // media vuelta alrededor del antebrazo, como al dar vuelta la mano (revisión del 2026-11-12:
+  // giraba hacia afuera, una vuelta imposible por el otro lado).
+  // Mientras sube, la palma (con la esfera encima) se inclina hacia la persona, en línea con el
+  // antebrazo que se levanta: así la muñeca no se dobla hacia atrás.
   const H: V3 = [-b.s * PROP.hombroX, PROP.hombroY, -0.01];
-  const ante = (m: Mano) => normV(restaV(m.mano, ik2(H, m.mano, PROP.brazo, PROP.antebrazo, m.codo).medio));
-  const giraPor = ortogonal(normV(sumaV(ini.palma, fin.palma)), ante(fin));
-  const palma = gira < 0.5 ? mezclarDir(ini.palma, giraPor, gira * 2) : mezclarDir(giraPor, fin.palma, gira * 2 - 1);
+  const f = normV(restaV(fin.mano, ik2(H, fin.mano, PROP.brazo, PROP.antebrazo, fin.codo).medio));
+  const alzada = normV(lerpV(ini.palma, ortogonal(ini.palma, f), 0.7 * sube));
+  const palma = pronar(b, alzada, fin.palma, fin, gira);
   // La esfera, pegada a la palma: encima mientras sube y en la yema al terminar de girar.
   const r = R + (LUZ_PALMA + PALMA_SOBRE) * gira;
   const c = sumaV(h, escalaV(palma, r));

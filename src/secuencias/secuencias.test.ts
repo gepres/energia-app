@@ -1239,6 +1239,59 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     }
   });
 
+  it('al dar vuelta la esfera, la mano gira hacia adentro (pronación), nunca la vuelta por el otro lado (revisión)', () => {
+    type P = [number, number, number];
+    const resta = (a: number[], b: number[]): P => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+    const punto = (a: number[], b: number[]) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    const cruz = (a: number[], b: number[]): P => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+    const norm = (a: number[]): P => {
+      const l = Math.hypot(a[0], a[1], a[2]);
+      return [a[0] / l, a[1] / l, a[2] / l];
+    };
+    const perp = (v: number[], f: number[]) => norm(resta(v, f.map((x) => x * punto(v, f))));
+    /** Giro acumulado de la mano alrededor de su antebrazo, en grados (pronación > 0), cuadro a cuadro. */
+    const giros = (paso: number, L: 'D' | 'I') => {
+      const FPS = 30;
+      const n = Math.round(sec.pasos[paso].dur * FPS);
+      const out: number[] = [];
+      let previo: number | null = null;
+      let acum = 0;
+      for (let i = 0; i <= n; i++) {
+        const q = resolverEsqueleto(evaluar(sec, paso, i / n, OPCIONES_INICIALES).figuras[0].pose);
+        const W = L === 'D' ? q.munecaD : q.munecaI;
+        const E = L === 'D' ? q.codoD : q.codoI;
+        const H = L === 'D' ? q.hombroD : q.hombroI;
+        const f = norm(resta(W, E));
+        const ref = perp(resta(H, E), f);
+        const np = perp(L === 'D' ? q.palmaD.normal : q.palmaI.normal, f);
+        const a = ((Math.atan2(punto(cruz(ref, np), f), punto(ref, np)) * 180) / Math.PI) * (L === 'I' ? 1 : -1);
+        if (previo !== null) {
+          let d = a - previo;
+          while (d > 180) d -= 360;
+          while (d < -180) d += 360;
+          acum += d;
+        }
+        previo = a;
+        out.push(acum);
+      }
+      return out;
+    };
+    // Al subir con la esfera y darla vuelta sobre el primer dedo (inicio de los pasos 3 y 7): media vuelta hacia adentro.
+    for (const [paso, A] of [
+      [2, PRIMERO],
+      [6, SEGUNDO],
+    ] as const) {
+      const B = A === 'D' ? 'I' : 'D';
+      const g = giros(paso, B);
+      const fin = Math.round((FASES_DELANTE[A][0].dur / sec.pasos[paso].dur) * (g.length - 1));
+      expect(Math.min(...g.slice(0, fin + 1)), `paso ${paso + 1}: gira hacia afuera`).toBeGreaterThan(-45);
+      expect(g[fin], `paso ${paso + 1}: media vuelta hacia adentro`).toBeGreaterThan(120);
+    }
+    // En los traspasos, la mano que da vuelta la esfera también gira hacia adentro.
+    for (const paso of [1, 5])
+      for (const L of ['D', 'I'] as const) expect(Math.min(...giros(paso, L)), `paso ${paso + 1}, mano ${L}: gira hacia afuera`).toBeGreaterThan(-45);
+  });
+
   it('la cámara ve la mano que palpa: el brazo palpado no la tapa (pasos 3, 4, 7 y 8; revisión)', () => {
     /** Distancia del segmento a–b al segmento c–d (muestreado). */
     const entre = (a: number[], b: number[], c: number[], d: number[]) => {
