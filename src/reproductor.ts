@@ -1,7 +1,18 @@
 import { create } from 'zustand';
 import { type Opciones, OPCIONES_INICIALES, type Secuencia, duracionTotal, durPaso, inicios, ubicar } from './secuencias/motor';
 import { SECUENCIAS } from './secuencias';
+import { conVoz } from './secuencias/conVoz';
+import { buscarEjercicio } from './contenido/ejercicios';
+import { leerPreferenciaVoz } from './contenido/voz';
 import { escena } from './escena/tienda';
+
+/** La secuencia de un ejercicio, con su narración si la tiene (con la voz apagada no cambia nada). */
+function secuenciaDe(id: string): Secuencia | null {
+  const sec = SECUENCIAS[id];
+  const ej = buscarEjercicio(id);
+  if (!sec) return null;
+  return ej ? conVoz(sec, ej) : sec;
+}
 
 export interface EstadoReproductor {
   ejercicioId: string | null;
@@ -38,7 +49,7 @@ const FIN = 1e-3;
 export const useReproductor = create<EstadoReproductor>((set, get) => ({
   ejercicioId: null,
   secuencia: null,
-  opciones: { ...OPCIONES_INICIALES },
+  opciones: { ...OPCIONES_INICIALES, voz: leerPreferenciaVoz() },
   tiempo: 0,
   total: 0,
   paso: 0,
@@ -49,7 +60,7 @@ export const useReproductor = create<EstadoReproductor>((set, get) => ({
   revision: 0,
 
   abrir: (id) => {
-    const sec = SECUENCIAS[id] ?? null;
+    const sec = secuenciaDe(id);
     escena.cortePendiente = true;
     set({
       ejercicioId: id,

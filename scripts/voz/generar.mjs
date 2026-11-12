@@ -88,21 +88,23 @@ function textoDelPaso(ej, paso, i) {
   return partes.join(' ');
 }
 
-const ejercicios = EJERCICIOS.filter((e) => e.origen === 'revision').filter((e) => !soloEjercicio || e.id === soloEjercicio);
-if (soloEjercicio && ejercicios.length === 0) {
+const unoPorUno = EJERCICIOS.filter((e) => e.origen === 'revision');
+if (soloEjercicio && !unoPorUno.some((e) => e.id === soloEjercicio)) {
   console.error(`No hay un ejercicio «uno por uno» con id «${soloEjercicio}».`);
   process.exit(1);
 }
 
-const narraciones = ejercicios.map((ej) => ({
+/** Todos los ejercicios (para el guion) y los que se generan (todos, o el pedido con --ejercicio). */
+const todas = unoPorUno.map((ej) => ({
   ej,
   pasos: ej.pasos.map((paso, i) => ({ paso, i, texto: textoDelPaso(ej, paso, i) })),
 }));
+const narraciones = todas.filter((n) => !soloEjercicio || n.ej.id === soloEjercicio);
 
 // ── Revisar: el guion completo, sin llamar a ElevenLabs ──────────────────
 
 function escribirGuion() {
-  const total = narraciones.reduce((a, n) => a + n.pasos.reduce((b, p) => b + p.texto.length, 0), 0);
+  const total = todas.reduce((a, n) => a + n.pasos.reduce((b, p) => b + p.texto.length, 0), 0);
   const lineas = [
     '# Guion de voz · ejercicios uno por uno',
     '',
@@ -116,7 +118,7 @@ function escribirGuion() {
     ...PARA_CONFIRMAR.map(([a, b]) => `- «${a}» se dice ${b}.`),
     '',
   ];
-  for (const { ej, pasos } of narraciones) {
+  for (const { ej, pasos } of todas) {
     const car = pasos.reduce((a, p) => a + p.texto.length, 0);
     lineas.push(`## ${String(ej.numero).padStart(2, '0')} · ${ej.titulo}`, '', `${car.toLocaleString('es')} caracteres, unos ${Math.round(car / CARACTERES_POR_SEGUNDO)} s de voz.`, '');
     for (const { paso, i, texto } of pasos) {
@@ -126,7 +128,7 @@ function escribirGuion() {
   mkdirSync(dirname(GUION), { recursive: true });
   writeFileSync(GUION, lineas.join('\n'));
   console.log(`Guion: ${GUION}`);
-  console.log(`${narraciones.length} ejercicios, ${total.toLocaleString('es')} caracteres (unos ${Math.round(total / CARACTERES_POR_SEGUNDO / 60)} min de voz, unos ${((total / 1000) * USD_POR_MIL).toFixed(2)} USD por API).`);
+  console.log(`${todas.length} ejercicios, ${total.toLocaleString('es')} caracteres (unos ${Math.round(total / CARACTERES_POR_SEGUNDO / 60)} min de voz, unos ${((total / 1000) * USD_POR_MIL).toFixed(2)} USD por API).`);
 }
 
 // ── Generar: llama a ElevenLabs y guarda los audios ──────────────────────

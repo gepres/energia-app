@@ -1,0 +1,56 @@
+{
+  "recorrido-por-chakras/unir-barras": {
+    "audio": "voz/recorrido-por-chakras/unir-barras.mp3",
+    "segundos": 22.57,
+    "firma": "d6851fa4626d",
+    "caracteres": 287
+  },
+  "recorrido-por-chakras/coronilla": {
+    "audio": "voz/recorrido-por-chakras/coronilla.mp3",
+    "segundos": 15.6,
+    "firma": "4f7cc48e72f5",
+    "caracteres": 211
+  },
+  "recorrido-por-chakras/frente": {
+    "audio": "voz/recorrido-por-chakras/frente.mp3",
+    "segundos": 21.64,
+    "firma": "b4c60eed83eb",
+    "caracteres": 253
+  },
+  "recorrido-por-chakras/espalda": {
+    "audio": "voz/recorrido-por-chakras/espalda.mp3",
+    "segundos": 27.21,
+    "firma": "2cff4f6b0022",
+    "caracteres": 326
+  },
+  "recorrido-por-chakras/introducir": {
+    "audio": "voz/recorrido-por-chakras/introducir.mp3",
+    "segundos": 23.36,
+    "firma": "60d3f978278c",
+    "caracteres": 288
+  },
+  "cargar-ombligo/brazos-barras": {
+    "audio": "voz/cargar-ombligo/brazos-barras.mp3",
+    "segundos": 19.09,
+    "firma": "eb43ef530d3a",
+    "caracteres": 204
+  },
+  "cargar-ombligo/cargas-intercaladas": {
+    "audio": "voz/cargar-ombligo/cargas-intercaladas.mp3",
+    "segundos": 19.36,
+    "firma": "7527f431e96f",
+    "caracteres": 207
+  },
+  "sellar-cielo/tocar-nube": {
+    "audio": "voz/sellar-cielo/tocar-nube.mp3",
+    "segundos": 13.7,
+    "firma": "08d7c25da326",
+    "caracteres": 152
+  },
+  "sellar-cielo/bajar-velo": {
+    "audio": "voz/sellar-cielo/bajar-velo.mp3",
+    "segundos": 22.52,
+    "firma": "4b1b885e88c2",
+    "caracteres": 286
+  }
+}

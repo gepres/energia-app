@@ -1017,6 +1017,33 @@ button {
   background: rgb(255 255 255 / 0.06);
 }
 
+/* Interruptor de la narración con voz: apagado, discreto; activado, con el color del ejercicio. */
+.boton-voz {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: none;
+  font-size: 13px;
+  color: var(--texto-2);
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+
+.boton-voz:hover {
+  color: var(--texto);
+  background: rgb(255 255 255 / 0.06);
+}
+
+.boton-voz[aria-pressed='true'] {
+  color: var(--acento);
+  border-color: color-mix(in oklab, var(--acento) 45%, transparent);
+  background: color-mix(in oklab, var(--acento) 12%, transparent);
+}
+
 .boton-toma {
   display: inline-flex;
   align-items: center;

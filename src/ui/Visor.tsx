@@ -21,6 +21,8 @@ import type { EnRutina } from '../rutinas/rutinas';
 import { LineaTiempo } from './LineaTiempo';
 import { marcarVisto } from './progreso';
 import { esOld, irA } from './ruta';
+import { tieneVoz } from '../contenido/voz';
+import { BotonVoz, useNarrador } from './Voz';
 
 const VELOCIDADES = [0.5, 0.75, 1, 1.5, 2];
 
@@ -93,6 +95,7 @@ function VisorEjercicio({ ej, rutina }: { ej: Ejercicio; rutina?: EnRutina }) {
 
   const actual = ej.pasos[paso] ?? ej.pasos[0];
   const conVideo = useReproductor((s) => s.opciones.video) && !!actual.respiraciones;
+  useNarrador(ej);
 
   return (
     <div className="visor" data-acento={ej.acento}>
@@ -150,7 +153,7 @@ function VisorEjercicio({ ej, rutina }: { ej: Ejercicio; rutina?: EnRutina }) {
         )}
       </aside>
 
-      <Transporte pasos={ej.pasos} />
+      <Transporte pasos={ej.pasos} voz={tieneVoz(ej)} />
     </div>
   );
 }
@@ -243,7 +246,7 @@ function SelectorOrgano() {
   );
 }
 
-function Transporte({ pasos }: { pasos: Paso[] }) {
+function Transporte({ pasos, voz }: { pasos: Paso[]; voz: boolean }) {
   const reproduciendo = useReproductor((s) => s.reproduciendo);
   const alternar = useReproductor((s) => s.alternar);
   const siguiente = useReproductor((s) => s.siguiente);
@@ -278,6 +281,7 @@ function Transporte({ pasos }: { pasos: Paso[] }) {
         >
           {velocidad}×
         </button>
+        {voz && <BotonVoz />}
       </div>
       {libre && (
         <button className="boton-toma" onClick={() => setLibre(false)}>

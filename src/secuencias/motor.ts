@@ -21,9 +21,14 @@ export interface Opciones {
   ritmo: Ritmo;
   /** Acompañar las respiraciones con el video del taller: el paso dura todas, no una de muestra. */
   video: boolean;
+  /**
+   * Narración con voz de los pasos (ElevenLabs): cada paso dura lo que lo más largo entre su
+   * animación y su voz; si la voz es más larga, la escena espera quieta al final del paso.
+   */
+  voz: boolean;
 }
 
-export const OPCIONES_INICIALES: Opciones = { organo: 'corazon', ritmo: '4-3-4', video: false };
+export const OPCIONES_INICIALES: Opciones = { organo: 'corazon', ritmo: '4-3-4', video: false, voz: false };
 
 export interface Tiempo3D {
   /** Duración del paso en segundos (a velocidad normal), con las opciones iniciales. */
