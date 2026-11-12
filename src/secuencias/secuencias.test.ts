@@ -1239,6 +1239,43 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     }
   });
 
+  it('la cámara ve la mano que palpa: el brazo palpado no la tapa (pasos 3, 4, 7 y 8; revisión)', () => {
+    /** Distancia del segmento a–b al segmento c–d (muestreado). */
+    const entre = (a: number[], b: number[], c: number[], d: number[]) => {
+      let m = 1e9;
+      for (let i = 0; i <= 40; i++)
+        for (let j = 0; j <= 8; j++)
+          m = Math.min(m, dist([0, 1, 2].map((k) => a[k] + ((b[k] - a[k]) * i) / 40), [0, 1, 2].map((k) => c[k] + ((d[k] - c[k]) * j) / 8)));
+      return m;
+    };
+    for (const [paso, A] of [
+      [2, PRIMERO],
+      [3, PRIMERO],
+      [6, SEGUNDO],
+      [7, SEGUNDO],
+    ] as const) {
+      const B = A === 'D' ? 'I' : 'D';
+      let tapada = 0;
+      let total = 0;
+      for (const e of muestras(paso, 80).slice(8, -8)) {
+        const q = resolverEsqueleto(e.figuras[0].pose);
+        if (!e.esferas[0].activa) continue;
+        const h = palmas(e)[B];
+        const W = A === 'I' ? q.munecaI : q.munecaD;
+        const E = A === 'I' ? q.codoI : q.codoD;
+        const F = A === 'I' ? q.palmaI.dedos : q.palmaD.dedos;
+        const yema = [0, 1, 2].map((k) => W[k] + F[k] * 0.15);
+        // La línea de vista de la cámara a la mano que palpa, contra el antebrazo y la mano palpados.
+        const cam = e.camara.pos;
+        const libre = Math.min(entre(cam, h, E, W) - 0.035, entre(cam, h, W, yema) - 0.03);
+        total++;
+        if (libre < 0) tapada++;
+      }
+      // Casi siempre a la vista (puede cruzarse un instante, en los cambios de toma).
+      expect(tapada / total, `paso ${paso + 1}: la mano que palpa queda tapada`).toBeLessThan(0.08);
+    }
+  });
+
   it('con la mano parada, la mano y el antebrazo que palpan no se meten en el cuerpo ni cruzan el otro antebrazo (pasos 3, 4, 7 y 8)', () => {
     /** Distancia entre dos segmentos (muestreados), sin grosor. */
     const entreSegmentos = (a0: number[], a1: number[], b0: number[], b1: number[]) => {

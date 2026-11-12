@@ -828,9 +828,11 @@ function cubrirDedos(e: Estado, b: Brazo, k: number) {
 
 /**
  * La mano `b.A` se levanta, parada y con la palma hacia la persona, y separa un poco el
- * primer dedo de los demás; la mano `b.B`, que tiene la esfera en la palma, la da vuelta sin
- * soltarla (queda pegada a su palma) y, con forma de agarrar, va a cubrir ese dedo, con la
- * yema en el centro de la esfera. Pasa por arriba de los dedos para no rozarlos.
+ * primer dedo de los demás. La mano `b.B` lo hace en dos tiempos, como un gesto natural
+ * (revisión del 2026-11-12: subir y girar a la vez se veía como un giro raro):
+ *  1. sube con la esfera en la palma, palma arriba, hasta junto a ese dedo;
+ *  2. ahí se da vuelta girando el antebrazo, sin soltarla: la esfera pasa de encima de la
+ *     palma a la yema del dedo, y la mano queda con forma de agarrar.
  */
 function prepararCubrir(b: Brazo, k: number): { manos: Manos; c: V3; r: number } {
   const s = entraSaleSeno(k);
@@ -838,19 +840,27 @@ function prepararCubrir(b: Brazo, k: number): { manos: Manos; c: V3; r: number }
   const mA = { ...mezclarMano(reposo(b.A), b.palpado(0, 1), s), aislado: primero.a, separar: tramo(s, 0.5, 1) };
   const ini = reposo(b.B);
   const fin = manoEn(b, sumaV(primero.yema, escalaV(primero.normal, R + LUZ_PALMA + PALMA_SOBRE)), primero.normal, PHI_CUBRIR, CIERRE_CUBRIR, primero.dir);
-  const c = sumaV(lerpV(enPalma(ini, R), primero.yema, s), [0, 0.08 * Math.sin(Math.PI * s), 0]);
-  // La da vuelta girando el antebrazo: la palma pasa por una dirección perpendicular a él (si
+  const hueco = (m: Mano) => sumaV(sumaV(m.mano, escalaV(m.dedos, HUECO.dedos)), escalaV(m.palma, HUECO.piel));
+  const sube = tramo(k, 0, 0.6, entraSaleSeno);
+  const gira = tramo(k, 0.5, 1, entraSaleSeno);
+  // Sube hasta un poco más cerca de la persona y más abajo que donde cubre el dedo (así ni la
+  // mano ni la esfera tocan la mano parada); al darse vuelta, se acerca al dedo.
+  const antes = sumaV(sumaV(hueco(fin), escalaV(primero.normal, PREP_ATRAS)), [0, -PREP_ABAJO, 0]);
+  const h = lerpV(lerpV(hueco(ini), antes, sube), hueco(fin), gira);
+  // Se da vuelta girando el antebrazo: la palma pasa por una dirección perpendicular a él (si
   // pasara por la dirección del antebrazo, la muñeca se doblaría 90°).
   const H: V3 = [-b.s * PROP.hombroX, PROP.hombroY, -0.01];
   const ante = (m: Mano) => normV(restaV(m.mano, ik2(H, m.mano, PROP.brazo, PROP.antebrazo, m.codo).medio));
-  const giraPor = ortogonal(normV(sumaV(ini.palma, fin.palma)), normV(sumaV(ante(ini), ante(fin))));
-  const palma = s < 0.5 ? mezclarDir(ini.palma, giraPor, s * 2) : mezclarDir(giraPor, fin.palma, s * 2 - 1);
-  const dedos = ortogonal(mezclarDir(ini.dedos, fin.dedos, s), palma);
-  const polo = mezclarDir(ini.codo, fin.codo, s);
-  const sostiene = sostener(c, R + (LUZ_PALMA + PALMA_SOBRE) * s, palma, dedos, lerp(ini.cierre, fin.cierre, s), polo);
-  // Mientras la da vuelta y la lleva, la mano sigue a su antebrazo (sin doblar la muñeca) y el
-  // pulgar se acomoda como al cubrir los dedos.
-  const mB = { ...natural(b, sostiene, polo, tramo(s, 0, 0.35)), apoyar: APOYO_CUBRIR * s };
+  const giraPor = ortogonal(normV(sumaV(ini.palma, fin.palma)), ante(fin));
+  const palma = gira < 0.5 ? mezclarDir(ini.palma, giraPor, gira * 2) : mezclarDir(giraPor, fin.palma, gira * 2 - 1);
+  // La esfera, pegada a la palma: encima mientras sube y en la yema al terminar de girar.
+  const r = R + (LUZ_PALMA + PALMA_SOBRE) * gira;
+  const c = sumaV(h, escalaV(palma, r));
+  const dedos = ortogonal(mezclarDir(ini.dedos, fin.dedos, gira), palma);
+  const polo = mezclarDir(ini.codo, fin.codo, sube);
+  const sostiene = sostener(c, r, palma, dedos, lerp(ini.cierre, fin.cierre, gira), polo);
+  // La mano sigue a su antebrazo (sin doblar la muñeca) y el pulgar se acomoda como al cubrir los dedos.
+  const mB = { ...natural(b, sostiene, polo, tramo(k, 0, 0.25)), apoyar: APOYO_CUBRIR * gira };
   return { manos: manos(b.A, mA, mB), c, r: R };
 }
 
@@ -867,8 +877,11 @@ const fasesDelante = (preparar: number): Fase<IdDelante>[] => [
 /** Primero se palpa el brazo derecho (con la mano izquierda) y después el izquierdo (descrito en el taller). */
 const PRIMERO: Lado = 'D';
 const SEGUNDO: Lado = 'I';
-/** Cada brazo empieza igual: la mano que tiene la esfera la da vuelta y va a cubrir el primer dedo. */
-const PREPARAR = 2.6;
+/** Cada brazo empieza igual: la mano que tiene la esfera sube con ella y la da vuelta sobre el primer dedo. */
+const PREPARAR = 3.4;
+/** Hasta dónde sube primero la mano con la esfera: 10 cm más cerca de la persona y 10 cm más abajo que donde cubre el dedo. */
+const PREP_ATRAS = 0.1;
+const PREP_ABAJO = 0.1;
 const FASES_DELANTE: Record<Lado, Fase<IdDelante>[]> = { D: fasesDelante(PREPARAR), I: fasesDelante(PREPARAR) };
 
 type IdAtras = 'girar' | 'linea' | 'aYemas' | 'recorrer' | 'volver' | 'quieto' | 'absorber';
@@ -1019,11 +1032,19 @@ function atras(e: Estado, A: Lado, seg: number) {
 // ── Cámaras ─────────────────────────────────────────────────────────────
 
 const CAM_MANOS = encuadre([0, 1.2, 0.32], 0.5, 0.25, 0.22);
-// Con la mano levantada sobre el pecho, las tomas la siguen más arriba y un poco más adelante.
-const camDelante = (A: Lado): Camara => encuadre([SIGNO[A] * 0.08, 1.37, 0.3], 0.6, SIGNO[A] * 0.25, 0.22);
-const camHombro = (A: Lado): Camara => encuadre([SIGNO[A] * 0.12, 1.37, 0.17], 0.85, SIGNO[A] * 0.6, 0.2);
-/** De cerca y desde el lado del pulgar, un poco por encima: se ve la mano ahuecada sobre cada dedo, sin tocarlo. */
-const camDedos = (A: Lado): Camara => encuadre(sumaV(BRAZOS[A].puntos.dedos.piel, [0, 0.02, 0]), 0.36, SIGNO[A] * 0.77, 0.22);
+/*
+ * Con la mano parada y la palma hacia la persona, la otra mano trabaja entre esa mano y el
+ * cuerpo: de frente, la mano parada la tapa (revisión del 2026-11-12: «a veces no se aprecia
+ * bien el ejercicio»). Por eso las tomas miran un poco desde arriba y de costado.
+ */
+/** Al subir con la esfera y darla vuelta: abierta, de frente y desde el lado de la mano que la lleva. */
+const camPreparar = (A: Lado): Camara => encuadre([SIGNO[A] * 0.03, 1.36, 0.3], 0.72, -SIGNO[A] * 0.4, 0.32);
+/** Al cubrir los dedos: de frente, desde el lado de la mano que cubre y un poco desde arriba. */
+const camDedos = (A: Lado): Camara => encuadre(sumaV(BRAZOS[A].puntos.dedos.piel, [SIGNO[A] * 0.01, 0, -0.03]), 0.5, -SIGNO[A] * 0.45, 0.45);
+/** La línea del antebrazo (por delante y por atrás): desde arriba y del lado de la mano parada; se ve la mano sobre el antebrazo. */
+const camDelante = (A: Lado): Camara => encuadre([SIGNO[A] * 0.15, 1.36, 0.25], 0.64, SIGNO[A] * 0.5, 0.6);
+/** El recorrido, de los dedos al hombro: igual, más abierta. */
+const camHombro = (A: Lado): Camara => encuadre([SIGNO[A] * 0.13, 1.38, 0.22], 0.82, SIGNO[A] * 0.45, 0.45);
 
 function pasoDelante(A: Lado) {
   const fases = FASES_DELANTE[A];
@@ -1034,9 +1055,9 @@ function pasoDelante(A: Lado) {
   return {
     dur,
     aplicar: (e: Estado, t: number) => {
-      toma(e, camDelante(A), t, 0, 0.1);
+      toma(e, camPreparar(A), t, 0, 0.08);
       toma(e, camDedos(A), t, tDedos - 0.04, tDedos + 0.04);
-      toma(e, camDelante(A), t, tMuneca - 0.02, tMuneca + 0.06);
+      toma(e, camDelante(A), t, tMuneca - 0.02, tMuneca + 0.08);
       delante(e, A, t * dur);
     },
   };
