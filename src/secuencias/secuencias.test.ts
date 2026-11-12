@@ -733,7 +733,7 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
     }
   });
 
-  it('la mano que recibe la energía no está echada: parada casi a la altura del pecho, mirando a la persona (revisión)', () => {
+  it('la mano que recibe la energía no está echada: levantada sobre el pecho, recta con el antebrazo y mirando a la persona (revisión)', () => {
     const pecho = PUNTOS.corazon[1];
     for (const [pasos, A] of [
       [[2, 3], PRIMERO],
@@ -753,12 +753,15 @@ describe('Sensibilización de manos (descrito en el taller)', () => {
           const E = A === 'I' ? q.codoI : q.codoD;
           const pal = A === 'I' ? q.palmaI : q.palmaD;
           const hueco = huecoPalma(W, pal.dedos, pal.normal, 0);
-          // La mano, casi a la altura del pecho (antes estaba echada a la altura de la cintura, en 1,20).
-          expect(hueco[1], `paso ${paso + 1}, altura de la mano`).toBeGreaterThan(pecho - 0.03);
-          expect(hueco[1], `paso ${paso + 1}, altura de la mano`).toBeLessThan(pecho + 0.06);
-          // Parada: los dedos hacia arriba (más de 40°) y el codo más abajo que la muñeca.
-          expect(pal.dedos[1], `paso ${paso + 1}, dedos hacia arriba`).toBeGreaterThan(Math.sin((40 * Math.PI) / 180));
-          expect(E[1], `paso ${paso + 1}, codo abajo`).toBeLessThan(W[1]);
+          // La mano, levantada: más arriba que el pecho y por debajo del mentón (antes, echada a la
+          // altura de la cintura, en 1,20; después, a 1,32 y doblada en la muñeca).
+          expect(hueco[1], `paso ${paso + 1}, altura de la mano`).toBeGreaterThan(pecho + 0.08);
+          expect(hueco[1], `paso ${paso + 1}, altura de la mano`).toBeLessThan(pecho + 0.2);
+          // El antebrazo, levantado (más de 30°), y la mano, recta: en su misma dirección (menos de 10°).
+          const ante = restaV(W as [number, number, number], E as [number, number, number]);
+          expect(Math.asin(ante[1] / largoV(ante)), `paso ${paso + 1}, antebrazo levantado`).toBeGreaterThan((30 * Math.PI) / 180);
+          const quiebre = Math.acos(Math.min(1, [0, 1, 2].reduce((x, k) => x + (ante[k] / largoV(ante)) * pal.dedos[k], 0)));
+          expect(quiebre, `paso ${paso + 1}, la mano recta con el antebrazo`).toBeLessThan((10 * Math.PI) / 180);
           // Mirando a la persona: por delante, la palma hacia atrás (hacia la cara y el pecho) y no hacia
           // arriba; por atrás, el brazo giró y es el dorso el que mira a la persona.
           if (delante) {
