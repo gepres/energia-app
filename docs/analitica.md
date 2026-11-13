@@ -35,7 +35,7 @@ Para saber cómo se usa la app: qué ejercicios y rutinas se abren, hasta qué p
 - **Envíos:** pasan por el propio dominio, `/pulso/*`, con el proxy de `netlify.toml`, para que los
   bloqueadores de anuncios no los corten. El nombre `/pulso` es propio a propósito: `/analytics` o
   `/ingest` los bloquean.
-- **Peso:** PostHog va en un archivo aparte, `posthog-*.js` (104 KB comprimido). Se carga después del
+- **Peso:** PostHog va en un archivo aparte, `pulso-*.js` (un nombre neutro: los bloqueadores filtran «posthog») (104 KB comprimido). Se carga después del
   evento `load` y no entra en la caché sin conexión.
 - **Rutas:** la app navega con `#`, así que todas las pantallas comparten la ruta real `/`. Por eso
   cada visita y cada evento llevan una ruta virtual en `$pathname`, como `/ejercicio/cargar-ombligo`,
