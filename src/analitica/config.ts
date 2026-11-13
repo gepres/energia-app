@@ -49,7 +49,7 @@ export interface Entorno {
   preferencia: Preferencia;
 }
 
-export type Motivo = 'sin-clave' | 'excluido' | 'no-rastrear' | 'version-de-trabajo' | 'incrustada' | 'otro-dominio';
+export type Motivo = 'sin-clave' | 'excluido' | 'no-rastrear' | 'version-de-trabajo' | 'incrustada' | 'otro-dominio' | 'bloqueada';
 
 /** Por qué no se mide en este navegador, o `null` si se mide. */
 export function motivoParaNoMedir(config: ConfigPostHog | null, e: Entorno): Motivo | null {
@@ -70,6 +70,7 @@ export const MOTIVOS: Record<Motivo, string> = {
   'version-de-trabajo': 'Esta es la versión de trabajo: no se mide.',
   incrustada: 'La app está dentro de otra página: no se mide.',
   'otro-dominio': 'Solo se mide en la app publicada.',
+  bloqueada: 'No se pudo cargar la medición: sin conexión o la bloquea el navegador o una extensión.',
 };
 
 export function leerPreferencia(): Preferencia {

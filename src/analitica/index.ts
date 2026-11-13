@@ -82,6 +82,7 @@ async function cargarPostHog(config: ConfigPostHog) {
     posthog = (await import('posthog-js')).default;
   } catch {
     desactivar(); // sin conexión o bloqueado: no se insiste
+    motivo = 'bloqueada';
     return;
   }
   if (!midiendo()) return; // la persona lo desactivó mientras cargaba
