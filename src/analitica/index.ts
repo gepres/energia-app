@@ -96,6 +96,9 @@ async function cargarPostHog(config: ConfigPostHog) {
     persistence: 'localStorage',
     // La app navega con «#»: las visitas las registra visitar(), con su ruta virtual.
     capture_pageview: false,
+    // Y el «#» es la pantalla: sin esto (los defaults de 2026-06-25 en adelante lo quitan) el mapa de
+    // calor, los clics y las grabaciones juntarían todas las pantallas en «/». No lleva datos sensibles.
+    disable_capture_url_hashes: false,
     capture_pageleave: true,
     capture_heatmaps: true,
     respect_dnt: true,
