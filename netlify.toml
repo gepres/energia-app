@@ -7,6 +7,32 @@
 [build.environment]
   NODE_VERSION = "22"
 
+# Analítica (PostHog): los envíos pasan por el propio dominio, para que los bloqueadores de
+# anuncios no los corten. Guía oficial: posthog.com/docs/advanced/proxy/netlify. El orden importa
+# (los archivos y la configuración antes de la regla general) y `host` es obligatorio: sin él,
+# PostHog responde 401. Región US; para EU, cambiar «us» por «eu» en las tres reglas y poner
+# VITE_POSTHOG_REGION=eu. La ruta coincide con RUTA_PROXY en src/analitica/config.ts.
+[[redirects]]
+  from = "/pulso/static/*"
+  to = "https://us-assets.i.posthog.com/static/:splat"
+  host = "us-assets.i.posthog.com"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/pulso/array/*"
+  to = "https://us-assets.i.posthog.com/array/:splat"
+  host = "us-assets.i.posthog.com"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/pulso/*"
+  to = "https://us.i.posthog.com/:splat"
+  host = "us.i.posthog.com"
+  status = 200
+  force = true
+
 # /old es la versión de trabajo (el home anterior, para seguir revisando ejercicios):
 # la misma app, que elige el home según la ruta.
 [[redirects]]

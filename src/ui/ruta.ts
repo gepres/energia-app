@@ -6,6 +6,8 @@ export type Ruta =
   | { nombre: 'repaso'; id?: string }
   | { nombre: 'dudas' }
   | { nombre: 'respiracion' }
+  /** Qué se mide del uso de la app y cómo dejar de medirlo. */
+  | { nombre: 'privacidad' }
   /** Reproducir una rutina: el ítem `indice` (desde 1). */
   | { nombre: 'rutina'; id: string; indice: number }
   /** Crear una rutina (`id` vacío, opcionalmente copiando `base`) o editar una propia. */
@@ -20,6 +22,7 @@ export function leerRuta(hash = window.location.hash): Ruta {
   if (partes[0] === 'repaso') return { nombre: 'repaso', id: partes[1] ? decodeURIComponent(partes[1]) : undefined };
   if (partes[0] === 'dudas') return { nombre: 'dudas' };
   if (partes[0] === 'respiracion') return { nombre: 'respiracion' };
+  if (partes[0] === 'privacidad') return { nombre: 'privacidad' };
   if (partes[0] === 'rutina' && partes[1]) {
     const indice = Number(partes[2]);
     return { nombre: 'rutina', id: decodeURIComponent(partes[1]), indice: Number.isInteger(indice) && indice > 0 ? indice : 1 };

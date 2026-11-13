@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowLeft, ArrowUp, Plus, Trash2, Wind, X } from 'lucide-react';
 import { useState } from 'react';
 import { useReproductor } from '../reproductor';
+import { registrar } from '../analitica/registro';
 import { BotonTema } from '../ui/Tema';
 import { irA } from '../ui/ruta';
 import {
@@ -58,6 +59,8 @@ export function EditorRutina({ id, base }: { id?: string; base?: string }) {
   const guardar = () => {
     if (items.length === 0) return;
     guardarRutina({ id: existente?.id ?? nuevoId(), nombre: nombre.trim() || 'Mi rutina', items });
+    const ejercicios = items.filter((it) => it.tipo === 'ejercicio').length;
+    registrar('rutina_guardada', { nueva: !existente, items: items.length, ejercicios, respiraciones: items.length - ejercicios });
     irA('#/');
   };
 
@@ -156,7 +159,7 @@ export function EditorRutina({ id, base }: { id?: string; base?: string }) {
         {existente &&
           (borrando ? (
             <span className="editor-borrar">
-              ¿Borrar «{existente.nombre}»?
+              ¿Borrar «<span className="ph-sensitive">{existente.nombre}</span>»?
               <button
                 className="boton"
                 data-peligro="true"

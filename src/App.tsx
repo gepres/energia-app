@@ -5,6 +5,7 @@ import { Hud } from './ui/Hud';
 import { EditorRutina } from './rutinas/EditorRutina';
 import { ReproductorRutina, tipoEnRutina } from './rutinas/ReproductorRutina';
 import { Inicio, InicioOld } from './ui/Inicio';
+import { Privacidad } from './ui/Privacidad';
 import { esOld, useRuta } from './ui/ruta';
 import { Visor } from './ui/Visor';
 
@@ -51,7 +52,8 @@ export function App() {
 
   return (
     <>
-      <div className="escenario" data-modo={modo}>
+      {/* Arrastrar la escena 3D no cambia la página: para PostHog no son «clics muertos» ni «clics de rabia». */}
+      <div className="escenario ph-no-deadclick ph-no-rageclick" data-modo={modo}>
         <Suspense fallback={<div className="escenario-cargando">Preparando la escena…</div>}>
           <Escenario />
         </Suspense>
@@ -62,6 +64,7 @@ export function App() {
       {ruta.nombre === 'rutina' && <ReproductorRutina id={ruta.id} indice={ruta.indice} />}
       {ruta.nombre === 'editar-rutina' && <EditorRutina key={`${ruta.id ?? ''}-${ruta.base ?? ''}`} id={ruta.id} base={ruta.base} />}
       {ruta.nombre === 'dudas' && <Dudas />}
+      {ruta.nombre === 'privacidad' && <Privacidad />}
       <Suspense fallback={null}>
         {ruta.nombre === 'repaso' && <Repaso id={ruta.id} />}
         {ruta.nombre === 'respiracion' && <Respiracion />}

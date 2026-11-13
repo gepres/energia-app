@@ -45,7 +45,7 @@ function TarjetaRutina({ r, porDefecto }: { r: Rutina; porDefecto?: boolean }) {
   return (
     <article className="tarjeta-rutina" data-acento={porDefecto ? 'oro' : 'jade'}>
       <a className="tarjeta-rutina-enlace" href={`#/rutina/${encodeURIComponent(r.id)}/1`}>
-        <span className="tarjeta-titulo">{r.nombre}</span>
+        <span className={porDefecto ? 'tarjeta-titulo' : 'tarjeta-titulo ph-sensitive'}>{r.nombre}</span>
         <span className="tarjeta-meta">
           {ejercicios} {ejercicios === 1 ? 'ejercicio' : 'ejercicios'}
           {respiraciones > 0 && ` · ${respiraciones} de respiraciones`} · unos {minutos(duracionRutina(r))}
@@ -135,7 +135,12 @@ export function Inicio() {
           </section>
         ))}
       </section>
-      <footer className="inicio-pie">Representación simbólica de las prácticas del taller.</footer>
+      <footer className="inicio-pie">
+        <p>Representación simbólica de las prácticas del taller.</p>
+        <p>
+          Para mejorar la app medimos cómo se usa, sin pedirte datos personales. <a href="#/privacidad">Privacidad y cómo desactivarlo</a>.
+        </p>
+      </footer>
     </main>
   );
 }

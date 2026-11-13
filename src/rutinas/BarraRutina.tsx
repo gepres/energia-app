@@ -4,10 +4,10 @@ import type { EnRutina } from './rutinas';
 /** «Rutina completa · 3 de 11», con anterior y siguiente. */
 export function BarraRutina({ rutina }: { rutina: EnRutina }) {
   return (
-    <div className="barra-rutina" role="group" aria-label={`Rutina ${rutina.nombre}`}>
+    <div className="barra-rutina" role="group" aria-label="Rutina en curso">
       <ListOrdered size={15} aria-hidden="true" />
       <span className="barra-rutina-texto">
-        {rutina.nombre} · <strong>{rutina.indice}</strong> de {rutina.total}
+        <span className="ph-sensitive">{rutina.nombre}</span> · <strong>{rutina.indice}</strong> de {rutina.total}
       </span>
       <button className="boton-icono" onClick={rutina.irAnterior} disabled={!rutina.irAnterior} aria-label="Ejercicio anterior de la rutina">
         <ChevronLeft size={16} />
@@ -35,7 +35,7 @@ export function FinParte({ rutina, que }: { rutina: EnRutina; que: string }) {
       ) : (
         <>
           <p>
-            <PartyPopper size={16} aria-hidden="true" /> Terminaste <strong>{rutina.nombre}</strong>.
+            <PartyPopper size={16} aria-hidden="true" /> Terminaste <strong className="ph-sensitive">{rutina.nombre}</strong>.
           </p>
           <button className="boton" data-principal="true" onClick={rutina.salir} autoFocus>
             Volver al inicio

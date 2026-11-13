@@ -1,5 +1,6 @@
 import { Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { fijar, registrar } from '../analitica/registro';
 
 export type Tema = 'claro' | 'oscuro';
 const CLAVE = 'repaso-energetico:tema';
@@ -41,6 +42,8 @@ export function useTema(): [Tema, (t: Tema) => void] {
     }
     aplicarTema(t);
     oyentes.forEach((f) => f(t));
+    registrar('tema', { tema: t });
+    fijar({ tema: t });
   };
   return [tema, cambiar];
 }

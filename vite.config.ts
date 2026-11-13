@@ -31,6 +31,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2,webmanifest}'],
+        // PostHog (analítica) no va a la caché sin conexión: sin red no hay a dónde enviar, y quien no
+        // se mide (p. ej. con «no rastrear») no lo descarga.
+        globIgnores: ['**/posthog-*.js'],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         navigateFallback: 'index.html',
       },
@@ -48,6 +51,7 @@ export default defineConfig({
         manualChunks(id) {
           if (id.includes('node_modules/three/')) return 'three';
           if (id.includes('@react-three') || id.includes('postprocessing')) return 'r3f';
+          if (id.includes('node_modules/posthog-js/') || id.includes('node_modules/@posthog/')) return 'posthog';
           return undefined;
         },
       },
