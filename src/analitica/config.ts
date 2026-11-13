@@ -44,10 +44,12 @@ export interface Entorno {
   pathname: string;
   /** El navegador pide no rastrear (Do Not Track o Global Privacy Control). */
   noRastrear: boolean;
+  /** La app está dentro de un marco (p. ej. el visor de mapas de calor de PostHog): no es una visita. */
+  incrustada: boolean;
   preferencia: Preferencia;
 }
 
-export type Motivo = 'sin-clave' | 'excluido' | 'no-rastrear' | 'version-de-trabajo' | 'otro-dominio';
+export type Motivo = 'sin-clave' | 'excluido' | 'no-rastrear' | 'version-de-trabajo' | 'incrustada' | 'otro-dominio';
 
 /** Por qué no se mide en este navegador, o `null` si se mide. */
 export function motivoParaNoMedir(config: ConfigPostHog | null, e: Entorno): Motivo | null {
@@ -55,6 +57,7 @@ export function motivoParaNoMedir(config: ConfigPostHog | null, e: Entorno): Mot
   if (e.preferencia === 'no') return 'excluido';
   if (e.noRastrear) return 'no-rastrear';
   if (esOld(e.pathname)) return 'version-de-trabajo';
+  if (e.incrustada) return 'incrustada';
   if (e.host !== DOMINIO && e.preferencia !== 'forzar') return 'otro-dominio';
   return null;
 }
@@ -65,6 +68,7 @@ export const MOTIVOS: Record<Motivo, string> = {
   excluido: 'Desactivaste la medición en este navegador.',
   'no-rastrear': 'Tu navegador pide no rastrear, y lo respetamos.',
   'version-de-trabajo': 'Esta es la versión de trabajo: no se mide.',
+  incrustada: 'La app está dentro de otra página: no se mide.',
   'otro-dominio': 'Solo se mide en la app publicada.',
 };
 
@@ -93,6 +97,13 @@ export function entornoActual(): Entorno {
     host: window.location.hostname,
     pathname: window.location.pathname,
     noRastrear: nav.doNotTrack === '1' || win.doNotTrack === '1' || nav.globalPrivacyControl === true,
+    incrustada: (() => {
+      try {
+        return window.self !== window.top;
+      } catch {
+        return true;
+      }
+    })(),
     preferencia: leerPreferencia(),
   };
 }

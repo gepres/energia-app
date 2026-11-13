@@ -50,7 +50,9 @@
   [headers.values]
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    X-Frame-Options = "SAMEORIGIN"
+    # En un marco, solo el propio sitio y PostHog (su visor de mapas de calor carga la app en un iframe).
+    # Reemplaza a X-Frame-Options = "SAMEORIGIN", que no permite nombrar otro origen.
+    Content-Security-Policy = "frame-ancestors 'self' https://us.posthog.com"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
 
 [[headers]]

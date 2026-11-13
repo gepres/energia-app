@@ -78,9 +78,11 @@ la página (`$pageleave`) y, si están activadas en el proyecto, las grabaciones
 3. Si la región es EU: `VITE_POSTHOG_REGION=eu`, y cambiar `us` por `eu` en las tres reglas `/pulso`
    de `netlify.toml`.
 4. En la configuración del proyecto de PostHog:
-   - activar la grabación de sesiones (*Session replay*);
-   - agregar `https://energia.genaropretill.com` a las URLs autorizadas de la barra (*Toolbar*), para
-     ver el mapa de calor sobre la app.
+   - activar la grabación de sesiones (*Session replay*). Hecho el 2026-11-13;
+   - en *Heatmaps* → *Heatmap capture URLs*, *Only listed URLs*, poner `https://energia.genaropretill.com/*`.
+     El plan gratuito acepta hasta 3 URLs, con comodín. Sin eso, PostHog captura solo las páginas
+     de los 3 mapas guardados más antiguos;
+   - en *Project settings* → *Authorized URLs*, agregar `https://energia.genaropretill.com`.
 5. Publicar (push a main).
 6. Verificar que `https://energia.genaropretill.com/pulso/static/array.js` responde 200 y que llegan
    eventos en *Activity*.
@@ -88,7 +90,13 @@ la página (`$pageleave`) y, si están activadas en el proyecto, las grabaciones
 ## Dónde mirar
 
 - **Web analytics:** visitas, origen, países, dispositivos y pantallas (por la ruta virtual).
-- **Mapa de calor:** se abre la barra de PostHog sobre la app publicada (*Toolbar* → *Heatmap*).
+- **Mapa de calor:** en la página *Heatmaps* de PostHog, que es gratis. En *Display URL* va la pantalla,
+  por ejemplo `https://energia.genaropretill.com/#/ejercicio/cargar-ombligo`. Hay vista de calor,
+  de scroll y de clics.
+  - Esa página carga la app en un iframe. Por eso `netlify.toml` permite el marco solo a
+    `https://us.posthog.com` (`frame-ancestors`, en lugar de `X-Frame-Options`).
+  - Dentro de un marco la app no mide (motivo `incrustada`), así que revisar el mapa no suma visitas.
+  - Verlo desde la barra de PostHog (*Toolbar*) requiere el plan pay-as-you-go.
 - **Grabaciones:** *Session replay*.
 - **Embudos:** en *Product analytics* → *Funnel*, armar `ejercicio_abierto` → `ejercicio_paso` → `ejercicio_terminado`,
   desglosado por `ejercicio`. Muestra dónde se abandona cada ejercicio.

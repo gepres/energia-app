@@ -3,7 +3,7 @@ import { DOMINIO, type Entorno, leerConfig, motivoParaNoMedir } from './config';
 import { SeguimientoReproductor, type VistaReproductor, contextoDeRuta, eventosDeRuta, paginaDeRuta } from './eventos';
 
 const config = { clave: 'phc_prueba', region: 'us' as const };
-const enProduccion: Entorno = { host: DOMINIO, pathname: '/', noRastrear: false, preferencia: null };
+const enProduccion: Entorno = { host: DOMINIO, pathname: '/', noRastrear: false, incrustada: false, preferencia: null };
 
 describe('cuándo se mide', () => {
   it('lee la clave y la región; sin clave no hay configuración', () => {
@@ -25,6 +25,11 @@ describe('cuándo se mide', () => {
     expect(motivoParaNoMedir(config, { ...enProduccion, pathname: '/old/' })).toBe('version-de-trabajo');
     expect(motivoParaNoMedir(config, { ...enProduccion, noRastrear: true })).toBe('no-rastrear');
     expect(motivoParaNoMedir(config, { ...enProduccion, preferencia: 'no' })).toBe('excluido');
+  });
+
+  it('dentro de un marco (el visor de mapas de calor de PostHog) no mide, ni con «forzar»', () => {
+    expect(motivoParaNoMedir(config, { ...enProduccion, incrustada: true })).toBe('incrustada');
+    expect(motivoParaNoMedir(config, { ...enProduccion, incrustada: true, preferencia: 'forzar' })).toBe('incrustada');
   });
 
   it('«forzar» permite probar fuera del dominio, pero no pasa por encima de «no rastrear» ni de /old', () => {
